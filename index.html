@@ -1,0 +1,132 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Aho-Corasick by robert-bor</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/robert-bor/aho-corasick">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/robert-bor/aho-corasick/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/robert-bor/aho-corasick/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Aho-Corasick</h1>
+          <p>Java implementation of the Aho-Corasick algorithm for efficient string matching</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/robert-bor">robert-bor</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="aho-corasick" class="anchor" href="#aho-corasick"><span class="octicon octicon-link"></span></a>Aho-Corasick</h1>
+
+<h2>
+<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h2>
+
+<p>Nowadays most free-text searching is based on Lucene-like approaches, where the search text is parsed into its
+various components. For every keyword a lookup is done to see where it occurs. When looking for a couple of keywords
+this approach is great. But what about it if you are not looking for just a couple of keywords, but a 100,000 of
+them? Like, for example, checking against a dictionary?</p>
+
+<p>This is where the Aho-Corasick algorithm shines. Instead of chopping up the search text, it uses all the keywords
+to build up a construct called a <a href="http://en.wikipedia.org/wiki/Trie">Trie</a>. There are three crucial components
+to Aho-Corasick:</p>
+
+<ul>
+<li>goto</li>
+<li>fail</li>
+<li>output</li>
+</ul><p>Every character encountered is presented to a state object within the goto structure. If there is a matching state,
+that will be elevated to the new current state.</p>
+
+<p>However, if there is no matching state, the algorithm will fall back to states with less depth (ie, a match less long)
+and proceed from there, until it found a matching state, or it has reached the root state.</p>
+
+<p>Whenever a state is reached that matches an entire keyword, it is emitted to an output set which can be read after the
+entire scan has completed.</p>
+
+<p>The beauty of the algorithm is that it is O(n). No matter how many keywords you have, or how big the search text is,
+the performance will decline in a linear way.</p>
+
+<p>Some examples you could use the Aho-Corasick algorithm for:</p>
+
+<ul>
+<li>looking for certain words in texts in order to URL link or emphasize them</li>
+<li>adding semantics to plain text</li>
+<li>checking against a dictionary to see if syntactic errors were made</li>
+</ul><p>This library is the Java implementation of the afore-mentioned Aho-Corasick algorithm for efficient string matching.
+The algorithm is explained in great detail in the white paper written by
+<a>Aho and Corasick</a>.</p>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Setting up the Trie is a piece of cake:</p>
+
+<div class="highlight highlight-java"><pre>    <span class="n">Trie</span> <span class="n">trie</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Trie</span><span class="o">();</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"hers"</span><span class="o">);</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"his"</span><span class="o">);</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"she"</span><span class="o">);</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"he"</span><span class="o">);</span>
+    <span class="n">Collection</span><span class="o">&lt;</span><span class="n">Emit</span><span class="o">&gt;</span> <span class="n">emits</span> <span class="o">=</span> <span class="n">trie</span><span class="o">.</span><span class="na">parseText</span><span class="o">(</span><span class="s">"ushers"</span><span class="o">);</span>
+</pre></div>
+
+<p>You can now read the set. In this case it will find the following:</p>
+
+<ul>
+<li>"she" at position 3</li>
+<li>"he" at position 3</li>
+<li>"hers" at position 5</li>
+</ul><h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at</p>
+
+<pre><code>http://www.apache.org/licenses/LICENSE-2.0
+</code></pre>
+
+<p>Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-47586863-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
