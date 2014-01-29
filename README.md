@@ -33,12 +33,13 @@ Some examples you could use the Aho-Corasick algorithm for:
 * checking against a dictionary to see if syntactic errors were made
 
 This library is the Java implementation of the afore-mentioned Aho-Corasick algorithm for efficient string matching.
-The algorithm is explained in great detail in the white paper written by Aho and Corasick:
-ftp://163.13.200.222/assistant/bearhero/prog/%A8%E4%A5%A6/ac_bm.pdf.
+The algorithm is explained in great detail in the white paper written by
+[Aho and Corasick](ftp://163.13.200.222/assistant/bearhero/prog/%A8%E4%A5%A6/ac_bm.pdf).
 
 Usage
 -----
 
+Setting up the Trie is a piece of cake:
 ```java
     Trie trie = new Trie();
     trie.addKeyword("hers");
@@ -47,6 +48,11 @@ Usage
     trie.addKeyword("he");
     Collection<Emit> emits = trie.parseText("ushers");
 ```
+
+You can now read the set. In this case it will find the following:
+* "she" at position 3
+* "he" at position 3
+* "hers" at position 5
 
 License
 -------
