@@ -92,7 +92,7 @@ public class Trie {
         Collection<String> emits = currentState.emit();
         if (emits != null && !emits.isEmpty()) {
             for (String emit : emits) {
-                collectedEmits.add(new Emit(position, emit));
+                collectedEmits.add(new Emit(position-emit.length()+1, position, emit));
             }
         }
     }
