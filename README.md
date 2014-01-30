@@ -15,14 +15,14 @@ to Aho-Corasick:
 * fail
 * output
 
-Every character encountered is presented to a state object within the goto structure. If there is a matching state,
+Every character encountered is presented to a state object within the *goto* structure. If there is a matching state,
 that will be elevated to the new current state.
 
-However, if there is no matching state, the algorithm will fall back to states with less depth (ie, a match less long)
-and proceed from there, until it found a matching state, or it has reached the root state.
+However, if there is no matching state, the algorithm will signal a *fail* and fall back to states with less depth
+(ie, a match less long) and proceed from there, until it found a matching state, or it has reached the root state.
 
-Whenever a state is reached that matches an entire keyword, it is emitted to an output set which can be read after the
-entire scan has completed.
+Whenever a state is reached that matches an entire keyword, it is emitted to an *output* set which can be read after
+the entire scan has completed.
 
 The beauty of the algorithm is that it is O(n). No matter how many keywords you have, or how big the search text is,
 the performance will decline in a linear way.
@@ -38,7 +38,6 @@ The algorithm is explained in great detail in the white paper written by
 
 Usage
 -----
-
 Setting up the Trie is a piece of cake:
 ```java
     Trie trie = new Trie();
@@ -53,6 +52,8 @@ You can now read the set. In this case it will find the following:
 * "she" at position 3
 * "he" at position 3
 * "hers" at position 5
+
+Note that the end-positions of the keyword match are emitted, not the start-positions!
 
 License
 -------
