@@ -102,10 +102,31 @@ public class TrieTest {
         trie.addKeyword("cba");
         trie.addKeyword("ababc");
         Collection<Emit> emits = trie.parseText("ababcbab");
+        assertEquals(2, emits.size());
         Iterator<Emit> iterator = emits.iterator();
         // With overlaps: ab@1, ab@3, ababc@4, cba@6, ab@7
         checkEmit(iterator.next(), 0, 4, "ababc");
         checkEmit(iterator.next(), 6, 7, "ab");
+    }
+
+    @Test
+    public void startOfChurchillSpeech() {
+        Trie trie = new Trie().removeOverlaps();
+        trie.addKeyword("T");
+        trie.addKeyword("u");
+        trie.addKeyword("ur");
+        trie.addKeyword("r");
+        trie.addKeyword("urn");
+        trie.addKeyword("ni");
+        trie.addKeyword("i");
+        trie.addKeyword("in");
+        trie.addKeyword("n");
+        trie.addKeyword("urning");
+        Collection<Emit> emits = trie.parseText("Turning");
+        for (Emit emit : emits) {
+            System.out.println(emit.getStart()+":"+emit.getEnd()+"="+emit.getKeyword());
+        }
+        assertEquals(2, emits.size());
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

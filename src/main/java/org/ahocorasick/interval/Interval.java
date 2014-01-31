@@ -52,6 +52,13 @@ public class Interval implements Intervalable {
             return -1;
         }
         Intervalable other = (Intervalable)o;
-        return this.start - other.getStart();
+        int comparison = this.start - other.getStart();
+        return comparison != 0 ? comparison : this.end - other.getEnd();
     }
+
+    @Override
+    public String toString() {
+        return this.start + ":" + this.end;
+    }
+
 }

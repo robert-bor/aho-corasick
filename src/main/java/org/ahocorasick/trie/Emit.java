@@ -16,4 +16,9 @@ public class Emit extends Interval implements Intervalable {
         return this.keyword;
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + "=" + this.keyword;
+    }
+
 }
