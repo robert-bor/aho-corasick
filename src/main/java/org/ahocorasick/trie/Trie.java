@@ -1,4 +1,7 @@
-package org.ahocorasick;
+package org.ahocorasick.trie;
+
+import org.ahocorasick.interval.IntervalTree;
+import org.ahocorasick.interval.Intervalable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,12 +16,24 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class Trie {
 
+    private TrieConfig trieConfig;
+
     private State rootState;
 
     private boolean failureStatesConstructed = false;
 
-    public Trie() {
+    public Trie(TrieConfig trieConfig) {
+        this.trieConfig = trieConfig;
         this.rootState = new State();
+    }
+
+    public Trie() {
+        this(new TrieConfig());
+    }
+
+    public Trie removeOverlaps() {
+        this.trieConfig.setAllowOverlaps(false);
+        return this;
     }
 
     public void addKeyword(String keyword) {
@@ -30,6 +45,7 @@ public class Trie {
         currentState.addEmit(keyword);
     }
 
+    @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(String text) {
         checkForConstructedFailureStates();
 
@@ -41,6 +57,12 @@ public class Trie {
             storeEmits(position, currentState, collectedEmits);
             position++;
         }
+
+        if (!trieConfig.isAllowOverlaps()) {
+            IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
+            intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
+        }
+
         return collectedEmits;
     }
 

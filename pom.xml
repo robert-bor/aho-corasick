@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.aho-corasick</groupId>
-    <artifactId>efficient-string-matching</artifactId>
+    <groupId>org.ahocorasick</groupId>
+    <artifactId>ahocorasick</artifactId>
     <version>0.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Aho-CoraSick algorithm for efficient string matching</name>

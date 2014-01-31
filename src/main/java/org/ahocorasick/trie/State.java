@@ -1,4 +1,4 @@
-package org.ahocorasick;
+package org.ahocorasick.trie;
 
 import java.util.*;
 

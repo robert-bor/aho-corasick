@@ -1,6 +1,17 @@
 Aho-Corasick
 ============
 
+Dependency
+----------
+Include this dependency in your POM. Be sure to check for the latest version in Maven Central.
+```xml
+    <dependency>
+        <groupId>org.ahocorasick</groupId>
+        <artifactId>ahocorasick</artifactId>
+        <version>0.1.0</version>
+    </dependency>
+```
+
 Introduction
 ------------
 Nowadays most free-text searching is based on Lucene-like approaches, where the search text is parsed into its
@@ -49,11 +60,9 @@ Setting up the Trie is a piece of cake:
 ```
 
 You can now read the set. In this case it will find the following:
-* "she" at position 3
-* "he" at position 3
-* "hers" at position 5
-
-Note that the end-positions of the keyword match are emitted, not the start-positions!
+* "she" starting at position 1, ending at position 3
+* "he" starting at position 2, ending at position 3
+* "hers" starting at position 2, ending at position 5
 
 License
 -------

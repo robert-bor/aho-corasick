@@ -1,5 +1,6 @@
-package org.ahocorasick;
+package org.ahocorasick.trie;
 
+import org.ahocorasick.trie.State;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
