@@ -64,6 +64,21 @@ You can now read the set. In this case it will find the following:
 * "he" starting at position 2, ending at position 3
 * "hers" starting at position 2, ending at position 5
 
+In normal situations you probably want to remove overlapping instances, retaining the longest and left-most
+matches.
+
+```java
+    Trie trie = new Trie().removeOverlaps();
+    trie.addKeyword("hot");
+    trie.addKeyword("hot chocolate");
+    Collection<Emit> emits = trie.parseText("hot chocolate");
+```
+
+The removeOverlaps method tells the Trie to remove all overlapping matches. For this it relies on the following
+conflict resolution rules: 1) longer matches prevail over shorter matches, 2) left-most prevails over right-most.
+There is only one result now:
+* "hot chocolate" starting at position 0, ending at position 12
+
 License
 -------
    Licensed under the Apache License, Version 2.0 (the "License");
