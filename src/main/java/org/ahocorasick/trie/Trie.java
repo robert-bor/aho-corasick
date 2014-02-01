@@ -54,6 +54,34 @@ public class Trie {
         currentState.addEmit(keyword);
     }
 
+    public Collection<Token> tokenize(String text) {
+
+        Collection<Token> tokens = new ArrayList<Token>();
+
+        Collection<Emit> collectedEmits = parseText(text);
+        int lastCollectedPosition = -1;
+        for (Emit emit : collectedEmits) {
+            if (emit.getStart() - lastCollectedPosition > 1) {
+                tokens.add(createFragment(emit, text, lastCollectedPosition));
+            }
+            tokens.add(createMatch(emit, text));
+            lastCollectedPosition = emit.getEnd();
+        }
+        if (text.length() - lastCollectedPosition > 1) {
+            tokens.add(createFragment(null, text, lastCollectedPosition));
+        }
+
+        return tokens;
+    }
+
+    private Token createFragment(Emit emit, String text, int lastCollectedPosition) {
+        return new FragmentToken(text.substring(lastCollectedPosition+1, emit == null ? text.length() : emit.getStart()));
+    }
+
+    private Token createMatch(Emit emit, String text) {
+        return new MatchToken(text.substring(emit.getStart(), emit.getEnd()+1), emit);
+    }
+
     @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(String text) {
         checkForConstructedFailureStates();

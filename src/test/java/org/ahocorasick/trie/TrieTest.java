@@ -142,13 +142,41 @@ public class TrieTest {
         trie.addKeyword("once");
         trie.addKeyword("again");
         trie.addKeyword("börkü");
-        Collection<Emit> emits = trie.parseText("TurninG OnCe AgAiN BÖRKÜ"); // left, middle, right test
+        Collection<Emit> emits = trie.parseText("TurninG OnCe AgAiN BÖRKÜ");
         assertEquals(4, emits.size()); // Match must not be made
         Iterator<Emit> it = emits.iterator();
         checkEmit(it.next(), 0, 6, "turning");
         checkEmit(it.next(), 8, 11, "once");
         checkEmit(it.next(), 13, 17, "again");
         checkEmit(it.next(), 19, 23, "börkü");
+    }
+
+    @Test
+    public void tokenizeFullSentence() {
+        Trie trie = new Trie();
+        trie.addKeyword("Alpha");
+        trie.addKeyword("Beta");
+        trie.addKeyword("Gamma");
+        Collection<Token> tokens = trie.tokenize("Hear: Alpha team first, Beta from the rear, Gamma in reserve");
+        assertEquals(7, tokens.size());
+        Iterator<Token> tokensIt = tokens.iterator();
+        assertEquals("Hear: ", tokensIt.next().getFragment());
+        assertEquals("Alpha", tokensIt.next().getFragment());
+        assertEquals(" team first, ", tokensIt.next().getFragment());
+        assertEquals("Beta", tokensIt.next().getFragment());
+        assertEquals(" from the rear, ", tokensIt.next().getFragment());
+        assertEquals("Gamma", tokensIt.next().getFragment());
+        assertEquals(" in reserve", tokensIt.next().getFragment());
+    }
+
+    @Test
+    public void tokenizeTokensInSequence() {
+        Trie trie = new Trie();
+        trie.addKeyword("Alpha");
+        trie.addKeyword("Beta");
+        trie.addKeyword("Gamma");
+        Collection<Token> tokens = trie.tokenize("Alpha Beta Gamma");
+        assertEquals(5, tokens.size());
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

@@ -103,9 +103,33 @@ Normally, this match would not be found. With the caseInsensitive settings the e
 before the matching begins. Therefore it will find exactly one match. Since you still have control of the original
 search text and you will know exactly where the match was, you can still utilize the original casing.
 
-Now, let's tie it all together. Say, you have this
+In many cases you may want to do useful stuff with both the non-matching and the matching text. In this case, you
+might be better served by using the Trie.tokenize(). It allows you to loop over the entire text and deal with
+matches as soon as you encounter them. Let's look at an example where we want to highlight words from HGttG in HTML:
 
-
+```java
+    String speech = "The Answer to the Great Question... Of Life, " +
+            "the Universe and Everything... Is... Forty-two,' said " +
+            "Deep Thought, with infinite majesty and calm.";
+    Trie trie = new Trie().removeOverlaps().onlyWholeWords().caseInsensitive();
+    trie.addKeyword("great question");
+    trie.addKeyword("forty-two");
+    trie.addKeyword("deep thought");
+    Collection<Token> tokens = trie.tokenize(speech);
+    StringBuffer html = new StringBuffer();
+    html.append("<html><body><p>");
+    for (Token token : tokens) {
+        if (token.isMatch()) {
+            html.append("<i>");
+        }
+        html.append(token.getFragment());
+        if (token.isMatch()) {
+            html.append("</i>");
+        }
+    }
+    html.append("</p></body></html>");
+    System.out.println(html);
+```
 
 License
 -------
