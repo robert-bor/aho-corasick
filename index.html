@@ -113,7 +113,56 @@
 
           <ul>
               <li>"hot chocolate" starting at position 0, ending at position 12</li>
-          </ul><h2>
+          </ul>
+
+          <div class="highlight highlight-java"><pre>    <span class="n">Trie</span> <span class="n">trie</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Trie</span><span class="o">().</span><span class="na">onlyWholeWords</span><span class="o">();</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"sugar"</span><span class="o">);</span>
+    <span class="n">Collection</span><span class="o">&lt;</span><span class="n">Emit</span><span class="o">&gt;</span> <span class="n">emits</span> <span class="o">=</span> <span class="n">trie</span><span class="o">.</span><span class="na">parseText</span><span class="o">(</span><span class="s">"sugarcane sugarcane sugar canesugar"</span><span class="o">);</span>
+</pre></div>
+
+          <p>In this case, it will only find one match, whereas it would normally find four. The sugarcane/canesugar words
+              are discarded because they are partial matches.</p>
+
+          <p>Some text are WrItTeN in combinations of lowercase and uppercase and therefore hard to identify. You can instruct
+              the Trie to lowercase the entire searchtext to ease the matching process.</p>
+
+          <div class="highlight highlight-java"><pre>    <span class="n">Trie</span> <span class="n">trie</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Trie</span><span class="o">().</span><span class="na">caseInsensitive</span><span class="o">();</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"casing"</span><span class="o">);</span>
+    <span class="n">Collection</span><span class="o">&lt;</span><span class="n">Emit</span><span class="o">&gt;</span> <span class="n">emits</span> <span class="o">=</span> <span class="n">trie</span><span class="o">.</span><span class="na">parseText</span><span class="o">(</span><span class="s">"CaSiNg"</span><span class="o">);</span>
+</pre></div>
+
+          <p>Normally, this match would not be found. With the caseInsensitive settings the entire search text is lowercased
+              before the matching begins. Therefore it will find exactly one match. Since you still have control of the original
+              search text and you will know exactly where the match was, you can still utilize the original casing.</p>
+
+          <p>In many cases you may want to do useful stuff with both the non-matching and the matching text. In this case, you
+              might be better served by using the Trie.tokenize(). It allows you to loop over the entire text and deal with
+              matches as soon as you encounter them. Let's look at an example where we want to highlight words from HGttG in HTML:</p>
+
+          <div class="highlight highlight-java"><pre>    <span class="n">String</span> <span class="n">speech</span> <span class="o">=</span> <span class="s">"The Answer to the Great Question... Of Life, "</span> <span class="o">+</span>
+            <span class="s">"the Universe and Everything... Is... Forty-two,' said "</span> <span class="o">+</span>
+            <span class="s">"Deep Thought, with infinite majesty and calm."</span><span class="o">;</span>
+    <span class="n">Trie</span> <span class="n">trie</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Trie</span><span class="o">().</span><span class="na">removeOverlaps</span><span class="o">().</span><span class="na">onlyWholeWords</span><span class="o">().</span><span class="na">caseInsensitive</span><span class="o">();</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"great question"</span><span class="o">);</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"forty-two"</span><span class="o">);</span>
+    <span class="n">trie</span><span class="o">.</span><span class="na">addKeyword</span><span class="o">(</span><span class="s">"deep thought"</span><span class="o">);</span>
+    <span class="n">Collection</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span> <span class="o">=</span> <span class="n">trie</span><span class="o">.</span><span class="na">tokenize</span><span class="o">(</span><span class="n">speech</span><span class="o">);</span>
+    <span class="n">StringBuffer</span> <span class="n">html</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuffer</span><span class="o">();</span>
+    <span class="n">html</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">"&lt;html&gt;&lt;body&gt;&lt;p&gt;"</span><span class="o">);</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">Token</span> <span class="n">token</span> <span class="o">:</span> <span class="n">tokens</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">isMatch</span><span class="o">())</span> <span class="o">{</span>
+            <span class="n">html</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">"&lt;i&gt;"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="n">html</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">getFragment</span><span class="o">());</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">isMatch</span><span class="o">())</span> <span class="o">{</span>
+            <span class="n">html</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">"&lt;/i&gt;"</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="n">html</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">"&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;"</span><span class="o">);</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">html</span><span class="o">);</span>
+</pre></div>
+
+          <h2>
 <a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
 
 <p>Licensed under the Apache License, Version 2.0 (the "License");
