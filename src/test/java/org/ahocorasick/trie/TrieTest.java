@@ -135,6 +135,22 @@ public class TrieTest {
         checkEmit(emits.iterator().next(), 20, 24, "sugar");
     }
 
+    @Test
+    public void caseInsensitive() {
+        Trie trie = new Trie().caseInsensitive();
+        trie.addKeyword("turning");
+        trie.addKeyword("once");
+        trie.addKeyword("again");
+        trie.addKeyword("börkü");
+        Collection<Emit> emits = trie.parseText("TurninG OnCe AgAiN BÖRKÜ"); // left, middle, right test
+        assertEquals(4, emits.size()); // Match must not be made
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 0, 6, "turning");
+        checkEmit(it.next(), 8, 11, "once");
+        checkEmit(it.next(), 13, 17, "again");
+        checkEmit(it.next(), 19, 23, "börkü");
+    }
+
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {
         assertEquals(expectedStart, next.getStart());
         assertEquals(expectedEnd, next.getEnd());

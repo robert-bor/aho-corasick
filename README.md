@@ -90,6 +90,21 @@ If you want the algorithm to only check for whole words, you can tell the Trie t
 In this case, it will only find one match, whereas it would normally find four. The sugarcane/canesugar words
 are discarded because they are partial matches.
 
+Some text are WrItTeN in combinations of lowercase and uppercase and therefore hard to identify. You can instruct
+the Trie to lowercase the entire searchtext to ease the matching process.
+
+```java
+    Trie trie = new Trie().caseInsensitive();
+    trie.addKeyword("casing");
+    Collection<Emit> emits = trie.parseText("CaSiNg");
+```
+
+Normally, this match would not be found. With the caseInsensitive settings the entire search text is lowercased
+before the matching begins. Therefore it will find exactly one match. Since you still have control of the original
+search text and you will know exactly where the match was, you can still utilize the original casing.
+
+Now, let's tie it all together. Say, you have this
+
 
 
 License

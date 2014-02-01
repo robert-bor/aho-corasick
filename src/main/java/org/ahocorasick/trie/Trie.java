@@ -31,6 +31,11 @@ public class Trie {
         this(new TrieConfig());
     }
 
+    public Trie caseInsensitive() {
+        this.trieConfig.setCaseInsensitive(true);
+        return this;
+    }
+
     public Trie removeOverlaps() {
         this.trieConfig.setAllowOverlaps(false);
         return this;
@@ -42,7 +47,6 @@ public class Trie {
     }
 
     public void addKeyword(String keyword) {
-
         State currentState = this.rootState;
         for (Character character : keyword.toCharArray()) {
             currentState = currentState.addState(character);
@@ -53,6 +57,10 @@ public class Trie {
     @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(String text) {
         checkForConstructedFailureStates();
+
+        if (trieConfig.isCaseInsensitive()) {
+            text = text.toLowerCase();
+        }
 
         int position = 0;
         State currentState = this.rootState;
@@ -80,9 +88,9 @@ public class Trie {
         List<Emit> removeEmits = new ArrayList<Emit>();
         for (Emit emit : collectedEmits) {
             if ((emit.getStart() == 0 ||
-                 searchText.charAt(emit.getStart() - 1) == ' ') &&
+                 !Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) &&
                 (emit.getEnd() == size ||
-                 searchText.charAt(emit.getEnd() + 1) == ' ')) {
+                 !Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)))) {
                 continue;
             }
             removeEmits.add(emit);
