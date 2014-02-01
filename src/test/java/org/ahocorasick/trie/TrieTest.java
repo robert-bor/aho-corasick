@@ -123,10 +123,16 @@ public class TrieTest {
         trie.addKeyword("n");
         trie.addKeyword("urning");
         Collection<Emit> emits = trie.parseText("Turning");
-        for (Emit emit : emits) {
-            System.out.println(emit.getStart()+":"+emit.getEnd()+"="+emit.getKeyword());
-        }
         assertEquals(2, emits.size());
+    }
+
+    @Test
+    public void partialMatch() {
+        Trie trie = new Trie().onlyWholeWords();
+        trie.addKeyword("sugar");
+        Collection<Emit> emits = trie.parseText("sugarcane sugarcane sugar canesugar"); // left, middle, right test
+        assertEquals(1, emits.size()); // Match must not be made
+        checkEmit(emits.iterator().next(), 20, 24, "sugar");
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

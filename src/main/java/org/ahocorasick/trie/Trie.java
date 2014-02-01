@@ -36,6 +36,11 @@ public class Trie {
         return this;
     }
 
+    public Trie onlyWholeWords() {
+        this.trieConfig.setOnlyWholeWords(true);
+        return this;
+    }
+
     public void addKeyword(String keyword) {
 
         State currentState = this.rootState;
@@ -58,12 +63,34 @@ public class Trie {
             position++;
         }
 
+        if (trieConfig.isOnlyWholeWords()) {
+            removePartialMatches(text, collectedEmits);
+        }
+
         if (!trieConfig.isAllowOverlaps()) {
             IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
             intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
         }
 
         return collectedEmits;
+    }
+
+    private void removePartialMatches(String searchText, List<Emit> collectedEmits) {
+        long size = searchText.length();
+        List<Emit> removeEmits = new ArrayList<Emit>();
+        for (Emit emit : collectedEmits) {
+            if ((emit.getStart() == 0 ||
+                 searchText.charAt(emit.getStart() - 1) == ' ') &&
+                (emit.getEnd() == size ||
+                 searchText.charAt(emit.getEnd() + 1) == ' ')) {
+                continue;
+            }
+            removeEmits.add(emit);
+        }
+
+        for (Emit removeEmit : removeEmits) {
+            collectedEmits.remove(removeEmit);
+        }
     }
 
     private State getState(State currentState, Character character) {

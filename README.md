@@ -79,6 +79,19 @@ conflict resolution rules: 1) longer matches prevail over shorter matches, 2) le
 There is only one result now:
 * "hot chocolate" starting at position 0, ending at position 12
 
+If you want the algorithm to only check for whole words, you can tell the Trie to do so:
+
+```java
+    Trie trie = new Trie().onlyWholeWords();
+    trie.addKeyword("sugar");
+    Collection<Emit> emits = trie.parseText("sugarcane sugarcane sugar canesugar");
+```
+
+In this case, it will only find one match, whereas it would normally find four. The sugarcane/canesugar words
+are discarded because they are partial matches.
+
+
+
 License
 -------
    Licensed under the Apache License, Version 2.0 (the "License");
