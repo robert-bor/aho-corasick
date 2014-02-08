@@ -117,7 +117,7 @@ public class Trie {
         for (Emit emit : collectedEmits) {
             if ((emit.getStart() == 0 ||
                  !Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) &&
-                (emit.getEnd() == size ||
+                (emit.getEnd() + 1 == size ||
                  !Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)))) {
                 continue;
             }

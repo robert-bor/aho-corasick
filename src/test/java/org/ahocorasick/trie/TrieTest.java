@@ -1,7 +1,5 @@
 package org.ahocorasick.trie;
 
-import org.ahocorasick.trie.Emit;
-import org.ahocorasick.trie.Trie;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -136,22 +134,6 @@ public class TrieTest {
     }
 
     @Test
-    public void caseInsensitive() {
-        Trie trie = new Trie().caseInsensitive();
-        trie.addKeyword("turning");
-        trie.addKeyword("once");
-        trie.addKeyword("again");
-        trie.addKeyword("börkü");
-        Collection<Emit> emits = trie.parseText("TurninG OnCe AgAiN BÖRKÜ");
-        assertEquals(4, emits.size()); // Match must not be made
-        Iterator<Emit> it = emits.iterator();
-        checkEmit(it.next(), 0, 6, "turning");
-        checkEmit(it.next(), 8, 11, "once");
-        checkEmit(it.next(), 13, 17, "again");
-        checkEmit(it.next(), 19, 23, "börkü");
-    }
-
-    @Test
     public void tokenizeFullSentence() {
         Trie trie = new Trie();
         trie.addKeyword("Alpha");
@@ -167,6 +149,38 @@ public class TrieTest {
         assertEquals(" from the rear, ", tokensIt.next().getFragment());
         assertEquals("Gamma", tokensIt.next().getFragment());
         assertEquals(" in reserve", tokensIt.next().getFragment());
+    }
+
+    @Test
+    public void bug5InGithubReportedByXCurry() {
+        Trie trie = new Trie().caseInsensitive().onlyWholeWords();
+        trie.addKeyword("turning");
+        trie.addKeyword("once");
+        trie.addKeyword("again");
+        trie.addKeyword("börkü");
+        Collection<Emit> emits = trie.parseText("TurninG OnCe AgAiN BÖRKÜ");
+        assertEquals(4, emits.size()); // Match must not be made
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 0, 6, "turning");
+        checkEmit(it.next(), 8, 11, "once");
+        checkEmit(it.next(), 13, 17, "again");
+        checkEmit(it.next(), 19, 23, "börkü");
+    }
+
+    @Test
+    public void caseInsensitive() {
+        Trie trie = new Trie().caseInsensitive();
+        trie.addKeyword("turning");
+        trie.addKeyword("once");
+        trie.addKeyword("again");
+        trie.addKeyword("börkü");
+        Collection<Emit> emits = trie.parseText("TurninG OnCe AgAiN BÖRKÜ");
+        assertEquals(4, emits.size()); // Match must not be made
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 0, 6, "turning");
+        checkEmit(it.next(), 8, 11, "once");
+        checkEmit(it.next(), 13, 17, "again");
+        checkEmit(it.next(), 19, 23, "börkü");
     }
 
     @Test
