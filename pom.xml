@@ -3,7 +3,7 @@
 
     <groupId>org.ahocorasick</groupId>
     <artifactId>ahocorasick</artifactId>
-    <version>0.2.1</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Aho-CoraSick algorithm for efficient string matching</name>
     <description>Java library for efficient string matching against a large set of keywords</description>
