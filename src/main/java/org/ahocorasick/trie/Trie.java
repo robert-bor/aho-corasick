@@ -47,6 +47,9 @@ public class Trie {
     }
 
     public void addKeyword(String keyword) {
+        if (keyword == null || keyword.length() == 0) {
+            return;
+        }
         State currentState = this.rootState;
         for (Character character : keyword.toCharArray()) {
             currentState = currentState.addState(character);

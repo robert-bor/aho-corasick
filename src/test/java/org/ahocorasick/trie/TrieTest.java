@@ -193,6 +193,19 @@ public class TrieTest {
         assertEquals(5, tokens.size());
     }
 
+    @Test
+    public void zeroLengthTestBug7InGithubReportedByXCurry() {
+        Trie trie = new Trie().removeOverlaps().onlyWholeWords().caseInsensitive();
+        trie.addKeyword("");
+
+        Collection<Token> tokens = trie.tokenize("Try a natural lip and subtle bronzer to keep all the focus on those big bright eyes with NARS Eyeshadow Duo in Rated R And the winner is... Boots No7 Advanced Renewal Anti-ageing Glycolic Peel Kit ($25 amazon.com) won most-appealing peel.");
+        for (Token token : tokens) {
+            if (!token.isMatch()) {
+                System.out.println("token: " + token.getFragment());
+            }
+        }
+    }
+
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {
         assertEquals(expectedStart, next.getStart());
         assertEquals(expectedEnd, next.getEnd());
