@@ -180,7 +180,10 @@ public class Trie {
         Collection<String> emits = currentState.emit();
         if (emits != null && !emits.isEmpty()) {
             for (String emit : emits) {
-                collectedEmits.add(new Emit(position-emit.length()+1, position, emit));
+                Emit element = new Emit(position - emit.length() + 1, position, emit);
+                if (!collectedEmits.contains(element)) {
+                    collectedEmits.add(element);
+                }
             }
         }
     }
