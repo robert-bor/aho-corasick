@@ -193,6 +193,7 @@ public class TrieTest {
         assertEquals(5, tokens.size());
     }
 
+    // Test offered by XCurry, https://github.com/robert-bor/aho-corasick/issues/7
     @Test
     public void zeroLengthTestBug7InGithubReportedByXCurry() {
         Trie trie = new Trie().removeOverlaps().onlyWholeWords().caseInsensitive();
@@ -200,9 +201,22 @@ public class TrieTest {
         trie.tokenize("Try a natural lip and subtle bronzer to keep all the focus on those big bright eyes with NARS Eyeshadow Duo in Rated R And the winner is... Boots No7 Advanced Renewal Anti-ageing Glycolic Peel Kit ($25 amazon.com) won most-appealing peel.");
     }
 
+    // Test offered by dwyerk, https://github.com/robert-bor/aho-corasick/issues/8
+    @Test
+    public void unicodeIssueBug8ReportedByDwyerk() {
+        String target = "LİKE THIS"; // The second character ('İ') is Unicode, which was read by AC as a 2-byte char
+        Trie trie = new Trie().caseInsensitive().onlyWholeWords();
+        assertEquals("THIS", target.substring(5,9)); // Java does it the right way
+        trie.addKeyword("this");
+        Collection<Emit> emits = trie.parseText(target);
+        assertEquals(1, emits.size());
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 5, 8, "this");
+    }
+
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {
-        assertEquals(expectedStart, next.getStart());
-        assertEquals(expectedEnd, next.getEnd());
+        assertEquals("Start of emit should have been "+expectedStart, expectedStart, next.getStart());
+        assertEquals("End of emit should have been "+expectedEnd, expectedEnd, next.getEnd());
         assertEquals(expectedKeyword, next.getKeyword());
     }
 
