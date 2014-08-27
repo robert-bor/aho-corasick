@@ -41,7 +41,7 @@ public class State {
     private State failure = null;
 
     /** whenever this state is reached, it will emit the matches keywords for future reference */
-    private List<String> emits = null;
+    private Set<String> emits = null;
 
     public State() {
         this(0);
@@ -83,7 +83,7 @@ public class State {
 
     public void addEmit(String keyword) {
         if (this.emits == null) {
-            this.emits = new ArrayList<String>();
+            this.emits = new TreeSet<>();
         }
         this.emits.add(keyword);
     }

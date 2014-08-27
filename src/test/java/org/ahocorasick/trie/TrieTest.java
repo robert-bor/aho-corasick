@@ -48,8 +48,8 @@ public class TrieTest {
         Collection<Emit> emits = trie.parseText("ushers");
         assertEquals(3, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<Emit> iterator = emits.iterator();
-        checkEmit(iterator.next(), 1, 3, "she");
         checkEmit(iterator.next(), 2, 3, "he");
+        checkEmit(iterator.next(), 1, 3, "she");
         checkEmit(iterator.next(), 2, 5, "hers");
     }
 
@@ -87,10 +87,10 @@ public class TrieTest {
         checkEmit(iterator.next(), 0, 1, "he");
         checkEmit(iterator.next(), 2, 3, "he");
         checkEmit(iterator.next(), 4, 5, "he");
-        checkEmit(iterator.next(), 0, 7, "hehehehe");
         checkEmit(iterator.next(), 6, 7, "he");
-        checkEmit(iterator.next(), 2, 9, "hehehehe");
+        checkEmit(iterator.next(), 0, 7, "hehehehe");
         checkEmit(iterator.next(), 8, 9, "he");
+        checkEmit(iterator.next(), 2, 9, "hehehehe");
     }
 
     @Test
