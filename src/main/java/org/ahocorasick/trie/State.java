@@ -1,6 +1,9 @@
 package org.ahocorasick.trie;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
+import java.lang.reflect.Field;
 
 /**
  * <p>
@@ -23,7 +26,7 @@ import java.util.*;
  *
  * @author Robert Bor
  */
-public class State {
+public class State implements Serializable, Comparable<State> {
 
     /** effective the size of the keyword */
     private final int depth;
@@ -114,4 +117,49 @@ public class State {
         return this.success.keySet();
     }
 
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.writeInt(depth);
+        stream.writeObject(success);
+        stream.writeObject(failure);
+        stream.writeObject(emits);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+
+        // Use reflection to modify final field
+        Field f = this.getClass().getDeclaredField("depth");
+        f.setAccessible(true);
+        f.set(this, stream.readInt());
+
+        f = this.getClass().getDeclaredField("rootState");
+        f.setAccessible(true);
+        f.set(this, (depth == 0)?this:null);
+        success = (TreeMap) stream.readObject();
+        failure = (State) stream.readObject();
+        emits = (List<String>) stream.readObject();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof State))
+            return false;
+        return compareTo((State) obj) == 0;
+    }
+
+    @Override
+    public int compareTo(State o) {
+        if (this.depth != o.depth)
+            return 1;
+        if ((this.depth == 0 && o.depth == 0) && (this.rootState != this || o.rootState != o))
+            return 1;
+        if (!this.success.equals(o.success))
+            return 1;
+        if (this.failure != null && o.failure != null && !this.failure.equals(o.failure))
+            return 1;
+        if (this.emits != null && o.emits != null && !this.emits.equals(o.emits))
+            return 1;
+        return 0;
+    }
 }

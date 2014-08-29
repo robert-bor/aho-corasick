@@ -1,11 +1,13 @@
 package org.ahocorasick.trie;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Iterator;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertSame;
 
 public class TrieTest {
 
@@ -198,6 +200,38 @@ public class TrieTest {
         Trie trie = new Trie().removeOverlaps().onlyWholeWords().caseInsensitive();
         trie.addKeyword("");
         trie.tokenize("Try a natural lip and subtle bronzer to keep all the focus on those big bright eyes with NARS Eyeshadow Duo in Rated R And the winner is... Boots No7 Advanced Renewal Anti-ageing Glycolic Peel Kit ($25 amazon.com) won most-appealing peel.");
+    }
+
+    @Test
+    public void trieSerialization() {
+        Trie trie = new Trie().removeOverlaps().onlyWholeWords().caseInsensitive();
+        trie.addKeyword("san francisco");
+        trie.addKeyword("ca");
+        trie.addKeyword("oakland");
+        Trie deserializedTrie = (Trie) SerializationUtils.clone(trie);
+        assertEquals(trie, deserializedTrie);
+        deserializedTrie.parseText("san francisco ca");
+        deserializedTrie.parseText("San Francisco ca");
+    }
+
+    @Test
+    public void trieConfigSerialization() {
+        TrieConfig conf = new TrieConfig();
+        conf.setAllowOverlaps(true);
+        conf.setOnlyWholeWords(true);
+
+        TrieConfig deserializedConf = SerializationUtils.clone(conf);
+        assertEquals(conf, deserializedConf);
+    }
+
+    @Test
+    public void stateSerialization() {
+        State state = new State();
+        state.addEmit("san francisco");
+        state.addEmit("ca");
+        state.addEmit("oakland");
+        State deserializedState = (State) SerializationUtils.clone(state);
+        assertEquals(state, deserializedState);
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

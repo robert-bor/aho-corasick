@@ -3,6 +3,8 @@ package org.ahocorasick.trie;
 import org.ahocorasick.interval.IntervalTree;
 import org.ahocorasick.interval.Intervalable;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,7 +16,7 @@ import java.util.concurrent.LinkedBlockingDeque;
  * Based on the Aho-Corasick white paper, Bell technologies: ftp://163.13.200.222/assistant/bearhero/prog/%A8%E4%A5%A6/ac_bm.pdf
  * @author Robert Bor
  */
-public class Trie {
+public class Trie implements Serializable, Comparable<Trie> {
 
     private TrieConfig trieConfig;
 
@@ -185,4 +187,35 @@ public class Trie {
         }
     }
 
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.writeObject(trieConfig);
+        stream.writeObject(rootState);
+        stream.writeBoolean(failureStatesConstructed);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+        trieConfig = (TrieConfig) stream.readObject();
+        rootState = (State) stream.readObject();
+        failureStatesConstructed = stream.readBoolean();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Trie))
+            return false;
+        return compareTo((Trie) obj) == 0;
+    }
+
+    @Override
+    public int compareTo(Trie o) {
+        if (!this.trieConfig.equals(o.trieConfig))
+            return 1;
+        if (!this.rootState.equals(o.rootState))
+            return 1;
+        if (!this.failureStatesConstructed == o.failureStatesConstructed)
+            return 1;
+        return 0;
+    }
 }
