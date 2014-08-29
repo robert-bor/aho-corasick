@@ -91,14 +91,13 @@ public class Trie implements Serializable, Comparable<Trie> {
     public Collection<Emit> parseText(String text) {
         checkForConstructedFailureStates();
 
-        if (trieConfig.isCaseInsensitive()) {
-            text = text.toLowerCase();
-        }
-
         int position = 0;
         State currentState = this.rootState;
         List<Emit> collectedEmits = new ArrayList<Emit>();
         for (Character character : text.toCharArray()) {
+            if (trieConfig.isCaseInsensitive()) {
+                character = Character.toLowerCase(character);
+            }
             currentState = getState(currentState, character);
             storeEmits(position, currentState, collectedEmits);
             position++;

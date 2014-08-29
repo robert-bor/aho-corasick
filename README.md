@@ -8,7 +8,7 @@ Include this dependency in your POM. Be sure to check for the latest version in 
     <dependency>
         <groupId>org.ahocorasick</groupId>
         <artifactId>ahocorasick</artifactId>
-        <version>0.2.2</version>
+        <version>0.2.3</version>
     </dependency>
 ```
 

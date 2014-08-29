@@ -50,8 +50,8 @@ public class TrieTest {
         Collection<Emit> emits = trie.parseText("ushers");
         assertEquals(3, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<Emit> iterator = emits.iterator();
-        checkEmit(iterator.next(), 1, 3, "she");
         checkEmit(iterator.next(), 2, 3, "he");
+        checkEmit(iterator.next(), 1, 3, "she");
         checkEmit(iterator.next(), 2, 5, "hers");
     }
 
@@ -89,10 +89,10 @@ public class TrieTest {
         checkEmit(iterator.next(), 0, 1, "he");
         checkEmit(iterator.next(), 2, 3, "he");
         checkEmit(iterator.next(), 4, 5, "he");
-        checkEmit(iterator.next(), 0, 7, "hehehehe");
         checkEmit(iterator.next(), 6, 7, "he");
-        checkEmit(iterator.next(), 2, 9, "hehehehe");
+        checkEmit(iterator.next(), 0, 7, "hehehehe");
         checkEmit(iterator.next(), 8, 9, "he");
+        checkEmit(iterator.next(), 2, 9, "hehehehe");
     }
 
     @Test
@@ -195,6 +195,7 @@ public class TrieTest {
         assertEquals(5, tokens.size());
     }
 
+    // Test offered by XCurry, https://github.com/robert-bor/aho-corasick/issues/7
     @Test
     public void zeroLengthTestBug7InGithubReportedByXCurry() {
         Trie trie = new Trie().removeOverlaps().onlyWholeWords().caseInsensitive();
@@ -202,41 +203,22 @@ public class TrieTest {
         trie.tokenize("Try a natural lip and subtle bronzer to keep all the focus on those big bright eyes with NARS Eyeshadow Duo in Rated R And the winner is... Boots No7 Advanced Renewal Anti-ageing Glycolic Peel Kit ($25 amazon.com) won most-appealing peel.");
     }
 
+    // Test offered by dwyerk, https://github.com/robert-bor/aho-corasick/issues/8
     @Test
-    public void trieSerialization() {
-        Trie trie = new Trie().removeOverlaps().onlyWholeWords().caseInsensitive();
-        trie.addKeyword("san francisco");
-        trie.addKeyword("ca");
-        trie.addKeyword("oakland");
-        Trie deserializedTrie = (Trie) SerializationUtils.clone(trie);
-        assertEquals(trie, deserializedTrie);
-        deserializedTrie.parseText("san francisco ca");
-        deserializedTrie.parseText("San Francisco ca");
-    }
-
-    @Test
-    public void trieConfigSerialization() {
-        TrieConfig conf = new TrieConfig();
-        conf.setAllowOverlaps(true);
-        conf.setOnlyWholeWords(true);
-
-        TrieConfig deserializedConf = SerializationUtils.clone(conf);
-        assertEquals(conf, deserializedConf);
-    }
-
-    @Test
-    public void stateSerialization() {
-        State state = new State();
-        state.addEmit("san francisco");
-        state.addEmit("ca");
-        state.addEmit("oakland");
-        State deserializedState = (State) SerializationUtils.clone(state);
-        assertEquals(state, deserializedState);
+    public void unicodeIssueBug8ReportedByDwyerk() {
+        String target = "LİKE THIS"; // The second character ('İ') is Unicode, which was read by AC as a 2-byte char
+        Trie trie = new Trie().caseInsensitive().onlyWholeWords();
+        assertEquals("THIS", target.substring(5,9)); // Java does it the right way
+        trie.addKeyword("this");
+        Collection<Emit> emits = trie.parseText(target);
+        assertEquals(1, emits.size());
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 5, 8, "this");
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {
-        assertEquals(expectedStart, next.getStart());
-        assertEquals(expectedEnd, next.getEnd());
+        assertEquals("Start of emit should have been "+expectedStart, expectedStart, next.getStart());
+        assertEquals("End of emit should have been "+expectedEnd, expectedEnd, next.getEnd());
         assertEquals(expectedKeyword, next.getKeyword());
     }
 
