@@ -2,8 +2,11 @@ package org.ahocorasick.trie;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.Character;
+import java.lang.Integer;
 import java.util.*;
 import java.lang.reflect.Field;
+import java.util.TreeMap;
 
 /**
  * <p>
@@ -120,7 +123,16 @@ public class State implements Serializable, Comparable<State> {
     private void writeObject(java.io.ObjectOutputStream stream)
             throws IOException {
         stream.writeInt(depth);
-        stream.writeObject(success);
+        stream.writeInt(success.size());
+        for (Map.Entry<Character, State> e : success.entrySet()) {
+            stream.writeObject(e.getKey());
+            if (e.getValue() == this) {
+                stream.writeObject(null);
+            } else {
+                stream.writeObject(e.getValue());
+            }
+        }
+
         stream.writeObject(failure);
         stream.writeObject(emits);
     }
@@ -136,9 +148,17 @@ public class State implements Serializable, Comparable<State> {
         f = this.getClass().getDeclaredField("rootState");
         f.setAccessible(true);
         f.set(this, (depth == 0)?this:null);
-        success = (TreeMap) stream.readObject();
+        int successSize = (Integer) stream.readInt();
+        success = new TreeMap<Character, org.ahocorasick.trie.State>();
+        for (int i = 0; i < successSize; i++) {
+            Character character = (Character) stream.readObject();
+            State treeState = (State) stream.readObject();
+            success.put(character, (treeState == null)?this:treeState);
+        }
+
+
         failure = (State) stream.readObject();
-        emits = (List<String>) stream.readObject();
+        emits = (TreeSet) stream.readObject();
     }
 
     @Override

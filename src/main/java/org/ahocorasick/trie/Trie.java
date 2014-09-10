@@ -190,14 +190,13 @@ public class Trie implements Serializable, Comparable<Trie> {
             throws IOException {
         stream.writeObject(trieConfig);
         stream.writeObject(rootState);
-        stream.writeBoolean(failureStatesConstructed);
     }
 
     private void readObject(java.io.ObjectInputStream stream)
             throws IOException, ClassNotFoundException {
         trieConfig = (TrieConfig) stream.readObject();
         rootState = (State) stream.readObject();
-        failureStatesConstructed = stream.readBoolean();
+        constructFailureStates();
     }
 
     @Override
