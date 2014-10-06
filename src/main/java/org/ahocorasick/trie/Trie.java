@@ -11,7 +11,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  *
- * Based on the Aho-Corasick white paper, Bell technologies: ftp://163.13.200.222/assistant/bearhero/prog/%A8%E4%A5%A6/ac_bm.pdf
+ * Based on the Aho-Corasick white paper, Bell technologies:
+ *   ftp://163.13.200.222/assistant/bearhero/prog/%A8%E4%A5%A6/ac_bm.pdf
  * @author Robert Bor
  */
 public class Trie {
@@ -113,23 +114,69 @@ public class Trie {
         return collectedEmits;
     }
 
-    private void removePartialMatches(String searchText, List<Emit> collectedEmits) {
-        long size = searchText.length();
-        List<Emit> removeEmits = new ArrayList<Emit>();
-        for (Emit emit : collectedEmits) {
-            if ((emit.getStart() == 0 ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) &&
-                (emit.getEnd() + 1 == size ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)))) {
-                continue;
-            }
-            removeEmits.add(emit);
-        }
+	public boolean matches(String text)
+	{
+		Emit firstMatch = firstMatch(text);
+		return firstMatch != null;
+	}
 
-        for (Emit removeEmit : removeEmits) {
-            collectedEmits.remove(removeEmit);
-        }
-    }
+	public Emit firstMatch(String text)
+	{
+		if (!trieConfig.isAllowOverlaps()) {
+			// Slow path. Needs to find all the matches to detect overlaps.
+			Collection<Emit> parseText = parseText(text);
+			if (parseText != null && !parseText.isEmpty()) {
+				return parseText.iterator().next();
+			}
+		} else {
+			// Fast path. Returs first match found.
+			checkForConstructedFailureStates();
+			int position = 0;
+			State currentState = this.rootState;
+			for (Character character : text.toCharArray()) {
+				if (trieConfig.isCaseInsensitive()) {
+					character = Character.toLowerCase(character);
+				}
+				currentState = getState(currentState, character);
+				Collection<String> emitStrs = currentState.emit();
+				if (emitStrs != null && !emitStrs.isEmpty()) {
+					for (String emitStr : emitStrs) {
+						final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
+						if (trieConfig.isOnlyWholeWords()) {
+							if (!isPartialMatch(text, emit)) {
+								return emit;
+							}
+						} else {
+							return emit;
+						}
+					}
+				}
+				position++;
+			}
+		}
+		return null;
+	}
+
+	private boolean isPartialMatch(String searchText, Emit emit)
+	{
+		return (emit.getStart() != 0 &&
+			Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
+			(emit.getEnd() + 1 != searchText.length() &&
+			Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
+	}
+
+	private void removePartialMatches(String searchText, List<Emit> collectedEmits)
+	{
+		List<Emit> removeEmits = new ArrayList<Emit>();
+		for (Emit emit : collectedEmits) {
+			if (isPartialMatch(searchText, emit)) {
+				removeEmits.add(emit);
+			}
+		}
+		for (Emit removeEmit : removeEmits) {
+			collectedEmits.remove(removeEmit);
+		}
+	}
 
     private State getState(State currentState, Character character) {
         State newCurrentState = currentState.nextState(character);
