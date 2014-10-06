@@ -35,7 +35,7 @@ public class State {
      * referred to in the white paper as the 'goto' structure. From a state it is possible to go
      * to other states, depending on the character passed.
      */
-    private Map<Character,State> success = new TreeMap<Character, State>();
+    private Map<Character,State> success = new HashMap<Character, State>();
 
     /** if no matching states are found, the failure state will be returned */
     private State failure = null;
