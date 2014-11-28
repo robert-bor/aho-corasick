@@ -1,13 +1,14 @@
 package org.ahocorasick.trie;
 
-import org.ahocorasick.interval.IntervalTree;
-import org.ahocorasick.interval.Intervalable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.regex.Pattern;
+
+import org.ahocorasick.interval.IntervalTree;
+import org.ahocorasick.interval.Intervalable;
 
 /**
  *
@@ -44,6 +45,11 @@ public class Trie {
     public Trie onlyWholeWords() {
         this.trieConfig.setOnlyWholeWords(true);
         return this;
+    }
+
+    public Trie setIgnorePattern(Pattern pattern) {
+    	this.trieConfig.setIgnorePattern(pattern);
+    	return this;
     }
 
     public void addKeyword(String keyword) {
@@ -96,6 +102,12 @@ public class Trie {
         State currentState = this.rootState;
         List<Emit> collectedEmits = new ArrayList<Emit>();
         for (Character character : text.toCharArray()) {
+        	if (trieConfig.getIgnorePattern() != null
+        		&& trieConfig.getIgnorePattern().matcher(String.valueOf(character)).find()) {
+        		position++;
+        		continue;
+        	}
+
             if (trieConfig.isCaseInsensitive()) {
                 character = Character.toLowerCase(character);
             }
