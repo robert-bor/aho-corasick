@@ -1,6 +1,11 @@
 package org.ahocorasick.trie;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * <p>
@@ -83,7 +88,7 @@ public class State {
 
     public void addEmit(String keyword) {
         if (this.emits == null) {
-            this.emits = new TreeSet<>();
+            this.emits = new TreeSet<String>();
         }
         this.emits.add(keyword);
     }

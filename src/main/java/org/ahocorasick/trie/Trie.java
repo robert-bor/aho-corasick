@@ -118,9 +118,9 @@ public class Trie {
         List<Emit> removeEmits = new ArrayList<Emit>();
         for (Emit emit : collectedEmits) {
             if ((emit.getStart() == 0 ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) &&
+                 !Character.isLetter(searchText.charAt(emit.getStart() - 1))) &&
                 (emit.getEnd() + 1 == size ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)))) {
+                 !Character.isLetter(searchText.charAt(emit.getEnd() + 1)))) {
                 continue;
             }
             removeEmits.add(emit);
