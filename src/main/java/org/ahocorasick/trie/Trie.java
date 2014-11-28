@@ -52,6 +52,9 @@ public class Trie {
         }
         State currentState = this.rootState;
         for (Character character : keyword.toCharArray()) {
+        	if (trieConfig.isCaseInsensitive()) {
+                character = Character.toLowerCase(character);
+            }
             currentState = currentState.addState(character);
         }
         currentState.addEmit(keyword);
