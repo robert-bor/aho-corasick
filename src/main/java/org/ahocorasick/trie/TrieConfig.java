@@ -1,5 +1,7 @@
 package org.ahocorasick.trie;
 
+import java.util.regex.Pattern;
+
 public class TrieConfig {
 
     private boolean allowOverlaps = true;
@@ -7,6 +9,8 @@ public class TrieConfig {
     private boolean onlyWholeWords = false;
 
     private boolean caseInsensitive = false;
+
+    private Pattern ignorePattern = null;
 
     public boolean isAllowOverlaps() {
         return allowOverlaps;
@@ -31,4 +35,12 @@ public class TrieConfig {
     public void setCaseInsensitive(boolean caseInsensitive) {
         this.caseInsensitive = caseInsensitive;
     }
+
+    public void setIgnorePattern(Pattern ignorePattern) {
+		this.ignorePattern = ignorePattern;
+	}
+
+    public Pattern getIgnorePattern() {
+		return ignorePattern;
+	}
 }

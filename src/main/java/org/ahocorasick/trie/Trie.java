@@ -1,13 +1,14 @@
 package org.ahocorasick.trie;
 
-import org.ahocorasick.interval.IntervalTree;
-import org.ahocorasick.interval.Intervalable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.regex.Pattern;
+
+import org.ahocorasick.interval.IntervalTree;
+import org.ahocorasick.interval.Intervalable;
 
 /**
  *
@@ -46,12 +47,20 @@ public class Trie {
         return this;
     }
 
+    public Trie setIgnorePattern(Pattern pattern) {
+    	this.trieConfig.setIgnorePattern(pattern);
+    	return this;
+    }
+
     public void addKeyword(String keyword) {
         if (keyword == null || keyword.length() == 0) {
             return;
         }
         State currentState = this.rootState;
         for (Character character : keyword.toCharArray()) {
+        	if (trieConfig.isCaseInsensitive()) {
+                character = Character.toLowerCase(character);
+            }
             currentState = currentState.addState(character);
         }
         currentState.addEmit(keyword);
@@ -93,6 +102,12 @@ public class Trie {
         State currentState = this.rootState;
         List<Emit> collectedEmits = new ArrayList<Emit>();
         for (Character character : text.toCharArray()) {
+        	if (trieConfig.getIgnorePattern() != null
+        		&& trieConfig.getIgnorePattern().matcher(String.valueOf(character)).find()) {
+        		position++;
+        		continue;
+        	}
+
             if (trieConfig.isCaseInsensitive()) {
                 character = Character.toLowerCase(character);
             }
@@ -118,9 +133,9 @@ public class Trie {
         List<Emit> removeEmits = new ArrayList<Emit>();
         for (Emit emit : collectedEmits) {
             if ((emit.getStart() == 0 ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) &&
+                 !Character.isLetter(searchText.charAt(emit.getStart() - 1))) &&
                 (emit.getEnd() + 1 == size ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)))) {
+                 !Character.isLetter(searchText.charAt(emit.getEnd() + 1)))) {
                 continue;
             }
             removeEmits.add(emit);
