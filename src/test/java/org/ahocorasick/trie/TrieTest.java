@@ -134,6 +134,15 @@ public class TrieTest {
     }
 
     @Test
+    public void partialMatchWhiteSpaces() {
+        Trie trie = new Trie().onlyWholeWordsWhiteSpaceSeparated();
+        trie.addKeyword("#sugar-123");
+        Collection<Emit> emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
+        assertEquals(1, emits.size()); // Match must not be made
+        checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
+    }
+
+    @Test
     public void tokenizeFullSentence() {
         Trie trie = new Trie();
         trie.addKeyword("Alpha");

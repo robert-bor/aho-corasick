@@ -46,6 +46,11 @@ public class Trie {
         return this;
     }
 
+    public Trie onlyWholeWordsWhiteSpaceSeparated() {
+        this.trieConfig.setOnlyWholeWordsWhiteSpaceSeparated(true);
+        return this;
+    }
+
     public void addKeyword(String keyword) {
         if (keyword == null || keyword.length() == 0) {
             return;
@@ -105,6 +110,10 @@ public class Trie {
             removePartialMatches(text, collectedEmits);
         }
 
+        if (trieConfig.isOnlyWholeWordsWhiteSpaceSeparated()) {
+            removePartialMatchesWhiteSpaceSeparated(text, collectedEmits);
+        }
+
         if (!trieConfig.isAllowOverlaps()) {
             IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
             intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
@@ -121,6 +130,24 @@ public class Trie {
                  !Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) &&
                 (emit.getEnd() + 1 == size ||
                  !Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)))) {
+                continue;
+            }
+            removeEmits.add(emit);
+        }
+
+        for (Emit removeEmit : removeEmits) {
+            collectedEmits.remove(removeEmit);
+        }
+    }
+
+    private void removePartialMatchesWhiteSpaceSeparated(String searchText, List<Emit> collectedEmits) {
+        long size = searchText.length();
+        List<Emit> removeEmits = new ArrayList<Emit>();
+        for (Emit emit : collectedEmits) {
+            if ((emit.getStart() == 0 ||
+                    Character.isWhitespace(searchText.charAt(emit.getStart() - 1))) &&
+                    (emit.getEnd() + 1 == size ||
+                            Character.isWhitespace(searchText.charAt(emit.getEnd() + 1)))) {
                 continue;
             }
             removeEmits.add(emit);
