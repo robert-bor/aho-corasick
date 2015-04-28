@@ -151,10 +151,13 @@ public class Trie implements Serializable, Comparable<Trie> {
     private void constructFailureStates() {
         Queue<State> queue = new LinkedBlockingDeque<State>();
 
+        int i = 0;
         // First, set the fail state of all depth 1 states to the root state
         for (State depthOneState : this.rootState.getStates()) {
-            depthOneState.setFailure(this.rootState);
-            queue.add(depthOneState);
+            if (depthOneState != null) {
+                depthOneState.setFailure(this.rootState);
+                queue.add(depthOneState);
+            }
         }
         this.failureStatesConstructed = true;
 
