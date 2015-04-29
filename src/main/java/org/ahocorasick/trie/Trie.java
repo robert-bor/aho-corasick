@@ -89,6 +89,10 @@ public class Trie implements Serializable, Comparable<Trie> {
 
     @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(String text) {
+        return parseText(text, false);
+    }
+
+    public Collection<Emit> parseText(String text, Boolean onlyWholeWords) {
         checkForConstructedFailureStates();
 
         int position = 0;
@@ -103,7 +107,7 @@ public class Trie implements Serializable, Comparable<Trie> {
             position++;
         }
 
-        if (trieConfig.isOnlyWholeWords()) {
+        if (trieConfig.isOnlyWholeWords() || onlyWholeWords) {
             removePartialMatches(text, collectedEmits);
         }
 
