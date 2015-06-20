@@ -5,10 +5,7 @@ import org.ahocorasick.interval.Intervalable;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -138,10 +135,13 @@ public class Trie implements Serializable, Comparable<Trie> {
     }
 
     private State getState(State currentState, Character character) {
-        State newCurrentState = currentState.nextState(character);
-        while (newCurrentState == null) {
-            currentState = currentState.failure();
+        State newCurrentState = null;
+        if (currentState != null) {
             newCurrentState = currentState.nextState(character);
+            while (newCurrentState == null && currentState.failure() != null) {
+                currentState = currentState.failure();
+                newCurrentState = currentState.nextState(character);
+            }
         }
         return newCurrentState;
     }
@@ -185,7 +185,7 @@ public class Trie implements Serializable, Comparable<Trie> {
     }
 
     private void storeEmits(int position, State currentState, List<Emit> collectedEmits) {
-        Collection<String> emits = currentState.emit();
+        Collection<String> emits = (currentState == null) ? Collections.<String> emptyList() : currentState.emit();
         if (emits != null && !emits.isEmpty()) {
             for (String emit : emits) {
                 collectedEmits.add(new Emit(position-emit.length()+1, position, emit));
