@@ -3,10 +3,9 @@ package org.ahocorasick.trie;
 import org.ahocorasick.interval.IntervalTree;
 import org.ahocorasick.interval.Intervalable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Queue;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -14,7 +13,7 @@ import java.util.concurrent.LinkedBlockingDeque;
  * Based on the Aho-Corasick white paper, Bell technologies: ftp://163.13.200.222/assistant/bearhero/prog/%A8%E4%A5%A6/ac_bm.pdf
  * @author Robert Bor
  */
-public class Trie {
+public class Trie implements Serializable, Comparable<Trie> {
 
     private TrieConfig trieConfig;
 
@@ -87,6 +86,10 @@ public class Trie {
 
     @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(String text) {
+        return parseText(text, false);
+    }
+
+    public Collection<Emit> parseText(String text, Boolean onlyWholeWords) {
         checkForConstructedFailureStates();
 
         int position = 0;
@@ -101,7 +104,7 @@ public class Trie {
             position++;
         }
 
-        if (trieConfig.isOnlyWholeWords()) {
+        if (trieConfig.isOnlyWholeWords() || onlyWholeWords) {
             removePartialMatches(text, collectedEmits);
         }
 
@@ -132,10 +135,13 @@ public class Trie {
     }
 
     private State getState(State currentState, Character character) {
-        State newCurrentState = currentState.nextState(character);
-        while (newCurrentState == null) {
-            currentState = currentState.failure();
+        State newCurrentState = null;
+        if (currentState != null) {
             newCurrentState = currentState.nextState(character);
+            while (newCurrentState == null && currentState.failure() != null) {
+                currentState = currentState.failure();
+                newCurrentState = currentState.nextState(character);
+            }
         }
         return newCurrentState;
     }
@@ -149,10 +155,13 @@ public class Trie {
     private void constructFailureStates() {
         Queue<State> queue = new LinkedBlockingDeque<State>();
 
+        int i = 0;
         // First, set the fail state of all depth 1 states to the root state
         for (State depthOneState : this.rootState.getStates()) {
-            depthOneState.setFailure(this.rootState);
-            queue.add(depthOneState);
+            if (depthOneState != null) {
+                depthOneState.setFailure(this.rootState);
+                queue.add(depthOneState);
+            }
         }
         this.failureStatesConstructed = true;
 
@@ -176,7 +185,7 @@ public class Trie {
     }
 
     private void storeEmits(int position, State currentState, List<Emit> collectedEmits) {
-        Collection<String> emits = currentState.emit();
+        Collection<String> emits = (currentState == null) ? Collections.<String> emptyList() : currentState.emit();
         if (emits != null && !emits.isEmpty()) {
             for (String emit : emits) {
                 collectedEmits.add(new Emit(position-emit.length()+1, position, emit));
@@ -184,4 +193,34 @@ public class Trie {
         }
     }
 
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.writeObject(trieConfig);
+        stream.writeObject(rootState);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+        trieConfig = (TrieConfig) stream.readObject();
+        rootState = (State) stream.readObject();
+        constructFailureStates();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Trie))
+            return false;
+        return compareTo((Trie) obj) == 0;
+    }
+
+    @Override
+    public int compareTo(Trie o) {
+        if (!this.trieConfig.equals(o.trieConfig))
+            return 1;
+        if (!this.rootState.equals(o.rootState))
+            return 1;
+        if (!this.failureStatesConstructed == o.failureStatesConstructed)
+            return 1;
+        return 0;
+    }
 }

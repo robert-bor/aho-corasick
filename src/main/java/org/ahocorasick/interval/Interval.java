@@ -1,6 +1,10 @@
 package org.ahocorasick.interval;
 
-public class Interval implements Intervalable {
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.reflect.Field;
+
+public class Interval implements Intervalable, Serializable {
 
     private int start;
     private int end;
@@ -59,6 +63,18 @@ public class Interval implements Intervalable {
     @Override
     public String toString() {
         return this.start + ":" + this.end;
+    }
+
+    protected void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.writeInt(start);
+        stream.writeInt(end);
+    }
+
+    protected void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException, IllegalAccessException, NoSuchFieldException {
+        this.start = stream.readInt();
+        this.end = stream.readInt();
     }
 
 }

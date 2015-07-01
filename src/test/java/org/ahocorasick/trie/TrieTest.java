@@ -1,7 +1,9 @@
 package org.ahocorasick.trie;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Test;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -149,6 +151,22 @@ public class TrieTest {
         assertEquals(" from the rear, ", tokensIt.next().getFragment());
         assertEquals("Gamma", tokensIt.next().getFragment());
         assertEquals(" in reserve", tokensIt.next().getFragment());
+    }
+
+    @Test
+    public void serializeTrie() {
+        Trie trie = new Trie();
+        trie.addKeyword("he");
+        trie.addKeyword("hehehehe");
+        trie.addKeyword("Alpha");
+        trie.addKeyword("Beta");
+        trie.addKeyword("Gamma");
+
+        Collection<Emit> emits = trie.parseText("hehehehehe");
+        Iterator<Emit> iterator = emits.iterator();
+
+        Serializable copy = SerializationUtils.clone(trie);
+        assert(trie.equals(copy));
     }
 
     @Test

@@ -1,6 +1,12 @@
 package org.ahocorasick.trie;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.Character;
+import java.lang.Integer;
 import java.util.*;
+import java.lang.reflect.Field;
+import java.util.TreeMap;
 
 /**
  * <p>
@@ -23,7 +29,7 @@ import java.util.*;
  *
  * @author Robert Bor
  */
-public class State {
+public class State implements Serializable, Comparable<State> {
 
     /** effective the size of the keyword */
     private final int depth;
@@ -42,6 +48,17 @@ public class State {
 
     /** whenever this state is reached, it will emit the matches keywords for future reference */
     private Set<String> emits = null;
+
+    /** used for serialization */
+    public static IdentityHashMap<Object, Integer> objectToReference = new IdentityHashMap();
+    public static IdentityHashMap<Integer, Object> referenceToObject = new IdentityHashMap();
+    public static int referenceCount = 1;
+
+    public static void reset () {
+        objectToReference.clear();
+        referenceToObject.clear();
+        referenceCount = 1;
+    }
 
     public State() {
         this(0);
@@ -114,4 +131,97 @@ public class State {
         return this.success.keySet();
     }
 
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.writeInt(depth);
+        stream.writeInt(success.size());
+        for (Map.Entry<Character, State> e : success.entrySet()) {
+            stream.writeObject(e.getKey());
+
+            Integer reference = objectToReference.get(e.getValue());
+            if (reference == null) {
+                objectToReference.put(e.getValue(), ++referenceCount);
+                stream.writeInt(0);
+                stream.writeInt(referenceCount);
+                stream.writeObject(e.getValue());
+            } else {
+                stream.writeInt(reference);
+            }
+        }
+
+        stream.writeObject(failure);
+        stream.writeObject(emits);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+
+        // Use reflection to modify final field
+        Field f = this.getClass().getDeclaredField("depth");
+        f.setAccessible(true);
+        f.set(this, stream.readInt());
+
+        f = this.getClass().getDeclaredField("rootState");
+        f.setAccessible(true);
+        f.set(this, (depth == 0) ? this : null);
+        int successSize = (Integer) stream.readInt();
+        success = new TreeMap<Character, org.ahocorasick.trie.State>();
+        for (int i = 0; i < successSize; i++) {
+            Character character = (Character) stream.readObject();
+            Integer reference = stream.readInt();
+            State treeState = null;
+            if (reference == 0) {
+                Integer referenceID = stream.readInt();
+                treeState = (State) stream.readObject();
+                referenceToObject.put(referenceID, treeState);
+            } else {
+                treeState = (org.ahocorasick.trie.State) referenceToObject.get(reference);
+            }
+            success.put(character, treeState);
+        }
+
+
+        failure = (State) stream.readObject();
+        emits = (TreeSet) stream.readObject();
+    }
+
+    private static IdentityHashMap<State, Integer> equalityReferenceMap = new IdentityHashMap();
+
+    private boolean gotoEquality(Map<Character,State> mine,  Map<Character,State> other) {
+        if (mine.size() != other.size()) return false;
+        Iterator otherEntrySet = other.entrySet().iterator();
+        for (Map.Entry<Character, State> e : mine.entrySet()) {
+            Map.Entry<Character, State> otherE = (Map.Entry<Character, State> ) otherEntrySet.next();
+
+            if (!e.getKey().equals(otherE.getKey())) return false;
+            Integer reference = equalityReferenceMap.get(e.getValue());
+            if (reference == null) {
+                equalityReferenceMap.put(e.getValue(), equalityReferenceMap.size() + 1);
+                if (!e.getValue().equals(otherE.getValue())) return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof State))
+            return false;
+        return compareTo((State) obj) == 0;
+    }
+
+    @Override
+    public int compareTo(State o) {
+        if (this.depth != o.depth)
+            return 1;
+        if ((this.depth == 0 && o.depth == 0) && (this.rootState != this || o.rootState != o))
+            return 1;
+        if (!gotoEquality(this.success, o.success))
+            return 1;
+        if (this.failure != null && o.failure != null && !this.failure.equals(o.failure))
+            return 1;
+        if (this.emits != null && o.emits != null && !this.emits.equals(o.emits))
+            return 1;
+        return 0;
+    }
 }
