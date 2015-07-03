@@ -51,11 +51,12 @@ Usage
 -----
 Setting up the Trie is a piece of cake:
 ```java
-    Trie trie = new Trie();
-    trie.addKeyword("hers");
-    trie.addKeyword("his");
-    trie.addKeyword("she");
-    trie.addKeyword("he");
+    Trie trie = Trie.builder()
+        .addKeyword("hers")
+        .addKeyword("his")
+        .addKeyword("she")
+        .addKeyword("he")
+        .build();
     Collection<Emit> emits = trie.parseText("ushers");
 ```
 
@@ -68,9 +69,11 @@ In normal situations you probably want to remove overlapping instances, retainin
 matches.
 
 ```java
-    Trie trie = new Trie().removeOverlaps();
-    trie.addKeyword("hot");
-    trie.addKeyword("hot chocolate");
+    Trie trie = Trie.builder()
+        .removeOverlaps()
+        .addKeyword("hot")
+        .addKeyword("hot chocolate")
+        .build();
     Collection<Emit> emits = trie.parseText("hot chocolate");
 ```
 
@@ -82,8 +85,10 @@ There is only one result now:
 If you want the algorithm to only check for whole words, you can tell the Trie to do so:
 
 ```java
-    Trie trie = new Trie().onlyWholeWords();
-    trie.addKeyword("sugar");
+    Trie trie = Trie.builder()
+        .onlyWholeWords()
+        .addKeyword("sugar")
+        .build();
     Collection<Emit> emits = trie.parseText("sugarcane sugarcane sugar canesugar");
 ```
 
@@ -94,8 +99,10 @@ Some text are WrItTeN in combinations of lowercase and uppercase and therefore h
 the Trie to lowercase the entire searchtext to ease the matching process.
 
 ```java
-    Trie trie = new Trie().caseInsensitive();
-    trie.addKeyword("casing");
+    Trie trie = Trie.builder()
+        .caseInsensitive()
+        .addKeyword("casing")
+        .build();
     Collection<Emit> emits = trie.parseText("CaSiNg");
 ```
 
@@ -111,10 +118,11 @@ matches as soon as you encounter them. Let's look at an example where we want to
     String speech = "The Answer to the Great Question... Of Life, " +
             "the Universe and Everything... Is... Forty-two,' said " +
             "Deep Thought, with infinite majesty and calm.";
-    Trie trie = new Trie().removeOverlaps().onlyWholeWords().caseInsensitive();
-    trie.addKeyword("great question");
-    trie.addKeyword("forty-two");
-    trie.addKeyword("deep thought");
+    Trie trie = Trie.builder().removeOverlaps().onlyWholeWords().caseInsensitive()
+        .addKeyword("great question")
+        .addKeyword("forty-two")
+        .addKeyword("deep thought")
+        .build();
     Collection<Token> tokens = trie.tokenize(speech);
     StringBuffer html = new StringBuffer();
     html.append("<html><body><p>");
