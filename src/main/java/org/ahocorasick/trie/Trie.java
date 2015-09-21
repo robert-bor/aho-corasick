@@ -2,6 +2,9 @@ package org.ahocorasick.trie;
 
 import org.ahocorasick.interval.IntervalTree;
 import org.ahocorasick.interval.Intervalable;
+import org.ahocorasick.trie.configuration.ParseConfiguration;
+import org.ahocorasick.trie.handler.DefaultEmitHandler;
+import org.ahocorasick.trie.handler.EmitHandler;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,19 +90,12 @@ public class Trie {
 
     @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(String text) {
-        checkForConstructedFailureStates();
+        DefaultEmitHandler emitHandler = new DefaultEmitHandler();
+        parseText(new ParseConfiguration()
+                .setEmitHandler(emitHandler)
+                .setText(text));
 
-        int position = 0;
-        State currentState = this.rootState;
-        List<Emit> collectedEmits = new ArrayList<Emit>();
-        for (Character character : text.toCharArray()) {
-            if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
-            }
-            currentState = getState(currentState, character);
-            storeEmits(position, currentState, collectedEmits);
-            position++;
-        }
+        List<Emit> collectedEmits = emitHandler.getEmits();
 
         if (trieConfig.isOnlyWholeWords()) {
             removePartialMatches(text, collectedEmits);
@@ -111,6 +107,22 @@ public class Trie {
         }
 
         return collectedEmits;
+    }
+
+    public void parseText(ParseConfiguration parseConfiguration) {
+        checkForConstructedFailureStates();
+
+        int position = 0;
+        State currentState = this.rootState;
+        for (Character character : parseConfiguration) {
+            if (trieConfig.isCaseInsensitive()) {
+                character = Character.toLowerCase(character);
+            }
+            currentState = getState(currentState, character);
+            storeEmits(position, currentState, parseConfiguration.getEmitHandler());
+            position++;
+        }
+
     }
 
     private void removePartialMatches(String searchText, List<Emit> collectedEmits) {
@@ -175,11 +187,11 @@ public class Trie {
         }
     }
 
-    private void storeEmits(int position, State currentState, List<Emit> collectedEmits) {
+    private void storeEmits(int position, State currentState, EmitHandler emitHandler) {
         Collection<String> emits = currentState.emit();
         if (emits != null && !emits.isEmpty()) {
             for (String emit : emits) {
-                collectedEmits.add(new Emit(position-emit.length()+1, position, emit));
+                emitHandler.emit(new Emit(position - emit.length() + 1, position, emit));
             }
         }
     }
