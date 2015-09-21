@@ -1,6 +1,5 @@
 package org.ahocorasick.trie;
 
-import org.ahocorasick.trie.configuration.ParseConfiguration;
 import org.ahocorasick.trie.handler.EmitHandler;
 import org.junit.Test;
 
@@ -73,7 +72,7 @@ public class TrieTest {
                 emits.add(emit);
             }
         };
-        trie.parseText(new ParseConfiguration().setText("ushers").setEmitHandler(emitHandler));
+        trie.parseText("ushers", emitHandler);
         assertEquals(3, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 2, 3, "he");

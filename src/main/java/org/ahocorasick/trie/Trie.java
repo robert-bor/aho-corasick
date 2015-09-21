@@ -2,7 +2,6 @@ package org.ahocorasick.trie;
 
 import org.ahocorasick.interval.IntervalTree;
 import org.ahocorasick.interval.Intervalable;
-import org.ahocorasick.trie.configuration.ParseConfiguration;
 import org.ahocorasick.trie.handler.DefaultEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
 
@@ -91,9 +90,7 @@ public class Trie {
     @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(String text) {
         DefaultEmitHandler emitHandler = new DefaultEmitHandler();
-        parseText(new ParseConfiguration()
-                .setEmitHandler(emitHandler)
-                .setText(text));
+        parseText(text, emitHandler);
 
         List<Emit> collectedEmits = emitHandler.getEmits();
 
@@ -109,18 +106,17 @@ public class Trie {
         return collectedEmits;
     }
 
-    public void parseText(ParseConfiguration parseConfiguration) {
+    public void parseText(CharSequence text, EmitHandler emitHandler) {
         checkForConstructedFailureStates();
 
-        int position = 0;
         State currentState = this.rootState;
-        for (Character character : parseConfiguration) {
+        for (int position = 0; position < text.length(); position++) {
+            Character character = text.charAt(position);
             if (trieConfig.isCaseInsensitive()) {
                 character = Character.toLowerCase(character);
             }
             currentState = getState(currentState, character);
-            storeEmits(position, currentState, parseConfiguration.getEmitHandler());
-            position++;
+            storeEmits(position, currentState, emitHandler);
         }
 
     }
