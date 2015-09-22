@@ -40,7 +40,7 @@ public class Trie {
 
     public Collection<Token> tokenize(String text) {
 
-        Collection<Token> tokens = new ArrayList<Token>();
+        Collection<Token> tokens = new ArrayList<>();
 
         Collection<Emit> collectedEmits = parseText(text);
         int lastCollectedPosition = -1;
@@ -86,8 +86,6 @@ public class Trie {
     }
 
     public void parseText(CharSequence text, EmitHandler emitHandler) {
-        checkForConstructedFailureStates();
-
         State currentState = this.rootState;
         for (int position = 0; position < text.length(); position++) {
             Character character = text.charAt(position);
@@ -130,7 +128,7 @@ public class Trie {
     }
 
     private void constructFailureStates() {
-        Queue<State> queue = new LinkedBlockingDeque<State>();
+        Queue<State> queue = new LinkedBlockingDeque<>();
 
         // First, set the fail state of all depth 1 states to the root state
         for (State depthOneState : this.rootState.getStates()) {
@@ -198,6 +196,11 @@ public class Trie {
 
         public TrieBuilder addKeyword(String keyword) {
             trie.addKeyword(keyword);
+            return this;
+        }
+
+        public TrieBuilder stopOnHit() {
+            trie.trieConfig.setStopOnHit(true);
             return this;
         }
 

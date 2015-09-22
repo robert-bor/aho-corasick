@@ -46,12 +46,13 @@ public class TrieTest {
 
     @Test
     public void ushersTestAndStopOnHit() {
-        Trie trie = new Trie();
-        trie.addKeyword("hers");
-        trie.addKeyword("his");
-        trie.addKeyword("she");
-        trie.addKeyword("he");
-        trie.stopOnHit();
+        Trie trie = Trie.builder()
+                .addKeyword("hers")
+                .addKeyword("his")
+                .addKeyword("she")
+                .addKeyword("he")
+                .stopOnHit()
+                .build();
         Collection<Emit> emits = trie.parseText("ushers");
         assertEquals(2, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<Emit> iterator = emits.iterator();
@@ -62,11 +63,11 @@ public class TrieTest {
     @Test
     public void ushersTest() {
         Trie trie = Trie.builder()
-            .addKeyword("hers")
-            .addKeyword("his")
-            .addKeyword("she")
-            .addKeyword("he")
-            .build();
+                .addKeyword("hers")
+                .addKeyword("his")
+                .addKeyword("she")
+                .addKeyword("he")
+                .build();
         Collection<Emit> emits = trie.parseText("ushers");
         assertEquals(3, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<Emit> iterator = emits.iterator();
@@ -77,11 +78,12 @@ public class TrieTest {
 
     @Test
     public void ushersTestByCallback() {
-        Trie trie = new Trie();
-        trie.addKeyword("hers");
-        trie.addKeyword("his");
-        trie.addKeyword("she");
-        trie.addKeyword("he");
+        Trie trie = Trie.builder()
+                .addKeyword("hers")
+                .addKeyword("his")
+                .addKeyword("she")
+                .addKeyword("he")
+                .build();
 
         final List<Emit> emits = new ArrayList<>();
         EmitHandler emitHandler = new EmitHandler() {
@@ -262,7 +264,7 @@ public class TrieTest {
     @Test
     public void unicodeIssueBug8ReportedByDwyerk() {
         String target = "LİKE THIS"; // The second character ('İ') is Unicode, which was read by AC as a 2-byte char
-        assertEquals("THIS", target.substring(5,9)); // Java does it the right way
+        assertEquals("THIS", target.substring(5, 9)); // Java does it the right way
         Trie trie = Trie.builder().caseInsensitive().onlyWholeWords()
             .addKeyword("this")
             .build();
