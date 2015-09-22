@@ -22,38 +22,12 @@ public class Trie {
 
     private State rootState;
 
-    private boolean failureStatesConstructed = false;
-
-    public Trie(TrieConfig trieConfig) {
+    private Trie(TrieConfig trieConfig) {
         this.trieConfig = trieConfig;
         this.rootState = new State();
     }
 
-    public Trie() {
-        this(new TrieConfig());
-    }
-
-    public Trie caseInsensitive() {
-        this.trieConfig.setCaseInsensitive(true);
-        return this;
-    }
-
-    public Trie removeOverlaps() {
-        this.trieConfig.setAllowOverlaps(false);
-        return this;
-    }
-
-    public Trie onlyWholeWords() {
-        this.trieConfig.setOnlyWholeWords(true);
-        return this;
-    }
-
-    public Trie stopOnHit() {
-        this.trieConfig.setStopOnHit(true);
-        return this;
-    }
-
-    public void addKeyword(String keyword) {
+    private void addKeyword(String keyword) {
         if (keyword == null || keyword.length() == 0) {
             return;
         }
@@ -155,12 +129,6 @@ public class Trie {
         return newCurrentState;
     }
 
-    private void checkForConstructedFailureStates() {
-        if (!this.failureStatesConstructed) {
-            constructFailureStates();
-        }
-    }
-
     private void constructFailureStates() {
         Queue<State> queue = new LinkedBlockingDeque<State>();
 
@@ -169,7 +137,6 @@ public class Trie {
             depthOneState.setFailure(this.rootState);
             queue.add(depthOneState);
         }
-        this.failureStatesConstructed = true;
 
         // Second, determine the fail state for all depth > 1 state
         while (!queue.isEmpty()) {
@@ -202,4 +169,41 @@ public class Trie {
         return emitted;
     }
 
+    public static TrieBuilder builder() {
+        return new TrieBuilder();
+    }
+
+    public static class TrieBuilder {
+
+        private TrieConfig trieConfig = new TrieConfig();
+
+        private Trie trie = new Trie(trieConfig);
+
+        private TrieBuilder() {}
+
+        public TrieBuilder caseInsensitive() {
+            this.trieConfig.setCaseInsensitive(true);
+            return this;
+        }
+
+        public TrieBuilder removeOverlaps() {
+            this.trieConfig.setAllowOverlaps(false);
+            return this;
+        }
+
+        public TrieBuilder onlyWholeWords() {
+            this.trieConfig.setOnlyWholeWords(true);
+            return this;
+        }
+
+        public TrieBuilder addKeyword(String keyword) {
+            trie.addKeyword(keyword);
+            return this;
+        }
+
+        public Trie build() {
+            trie.constructFailureStates();
+            return trie;
+        }
+    }
 }
