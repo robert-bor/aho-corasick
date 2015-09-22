@@ -45,7 +45,7 @@ Some examples you could use the Aho-Corasick algorithm for:
 
 This library is the Java implementation of the afore-mentioned Aho-Corasick algorithm for efficient string matching.
 The algorithm is explained in great detail in the white paper written by
-Aho and Corasick: ftp://im1.im.tku.edu.tw/assistant/bearhero/prog/%E5%85%B6%E5%AE%83/ac_bm.pdf
+Aho and Corasick: http://cr.yp.to/bib/1975/aho.pdf
 
 Usage
 -----

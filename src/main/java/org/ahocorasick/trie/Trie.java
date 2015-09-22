@@ -13,7 +13,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  *
- * Based on the Aho-Corasick white paper, Bell technologies: ftp://im1.im.tku.edu.tw/assistant/bearhero/prog/%E5%85%B6%E5%AE%83/ac_bm.pdf
+ * Based on the Aho-Corasick white paper, Bell technologies: http://cr.yp.to/bib/1975/aho.pdf
  * @author Robert Bor
  */
 public class Trie {
