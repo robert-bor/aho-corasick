@@ -85,11 +85,11 @@ public class Trie {
         return collectedEmits;
     }
 
-	public boolean matches(String text)
-	{
+	public boolean containsMatch(CharSequence text) {
 		Emit firstMatch = firstMatch(text);
 		return firstMatch != null;
 	}
+
     public void parseText(CharSequence text, EmitHandler emitHandler) {
         State currentState = this.rootState;
         for (int position = 0; position < text.length(); position++) {
@@ -105,21 +105,7 @@ public class Trie {
 
     }
 
-    private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
-        long size = searchText.length();
-        List<Emit> removeEmits = new ArrayList<Emit>();
-        for (Emit emit : collectedEmits) {
-            if ((emit.getStart() == 0 ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) &&
-                (emit.getEnd() + 1 == size ||
-                 !Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)))) {
-                continue;
-            }
-            removeEmits.add(emit);
-        }
-
-	public Emit firstMatch(String text)
-	{
+	public Emit firstMatch(CharSequence text) {
 		if (!trieConfig.isAllowOverlaps()) {
 			// Slow path. Needs to find all the matches to detect overlaps.
 			Collection<Emit> parseText = parseText(text);
@@ -127,11 +113,10 @@ public class Trie {
 				return parseText.iterator().next();
 			}
 		} else {
-			// Fast path. Returs first match found.
-			checkForConstructedFailureStates();
-			int position = 0;
+			// Fast path. Returns first match found.
 			State currentState = this.rootState;
-			for (Character character : text.toCharArray()) {
+            for (int position = 0; position < text.length(); position++) {
+                Character character = text.charAt(position);
 				if (trieConfig.isCaseInsensitive()) {
 					character = Character.toLowerCase(character);
 				}
@@ -149,23 +134,20 @@ public class Trie {
 						}
 					}
 				}
-				position++;
 			}
 		}
 		return null;
 	}
 
-	private boolean isPartialMatch(String searchText, Emit emit)
-	{
+	private boolean isPartialMatch(CharSequence searchText, Emit emit) {
 		return (emit.getStart() != 0 &&
 			Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
 			(emit.getEnd() + 1 != searchText.length() &&
 			Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
 	}
 
-	private void removePartialMatches(String searchText, List<Emit> collectedEmits)
-	{
-		List<Emit> removeEmits = new ArrayList<Emit>();
+	private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
+		List<Emit> removeEmits = new ArrayList<>();
 		for (Emit emit : collectedEmits) {
 			if (isPartialMatch(searchText, emit)) {
 				removeEmits.add(emit);

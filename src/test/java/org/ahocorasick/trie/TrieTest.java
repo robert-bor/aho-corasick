@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TrieTest {
 
@@ -24,8 +25,9 @@ public class TrieTest {
 
 	 @Test
     public void keywordAndTextAreTheSameFirstMatch() {
-        Trie trie = new Trie();
-        trie.addKeyword("abc");
+        Trie trie = Trie.builder()
+                .addKeyword("abc")
+                .build();
 		Emit firstMatch = trie.firstMatch("abc");
         checkEmit(firstMatch, 0, 2, "abc");
     }
@@ -42,8 +44,9 @@ public class TrieTest {
 
 	@Test
     public void textIsLongerThanKeywordFirstMatch() {
-        Trie trie = new Trie();
-        trie.addKeyword("abc");
+        Trie trie = Trie.builder()
+                .addKeyword("abc")
+                .build();
 		Emit firstMatch = trie.firstMatch(" abc");
         checkEmit(firstMatch, 1, 3, "abc");
     }
@@ -62,10 +65,11 @@ public class TrieTest {
 
 	@Test
     public void variousKeywordsFirstMatch() {
-        Trie trie = new Trie();
-        trie.addKeyword("abc");
-        trie.addKeyword("bcd");
-        trie.addKeyword("cde");
+        Trie trie = Trie.builder()
+                .addKeyword("abc")
+                .addKeyword("bcd")
+                .addKeyword("cde")
+                .build();
 		Emit firstMatch = trie.firstMatch("bcd");
         checkEmit(firstMatch, 0, 2, "bcd");
     }
@@ -104,11 +108,12 @@ public class TrieTest {
 
 	 @Test
     public void ushersTestFirstMatch() {
-        Trie trie = new Trie();
-        trie.addKeyword("hers");
-        trie.addKeyword("his");
-        trie.addKeyword("she");
-        trie.addKeyword("he");
+         Trie trie = Trie.builder()
+                .addKeyword("hers")
+                .addKeyword("his")
+                .addKeyword("she")
+                .addKeyword("he")
+                .build();
 		Emit firstMatch = trie.firstMatch("ushers");
 		checkEmit(firstMatch, 2, 3, "he");
 	}
@@ -150,8 +155,9 @@ public class TrieTest {
 
 	 @Test
     public void misleadingTestFirstMatch() {
-        Trie trie = new Trie();
-        trie.addKeyword("hers");
+         Trie trie = Trie.builder()
+                 .addKeyword("hers")
+                 .build();
 		Emit firstMatch = trie.firstMatch("h he her hers");
         checkEmit(firstMatch, 9, 12, "hers");
     }
@@ -174,11 +180,12 @@ public class TrieTest {
 
 	 @Test
     public void recipesFirstMatch() {
-        Trie trie = new Trie();
-        trie.addKeyword("veal");
-        trie.addKeyword("cauliflower");
-        trie.addKeyword("broccoli");
-        trie.addKeyword("tomatoes");
+         Trie trie = Trie.builder()
+                 .addKeyword("veal")
+                 .addKeyword("cauliflower")
+                 .addKeyword("broccoli")
+                 .addKeyword("tomatoes")
+                 .build();
 		Emit firstMatch = trie.firstMatch("2 cauliflowers, 3 tomatoes, 4 slices of veal, 100g broccoli");
 
         checkEmit(firstMatch, 2, 12, "cauliflower");
@@ -186,9 +193,10 @@ public class TrieTest {
 
     @Test
     public void longAndShortOverlappingMatch() {
-        Trie trie = new Trie();
-        trie.addKeyword("he");
-        trie.addKeyword("hehehehe");
+        Trie trie = Trie.builder()
+                .addKeyword("he")
+                .addKeyword("hehehehe")
+                .build();
         Collection<Emit> emits = trie.parseText("hehehehehe");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 0, 1, "he");
@@ -215,15 +223,26 @@ public class TrieTest {
         checkEmit(iterator.next(), 6, 7, "ab");
     }
 
-	 @Test
+    @Test
     public void nonOverlappingFirstMatch() {
-        Trie trie = new Trie().removeOverlaps();
-        trie.addKeyword("ab");
-        trie.addKeyword("cba");
-        trie.addKeyword("ababc");
+         Trie trie = Trie.builder().removeOverlaps()
+                 .addKeyword("ab")
+                 .addKeyword("cba")
+                 .addKeyword("ababc")
+                 .build();
 		Emit firstMatch = trie.firstMatch("ababcbab");
 
         checkEmit(firstMatch, 0, 4, "ababc");
+    }
+
+    @Test
+    public void containsMatch() {
+         Trie trie = Trie.builder().removeOverlaps()
+                 .addKeyword("ab")
+                 .addKeyword("cba")
+                 .addKeyword("ababc")
+                 .build();
+        assertTrue(trie.containsMatch("ababcbab"));
     }
 
     @Test
@@ -246,7 +265,8 @@ public class TrieTest {
 
     @Test
     public void partialMatch() {
-        Trie trie = Trie.builder().onlyWholeWords()
+        Trie trie = Trie.builder()
+            .onlyWholeWords()
             .addKeyword("sugar")
             .build();
         Collection<Emit> emits = trie.parseText("sugarcane sugarcane sugar canesugar"); // left, middle, right test
@@ -256,8 +276,10 @@ public class TrieTest {
 
 	   @Test
     public void partialMatchFirstMatch() {
-        Trie trie = new Trie().onlyWholeWords();
-        trie.addKeyword("sugar");
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("sugar")
+                .build();
 		Emit firstMatch = trie.firstMatch("sugarcane sugarcane sugar canesugar"); // left, middle, right test
         
         checkEmit(firstMatch, 20, 24, "sugar");
@@ -318,11 +340,12 @@ public class TrieTest {
 
 	@Test
     public void caseInsensitiveFirstMatch() {
-        Trie trie = new Trie().caseInsensitive();
-        trie.addKeyword("turning");
-        trie.addKeyword("once");
-        trie.addKeyword("again");
-        trie.addKeyword("börkü");
+        Trie trie = Trie.builder().caseInsensitive()
+                .addKeyword("turning")
+                .addKeyword("once")
+                .addKeyword("again")
+                .addKeyword("börkü")
+                .build();
 		Emit firstMatch = trie.firstMatch("TurninG OnCe AgAiN BÖRKÜ");
 
         checkEmit(firstMatch, 0, 6, "turning");
@@ -365,9 +388,12 @@ public class TrieTest {
 	 @Test
     public void unicodeIssueBug8ReportedByDwyerkFirstMatch() {
         String target = "LİKE THIS"; // The second character ('İ') is Unicode, which was read by AC as a 2-byte char
-        Trie trie = new Trie().caseInsensitive().onlyWholeWords();
-        assertEquals("THIS", target.substring(5,9)); // Java does it the right way
-        trie.addKeyword("this");
+        Trie trie = Trie.builder()
+                .caseInsensitive()
+                .onlyWholeWords()
+                .addKeyword("this")
+                .build();
+        assertEquals("THIS", target.substring(5, 9)); // Java does it the right way
 		Emit firstMatch = trie.firstMatch(target);
         checkEmit(firstMatch, 5, 8, "this");
     }
