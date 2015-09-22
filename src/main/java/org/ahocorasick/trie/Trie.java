@@ -88,7 +88,7 @@ public class Trie {
     }
 
     @SuppressWarnings("unchecked")
-    public Collection<Emit> parseText(String text) {
+    public Collection<Emit> parseText(CharSequence text) {
         DefaultEmitHandler emitHandler = new DefaultEmitHandler();
         parseText(text, emitHandler);
 
@@ -121,7 +121,7 @@ public class Trie {
 
     }
 
-    private void removePartialMatches(String searchText, List<Emit> collectedEmits) {
+    private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
         long size = searchText.length();
         List<Emit> removeEmits = new ArrayList<Emit>();
         for (Emit emit : collectedEmits) {
