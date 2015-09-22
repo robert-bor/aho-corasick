@@ -80,6 +80,10 @@ public class Trie {
             removePartialMatches(text, collectedEmits);
         }
 
+        if (trieConfig.isOnlyWholeWordsWhiteSpaceSeparated()) {
+            removePartialMatchesWhiteSpaceSeparated(text, collectedEmits);
+        }
+
         if (!trieConfig.isAllowOverlaps()) {
             IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
             intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
@@ -161,6 +165,21 @@ public class Trie {
 		}
 	}
 
+    private void removePartialMatchesWhiteSpaceSeparated(CharSequence searchText, List<Emit> collectedEmits) {
+        long size = searchText.length();
+        List<Emit> removeEmits = new ArrayList<>();
+        for (Emit emit : collectedEmits) {
+            if ((emit.getStart() == 0 || Character.isWhitespace(searchText.charAt(emit.getStart() - 1))) &&
+                (emit.getEnd() + 1 == size || Character.isWhitespace(searchText.charAt(emit.getEnd() + 1)))) {
+                continue;
+            }
+            removeEmits.add(emit);
+        }
+        for (Emit removeEmit : removeEmits) {
+            collectedEmits.remove(removeEmit);
+        }
+    }
+
     private State getState(State currentState, Character character) {
         State newCurrentState = currentState.nextState(character);
         while (newCurrentState == null) {
@@ -234,6 +253,11 @@ public class Trie {
 
         public TrieBuilder onlyWholeWords() {
             this.trieConfig.setOnlyWholeWords(true);
+            return this;
+        }
+
+        public TrieBuilder onlyWholeWordsWhiteSpaceSeparated() {
+            this.trieConfig.setOnlyWholeWordsWhiteSpaceSeparated(true);
             return this;
         }
 

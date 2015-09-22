@@ -16,61 +16,61 @@ public class TrieTest {
     @Test
     public void keywordAndTextAreTheSame() {
         Trie trie = Trie.builder()
-            .addKeyword("abc")
-            .build();
+                .addKeyword("abc")
+                .build();
         Collection<Emit> emits = trie.parseText("abc");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 0, 2, "abc");
     }
 
-	 @Test
+    @Test
     public void keywordAndTextAreTheSameFirstMatch() {
         Trie trie = Trie.builder()
                 .addKeyword("abc")
                 .build();
-		Emit firstMatch = trie.firstMatch("abc");
+        Emit firstMatch = trie.firstMatch("abc");
         checkEmit(firstMatch, 0, 2, "abc");
     }
 
     @Test
     public void textIsLongerThanKeyword() {
         Trie trie = Trie.builder()
-            .addKeyword("abc")
-            .build();
+                .addKeyword("abc")
+                .build();
         Collection<Emit> emits = trie.parseText(" abc");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 1, 3, "abc");
     }
 
-	@Test
+    @Test
     public void textIsLongerThanKeywordFirstMatch() {
         Trie trie = Trie.builder()
                 .addKeyword("abc")
                 .build();
-		Emit firstMatch = trie.firstMatch(" abc");
+        Emit firstMatch = trie.firstMatch(" abc");
         checkEmit(firstMatch, 1, 3, "abc");
     }
 
     @Test
     public void variousKeywordsOneMatch() {
         Trie trie = Trie.builder()
-            .addKeyword("abc")
-            .addKeyword("bcd")
-            .addKeyword("cde")
-            .build();
+                .addKeyword("abc")
+                .addKeyword("bcd")
+                .addKeyword("cde")
+                .build();
         Collection<Emit> emits = trie.parseText("bcd");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 0, 2, "bcd");
     }
 
-	@Test
+    @Test
     public void variousKeywordsFirstMatch() {
         Trie trie = Trie.builder()
                 .addKeyword("abc")
                 .addKeyword("bcd")
                 .addKeyword("cde")
                 .build();
-		Emit firstMatch = trie.firstMatch("bcd");
+        Emit firstMatch = trie.firstMatch("bcd");
         checkEmit(firstMatch, 0, 2, "bcd");
     }
 
@@ -125,15 +125,15 @@ public class TrieTest {
 
     @Test
     public void ushersTestFirstMatch() {
-         Trie trie = Trie.builder()
+        Trie trie = Trie.builder()
                 .addKeyword("hers")
                 .addKeyword("his")
                 .addKeyword("she")
                 .addKeyword("he")
                 .build();
-		Emit firstMatch = trie.firstMatch("ushers");
-		checkEmit(firstMatch, 2, 3, "he");
-	}
+        Emit firstMatch = trie.firstMatch("ushers");
+        checkEmit(firstMatch, 2, 3, "he");
+    }
 
     @Test
     public void ushersTestByCallback() {
@@ -163,30 +163,30 @@ public class TrieTest {
     @Test
     public void misleadingTest() {
         Trie trie = Trie.builder()
-            .addKeyword("hers")
-            .build();
+                .addKeyword("hers")
+                .build();
         Collection<Emit> emits = trie.parseText("h he her hers");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 9, 12, "hers");
     }
 
-	 @Test
+    @Test
     public void misleadingTestFirstMatch() {
-         Trie trie = Trie.builder()
-                 .addKeyword("hers")
-                 .build();
-		Emit firstMatch = trie.firstMatch("h he her hers");
+        Trie trie = Trie.builder()
+                .addKeyword("hers")
+                .build();
+        Emit firstMatch = trie.firstMatch("h he her hers");
         checkEmit(firstMatch, 9, 12, "hers");
     }
 
     @Test
     public void recipes() {
         Trie trie = Trie.builder()
-            .addKeyword("veal")
-            .addKeyword("cauliflower")
-            .addKeyword("broccoli")
-            .addKeyword("tomatoes")
-            .build();
+                .addKeyword("veal")
+                .addKeyword("cauliflower")
+                .addKeyword("broccoli")
+                .addKeyword("tomatoes")
+                .build();
         Collection<Emit> emits = trie.parseText("2 cauliflowers, 3 tomatoes, 4 slices of veal, 100g broccoli");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 2, 12, "cauliflower");
@@ -195,15 +195,15 @@ public class TrieTest {
         checkEmit(iterator.next(), 51, 58, "broccoli");
     }
 
-	 @Test
+    @Test
     public void recipesFirstMatch() {
-         Trie trie = Trie.builder()
-                 .addKeyword("veal")
-                 .addKeyword("cauliflower")
-                 .addKeyword("broccoli")
-                 .addKeyword("tomatoes")
-                 .build();
-		Emit firstMatch = trie.firstMatch("2 cauliflowers, 3 tomatoes, 4 slices of veal, 100g broccoli");
+        Trie trie = Trie.builder()
+                .addKeyword("veal")
+                .addKeyword("cauliflower")
+                .addKeyword("broccoli")
+                .addKeyword("tomatoes")
+                .build();
+        Emit firstMatch = trie.firstMatch("2 cauliflowers, 3 tomatoes, 4 slices of veal, 100g broccoli");
 
         checkEmit(firstMatch, 2, 12, "cauliflower");
     }
@@ -228,10 +228,10 @@ public class TrieTest {
     @Test
     public void nonOverlapping() {
         Trie trie = Trie.builder().removeOverlaps()
-            .addKeyword("ab")
-            .addKeyword("cba")
-            .addKeyword("ababc")
-            .build();
+                .addKeyword("ab")
+                .addKeyword("cba")
+                .addKeyword("ababc")
+                .build();
         Collection<Emit> emits = trie.parseText("ababcbab");
         assertEquals(2, emits.size());
         Iterator<Emit> iterator = emits.iterator();
@@ -242,40 +242,40 @@ public class TrieTest {
 
     @Test
     public void nonOverlappingFirstMatch() {
-         Trie trie = Trie.builder().removeOverlaps()
-                 .addKeyword("ab")
-                 .addKeyword("cba")
-                 .addKeyword("ababc")
-                 .build();
-		Emit firstMatch = trie.firstMatch("ababcbab");
+        Trie trie = Trie.builder().removeOverlaps()
+                .addKeyword("ab")
+                .addKeyword("cba")
+                .addKeyword("ababc")
+                .build();
+        Emit firstMatch = trie.firstMatch("ababcbab");
 
         checkEmit(firstMatch, 0, 4, "ababc");
     }
 
     @Test
     public void containsMatch() {
-         Trie trie = Trie.builder().removeOverlaps()
-                 .addKeyword("ab")
-                 .addKeyword("cba")
-                 .addKeyword("ababc")
-                 .build();
+        Trie trie = Trie.builder().removeOverlaps()
+                .addKeyword("ab")
+                .addKeyword("cba")
+                .addKeyword("ababc")
+                .build();
         assertTrue(trie.containsMatch("ababcbab"));
     }
 
     @Test
     public void startOfChurchillSpeech() {
         Trie trie = Trie.builder().removeOverlaps()
-            .addKeyword("T")
-            .addKeyword("u")
-            .addKeyword("ur")
-            .addKeyword("r")
-            .addKeyword("urn")
-            .addKeyword("ni")
-            .addKeyword("i")
-            .addKeyword("in")
-            .addKeyword("n")
-            .addKeyword("urning")
-            .build();
+                .addKeyword("T")
+                .addKeyword("u")
+                .addKeyword("ur")
+                .addKeyword("r")
+                .addKeyword("urn")
+                .addKeyword("ni")
+                .addKeyword("i")
+                .addKeyword("in")
+                .addKeyword("n")
+                .addKeyword("urning")
+                .build();
         Collection<Emit> emits = trie.parseText("Turning");
         assertEquals(2, emits.size());
     }
@@ -283,32 +283,32 @@ public class TrieTest {
     @Test
     public void partialMatch() {
         Trie trie = Trie.builder()
-            .onlyWholeWords()
-            .addKeyword("sugar")
-            .build();
+                .onlyWholeWords()
+                .addKeyword("sugar")
+                .build();
         Collection<Emit> emits = trie.parseText("sugarcane sugarcane sugar canesugar"); // left, middle, right test
         assertEquals(1, emits.size()); // Match must not be made
         checkEmit(emits.iterator().next(), 20, 24, "sugar");
     }
 
-	   @Test
+    @Test
     public void partialMatchFirstMatch() {
         Trie trie = Trie.builder()
                 .onlyWholeWords()
                 .addKeyword("sugar")
                 .build();
-		Emit firstMatch = trie.firstMatch("sugarcane sugarcane sugar canesugar"); // left, middle, right test
-        
+        Emit firstMatch = trie.firstMatch("sugarcane sugarcane sugar canesugar"); // left, middle, right test
+
         checkEmit(firstMatch, 20, 24, "sugar");
     }
 
     @Test
     public void tokenizeFullSentence() {
         Trie trie = Trie.builder()
-            .addKeyword("Alpha")
-            .addKeyword("Beta")
-            .addKeyword("Gamma")
-            .build();
+                .addKeyword("Alpha")
+                .addKeyword("Beta")
+                .addKeyword("Gamma")
+                .build();
         Collection<Token> tokens = trie.tokenize("Hear: Alpha team first, Beta from the rear, Gamma in reserve");
         assertEquals(7, tokens.size());
         Iterator<Token> tokensIt = tokens.iterator();
@@ -324,11 +324,11 @@ public class TrieTest {
     @Test
     public void bug5InGithubReportedByXCurry() {
         Trie trie = Trie.builder().caseInsensitive().onlyWholeWords()
-            .addKeyword("turning")
-            .addKeyword("once")
-            .addKeyword("again")
-            .addKeyword("börkü")
-            .build();
+                .addKeyword("turning")
+                .addKeyword("once")
+                .addKeyword("again")
+                .addKeyword("börkü")
+                .build();
         Collection<Emit> emits = trie.parseText("TurninG OnCe AgAiN BÖRKÜ");
         assertEquals(4, emits.size()); // Match must not be made
         Iterator<Emit> it = emits.iterator();
@@ -341,11 +341,11 @@ public class TrieTest {
     @Test
     public void caseInsensitive() {
         Trie trie = Trie.builder().caseInsensitive()
-            .addKeyword("turning")
-            .addKeyword("once")
-            .addKeyword("again")
-            .addKeyword("börkü")
-            .build();
+                .addKeyword("turning")
+                .addKeyword("once")
+                .addKeyword("again")
+                .addKeyword("börkü")
+                .build();
         Collection<Emit> emits = trie.parseText("TurninG OnCe AgAiN BÖRKÜ");
         assertEquals(4, emits.size()); // Match must not be made
         Iterator<Emit> it = emits.iterator();
@@ -355,7 +355,7 @@ public class TrieTest {
         checkEmit(it.next(), 19, 23, "börkü");
     }
 
-	@Test
+    @Test
     public void caseInsensitiveFirstMatch() {
         Trie trie = Trie.builder().caseInsensitive()
                 .addKeyword("turning")
@@ -363,7 +363,7 @@ public class TrieTest {
                 .addKeyword("again")
                 .addKeyword("börkü")
                 .build();
-		Emit firstMatch = trie.firstMatch("TurninG OnCe AgAiN BÖRKÜ");
+        Emit firstMatch = trie.firstMatch("TurninG OnCe AgAiN BÖRKÜ");
 
         checkEmit(firstMatch, 0, 6, "turning");
     }
@@ -371,10 +371,10 @@ public class TrieTest {
     @Test
     public void tokenizeTokensInSequence() {
         Trie trie = Trie.builder()
-            .addKeyword("Alpha")
-            .addKeyword("Beta")
-            .addKeyword("Gamma")
-            .build();
+                .addKeyword("Alpha")
+                .addKeyword("Beta")
+                .addKeyword("Gamma")
+                .build();
         Collection<Token> tokens = trie.tokenize("Alpha Beta Gamma");
         assertEquals(5, tokens.size());
     }
@@ -383,8 +383,8 @@ public class TrieTest {
     @Test
     public void zeroLengthTestBug7InGithubReportedByXCurry() {
         Trie trie = Trie.builder().removeOverlaps().onlyWholeWords().caseInsensitive()
-            .addKeyword("")
-            .build();
+                .addKeyword("")
+                .build();
         trie.tokenize("Try a natural lip and subtle bronzer to keep all the focus on those big bright eyes with NARS Eyeshadow Duo in Rated R And the winner is... Boots No7 Advanced Renewal Anti-ageing Glycolic Peel Kit ($25 amazon.com) won most-appealing peel.");
     }
 
@@ -394,15 +394,15 @@ public class TrieTest {
         String target = "LİKE THIS"; // The second character ('İ') is Unicode, which was read by AC as a 2-byte char
         assertEquals("THIS", target.substring(5, 9)); // Java does it the right way
         Trie trie = Trie.builder().caseInsensitive().onlyWholeWords()
-            .addKeyword("this")
-            .build();
+                .addKeyword("this")
+                .build();
         Collection<Emit> emits = trie.parseText(target);
         assertEquals(1, emits.size());
         Iterator<Emit> it = emits.iterator();
         checkEmit(it.next(), 5, 8, "this");
     }
 
-	 @Test
+    @Test
     public void unicodeIssueBug8ReportedByDwyerkFirstMatch() {
         String target = "LİKE THIS"; // The second character ('İ') is Unicode, which was read by AC as a 2-byte char
         Trie trie = Trie.builder()
@@ -411,13 +411,24 @@ public class TrieTest {
                 .addKeyword("this")
                 .build();
         assertEquals("THIS", target.substring(5, 9)); // Java does it the right way
-		Emit firstMatch = trie.firstMatch(target);
+        Emit firstMatch = trie.firstMatch(target);
         checkEmit(firstMatch, 5, 8, "this");
     }
 
+    @Test
+    public void partialMatchWhiteSpaces() {
+        Trie trie = Trie.builder()
+                .onlyWholeWordsWhiteSpaceSeparated()
+                .addKeyword("#sugar-123")
+                .build();
+        Collection < Emit > emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
+        assertEquals(1, emits.size()); // Match must not be made
+        checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
+    }
+
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {
-        assertEquals("Start of emit should have been "+expectedStart, expectedStart, next.getStart());
-        assertEquals("End of emit should have been "+expectedEnd, expectedEnd, next.getEnd());
+        assertEquals("Start of emit should have been " + expectedStart, expectedStart, next.getStart());
+        assertEquals("End of emit should have been " + expectedEnd, expectedEnd, next.getEnd());
         assertEquals(expectedKeyword, next.getKeyword());
     }
 
