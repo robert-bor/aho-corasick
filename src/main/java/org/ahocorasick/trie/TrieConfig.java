@@ -8,6 +8,12 @@ public class TrieConfig {
 
     private boolean caseInsensitive = false;
 
+    private boolean stopOnHit = false;
+
+    public boolean isStopOnHit() { return stopOnHit; }
+
+    public void setStopOnHit(boolean stopOnHit) { this.stopOnHit = stopOnHit; }
+
     public boolean isAllowOverlaps() {
         return allowOverlaps;
     }

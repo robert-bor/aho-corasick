@@ -48,6 +48,11 @@ public class Trie {
         return this;
     }
 
+    public Trie stopOnHit() {
+        this.trieConfig.setStopOnHit(true);
+        return this;
+    }
+
     public void addKeyword(String keyword) {
         if (keyword == null || keyword.length() == 0) {
             return;
@@ -116,7 +121,9 @@ public class Trie {
                 character = Character.toLowerCase(character);
             }
             currentState = getState(currentState, character);
-            storeEmits(position, currentState, emitHandler);
+            if (storeEmits(position, currentState, emitHandler) && trieConfig.isStopOnHit()) {
+                return;
+            }
         }
 
     }
@@ -183,13 +190,16 @@ public class Trie {
         }
     }
 
-    private void storeEmits(int position, State currentState, EmitHandler emitHandler) {
+    private boolean storeEmits(int position, State currentState, EmitHandler emitHandler) {
+        boolean emitted = false;
         Collection<String> emits = currentState.emit();
         if (emits != null && !emits.isEmpty()) {
             for (String emit : emits) {
                 emitHandler.emit(new Emit(position - emit.length() + 1, position, emit));
+                emitted = true;
             }
         }
+        return emitted;
     }
 
 }
