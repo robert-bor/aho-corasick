@@ -95,8 +95,8 @@ If you want the algorithm to only check for whole words, you can tell the Trie t
 In this case, it will only find one match, whereas it would normally find four. The sugarcane/canesugar words
 are discarded because they are partial matches.
 
-Some text are WrItTeN in combinations of lowercase and uppercase and therefore hard to identify. You can instruct
-the Trie to lowercase the entire searchtext to ease the matching process.
+Some text is WrItTeN in a combination of lowercase and uppercase and therefore hard to identify. You can instruct
+the Trie to lowercase the entire searchtext to ease the matching process. The lower-casing extends to keywords as well.
 
 ```java
     Trie trie = Trie.builder()
@@ -109,6 +109,41 @@ the Trie to lowercase the entire searchtext to ease the matching process.
 Normally, this match would not be found. With the caseInsensitive settings the entire search text is lowercased
 before the matching begins. Therefore it will find exactly one match. Since you still have control of the original
 search text and you will know exactly where the match was, you can still utilize the original casing.
+
+It is also possible to just ask whether the text matches any of the keywords, or just to return the first match it 
+finds.
+
+```java
+    Trie trie = Trie.builder().removeOverlaps()
+            .addKeyword("ab")
+            .addKeyword("cba")
+            .addKeyword("ababc")
+            .build();
+    Emit firstMatch = trie.firstMatch("ababcbab");
+```
+
+The firstMatch will now be "ababc" found at position 0.
+
+If you just want the barebones Aho-Corasick algorithm (ie, no dealing with case insensitivity, overlaps and whole
+ words) and you prefer to add your own handler to the mix, that is also possible.
+ 
+```java
+    Trie trie = Trie.builder()
+            .addKeyword("hers")
+            .addKeyword("his")
+            .addKeyword("she")
+            .addKeyword("he")
+            .build();
+
+    final List<Emit> emits = new ArrayList<>();
+    EmitHandler emitHandler = new EmitHandler() {
+
+        @Override
+        public void emit(Emit emit) {
+            emits.add(emit);
+        }
+    };
+```
 
 In many cases you may want to do useful stuff with both the non-matching and the matching text. In this case, you
 might be better served by using the Trie.tokenize(). It allows you to loop over the entire text and deal with
@@ -138,6 +173,10 @@ matches as soon as you encounter them. Let's look at an example where we want to
     html.append("</p></body></html>");
     System.out.println(html);
 ```
+
+Releases
+--------
+Information on the aho-corasick [releases](https://github.com/robert-bor/aho-corasick/releases).
 
 License
 -------
