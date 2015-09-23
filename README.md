@@ -122,7 +122,8 @@ finds.
     Emit firstMatch = trie.firstMatch("ababcbab");
 ```
 
-The firstMatch will now be "ababc" found at position 0.
+The firstMatch will now be "ababc" found at position 0. containsMatch just checks if there is a firstMatch and
+returns true if that is the case.
 
 If you just want the barebones Aho-Corasick algorithm (ie, no dealing with case insensitivity, overlaps and whole
  words) and you prefer to add your own handler to the mix, that is also possible.
