@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class TrieTest {
@@ -333,6 +334,22 @@ public class TrieTest {
     }
 
     @Test
+    public void tokenizeAndReportOnWholeWords() {
+        Trie trie = Trie.builder()
+                .addKeyword("Alpha")
+                .build();
+        Collection<Token> tokens = trie.tokenize("Alpha AlphaAlpha Alpha");
+        assertEquals(6, tokens.size());
+        Iterator<Token> tokensIt = tokens.iterator();
+        assertToken(tokensIt.next(), "Alpha", true, true);
+        assertToken(tokensIt.next(), " ", false, false);
+        assertToken(tokensIt.next(), "Alpha", true, false);
+        assertToken(tokensIt.next(), "Alpha", true, false);
+        assertToken(tokensIt.next(), " ", false, false);
+        assertToken(tokensIt.next(), "Alpha", true, true);
+    }
+
+    @Test
     public void tokenizeFullSentence() {
         Trie trie = Trie.builder()
                 .addKeyword("Alpha")
@@ -342,13 +359,13 @@ public class TrieTest {
         Collection<Token> tokens = trie.tokenize("Hear: Alpha team first, Beta from the rear, Gamma in reserve");
         assertEquals(7, tokens.size());
         Iterator<Token> tokensIt = tokens.iterator();
-        assertEquals("Hear: ", tokensIt.next().getFragment());
-        assertEquals("Alpha", tokensIt.next().getFragment());
-        assertEquals(" team first, ", tokensIt.next().getFragment());
-        assertEquals("Beta", tokensIt.next().getFragment());
-        assertEquals(" from the rear, ", tokensIt.next().getFragment());
-        assertEquals("Gamma", tokensIt.next().getFragment());
-        assertEquals(" in reserve", tokensIt.next().getFragment());
+        assertToken(tokensIt.next(), "Hear: ", false, false);
+        assertToken(tokensIt.next(), "Alpha", true, true);
+        assertToken(tokensIt.next(), " team first, ", false, false);
+        assertToken(tokensIt.next(), "Beta", true, true);
+        assertToken(tokensIt.next(), " from the rear, ", false, false);
+        assertToken(tokensIt.next(), "Gamma", true, true);
+        assertToken(tokensIt.next(), " in reserve", false, false);
     }
 
     @Test
@@ -454,6 +471,12 @@ public class TrieTest {
         Collection < Emit > emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
         assertEquals(1, emits.size()); // Match must not be made
         checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
+    }
+
+    private void assertToken(Token token, String fragment, boolean match, boolean wholeWord) {
+        assertEquals(fragment, token.getFragment());
+        assertEquals(match, token.isMatch());
+        assertEquals(wholeWord, token.isWholeWord());
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

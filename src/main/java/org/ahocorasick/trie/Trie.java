@@ -97,7 +97,7 @@ public class Trie {
         flushHandler.flush();
     }
 
-    private boolean isWholeWord(CharSequence text, int start, int end) {
+    public static boolean isWholeWord(CharSequence text, int start, int end) {
         return (start == 0 || Character.isWhitespace(text.charAt(start - 1))) &&
                (end == text.length() - 1 || Character.isWhitespace(text.charAt(end + 1)));
     }

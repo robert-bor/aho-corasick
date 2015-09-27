@@ -38,7 +38,10 @@ public class Tokenizer {
     }
 
     private Token createMatch(Emit emit, String text) {
-        return new MatchToken(text.substring(emit.getStart(), emit.getEnd()+1), emit);
+        return new MatchToken(
+                text.substring(emit.getStart(), emit.getEnd()+1),
+                emit,
+                Trie.isWholeWord(this.text, emit.getStart(), emit.getEnd()));
     }
 
 }

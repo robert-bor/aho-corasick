@@ -14,6 +14,10 @@ public abstract class Token {
 
     public abstract boolean isMatch();
 
+    public boolean isWholeWord() {
+        return false;
+    }
+
     public abstract Emit getEmit();
 
 }
