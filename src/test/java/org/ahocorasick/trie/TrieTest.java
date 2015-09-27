@@ -1,6 +1,7 @@
 package org.ahocorasick.trie;
 
 import org.ahocorasick.trie.handler.EmitHandler;
+import org.ahocorasick.trie.handler.SimpleEmitHandler;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -129,7 +130,7 @@ public class TrieTest {
                 .build();
 
         final List<Emit> emits = new ArrayList<>();
-        EmitHandler emitHandler = new EmitHandler() {
+        EmitHandler emitHandler = new SimpleEmitHandler() {
 
             @Override
             public void emit(Emit emit) {
@@ -207,6 +208,51 @@ public class TrieTest {
         checkEmit(iterator.next(), 0, 7, "hehehehe");
         checkEmit(iterator.next(), 8, 9, "he");
         checkEmit(iterator.next(), 2, 9, "hehehehe");
+    }
+
+    @Test
+    public void nonOverlappingWholeWords() {
+        Trie trie = Trie.builder()
+                .removeOverlaps()
+                .onlyWholeWords()
+                .addKeyword("peper molen")
+                .addKeyword("molen wiel")
+                .addKeyword("wiel dop")
+                .addKeyword("dop")
+                .build();
+        Collection<Emit> emits = trie.parseText("peper molen wiel dop xwiel dop wiel dopx wiel dop");
+        assertEquals(4, emits.size());
+        Iterator<Emit> iterator = emits.iterator();
+        checkEmit(iterator.next(), 0, 10, "peper molen");
+        checkEmit(iterator.next(), 12, 19, "wiel dop");
+        checkEmit(iterator.next(), 27, 29, "dop");
+        checkEmit(iterator.next(), 41, 48, "wiel dop");
+    }
+
+    @Test
+    public void nonOverlappingWholeWordsWithCustomEmitHandler() {
+        Trie trie = Trie.builder()
+                .removeOverlaps()
+                .onlyWholeWords()
+                .addKeyword("peper molen")
+                .addKeyword("molen wiel")
+                .addKeyword("wiel dop")
+                .addKeyword("dop")
+                .build();
+        final List<Emit> emits = new ArrayList<>();
+        EmitHandler emitHandler = new SimpleEmitHandler() {
+            @Override
+            public void emit(Emit emit) {
+                emits.add(emit);
+            }
+        };
+        trie.parseText("peper molen wiel dop xwiel dop wiel dopx wiel dop", emitHandler);
+        assertEquals(4, emits.size());
+        Iterator<Emit> iterator = emits.iterator();
+        checkEmit(iterator.next(), 0, 10, "peper molen");
+        checkEmit(iterator.next(), 12, 19, "wiel dop");
+        checkEmit(iterator.next(), 27, 29, "dop");
+        checkEmit(iterator.next(), 41, 48, "wiel dop");
     }
 
     @Test
@@ -402,7 +448,7 @@ public class TrieTest {
     @Test
     public void partialMatchWhiteSpaces() {
         Trie trie = Trie.builder()
-                .onlyWholeWordsWhiteSpaceSeparated()
+                .onlyWholeWords()
                 .addKeyword("#sugar-123")
                 .build();
         Collection < Emit > emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test

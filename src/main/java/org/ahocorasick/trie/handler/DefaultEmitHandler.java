@@ -5,7 +5,7 @@ import org.ahocorasick.trie.Emit;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultEmitHandler implements EmitHandler {
+public class DefaultEmitHandler extends SimpleEmitHandler {
 
     private List<Emit> emits = new ArrayList<>();
 

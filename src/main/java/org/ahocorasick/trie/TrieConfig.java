@@ -6,8 +6,6 @@ public class TrieConfig {
 
     private boolean onlyWholeWords = false;
 
-    private boolean onlyWholeWordsWhiteSpaceSeparated = false;
-
     private boolean caseInsensitive = false;
 
     public boolean isAllowOverlaps() {
@@ -24,12 +22,6 @@ public class TrieConfig {
 
     public void setOnlyWholeWords(boolean onlyWholeWords) {
         this.onlyWholeWords = onlyWholeWords;
-    }
-
-    public boolean isOnlyWholeWordsWhiteSpaceSeparated() { return onlyWholeWordsWhiteSpaceSeparated; }
-
-    public void setOnlyWholeWordsWhiteSpaceSeparated(boolean onlyWholeWordsWhiteSpaceSeparated) {
-        this.onlyWholeWordsWhiteSpaceSeparated = onlyWholeWordsWhiteSpaceSeparated;
     }
 
     public boolean isCaseInsensitive() {

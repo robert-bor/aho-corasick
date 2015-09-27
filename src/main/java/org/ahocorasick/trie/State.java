@@ -1,5 +1,7 @@
 package org.ahocorasick.trie;
 
+import org.ahocorasick.trie.candidate.EmitCandidateFlushHandler;
+
 import java.util.*;
 
 /**
@@ -98,8 +100,15 @@ public class State {
         return this.emits == null ? Collections.<String> emptyList() : this.emits;
     }
 
-    public State failure() {
+    public State failure(EmitCandidateFlushHandler emitCandidateFlushHandler) {
+        if (emitCandidateFlushHandler != null && this.failure.isRootState()) {
+            emitCandidateFlushHandler.flush();
+        }
         return this.failure;
+    }
+
+    public State failure() {
+        return failure(null);
     }
 
     public void setFailure(State failState) {
@@ -112,6 +121,10 @@ public class State {
 
     public Collection<Character> getTransitions() {
         return this.success.keySet();
+    }
+
+    public boolean isRootState() {
+        return this.depth == 0;
     }
 
 }

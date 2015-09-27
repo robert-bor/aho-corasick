@@ -1,13 +1,14 @@
 package org.ahocorasick.trie;
 
-import org.ahocorasick.interval.IntervalTree;
-import org.ahocorasick.interval.Intervalable;
+import org.ahocorasick.trie.candidate.EmitCandidateFlushHandler;
+import org.ahocorasick.trie.candidate.EmitCandidateHolder;
+import org.ahocorasick.trie.candidate.NonOverlappingEmitCandidateHolder;
+import org.ahocorasick.trie.candidate.OverlappingEmitCandidateHolder;
 import org.ahocorasick.trie.handler.DefaultEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
+import org.ahocorasick.trie.handler.FirstMatchHandler;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -49,23 +50,7 @@ public class Trie {
     public Collection<Emit> parseText(CharSequence text) {
         DefaultEmitHandler emitHandler = new DefaultEmitHandler();
         parseText(text, emitHandler);
-
-        List<Emit> collectedEmits = emitHandler.getEmits();
-
-        if (trieConfig.isOnlyWholeWords()) {
-            removePartialMatches(text, collectedEmits);
-        }
-
-        if (trieConfig.isOnlyWholeWordsWhiteSpaceSeparated()) {
-            removePartialMatchesWhiteSpaceSeparated(text, collectedEmits);
-        }
-
-        if (!trieConfig.isAllowOverlaps()) {
-            IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
-            intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
-        }
-
-        return collectedEmits;
+        return emitHandler.getEmits();
     }
 
 	public boolean containsMatch(CharSequence text) {
@@ -73,91 +58,56 @@ public class Trie {
 		return firstMatch != null;
 	}
 
+    public Emit firstMatch(CharSequence text) {
+        FirstMatchHandler emitHandler = new FirstMatchHandler();
+        parseText(text, emitHandler);
+        return emitHandler.getFirstMatch();
+    }
+
     public void parseText(CharSequence text, EmitHandler emitHandler) {
+
+        final EmitCandidateHolder emitCandidateHolder = this.trieConfig.isAllowOverlaps() ?
+                new OverlappingEmitCandidateHolder() :
+                new NonOverlappingEmitCandidateHolder();
+
+        final EmitCandidateFlushHandler flushHandler = new EmitCandidateFlushHandler(emitHandler, emitCandidateHolder);
+
         State currentState = this.rootState;
         for (int position = 0; position < text.length(); position++) {
+
+            if (flushHandler.stop()) {
+                return;
+            }
+
             Character character = text.charAt(position);
             if (trieConfig.isCaseInsensitive()) {
                 character = Character.toLowerCase(character);
             }
-            currentState = getState(currentState, character);
-            storeEmits(position, currentState, emitHandler);
-        }
+            currentState = getState(currentState, character, flushHandler);
 
-    }
-
-	public Emit firstMatch(CharSequence text) {
-		if (!trieConfig.isAllowOverlaps()) {
-			// Slow path. Needs to find all the matches to detect overlaps.
-			Collection<Emit> parseText = parseText(text);
-			if (parseText != null && !parseText.isEmpty()) {
-				return parseText.iterator().next();
-			}
-		} else {
-			// Fast path. Returns first match found.
-			State currentState = this.rootState;
-            for (int position = 0; position < text.length(); position++) {
-                Character character = text.charAt(position);
-				if (trieConfig.isCaseInsensitive()) {
-					character = Character.toLowerCase(character);
-				}
-				currentState = getState(currentState, character);
-				Collection<String> emitStrs = currentState.emit();
-				if (emitStrs != null && !emitStrs.isEmpty()) {
-					for (String emitStr : emitStrs) {
-						final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
-						if (trieConfig.isOnlyWholeWords()) {
-							if (!isPartialMatch(text, emit)) {
-								return emit;
-							}
-						} else {
-							return emit;
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	private boolean isPartialMatch(CharSequence searchText, Emit emit) {
-		return (emit.getStart() != 0 &&
-			Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
-			(emit.getEnd() + 1 != searchText.length() &&
-			Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
-	}
-
-	private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
-		List<Emit> removeEmits = new ArrayList<>();
-		for (Emit emit : collectedEmits) {
-			if (isPartialMatch(searchText, emit)) {
-				removeEmits.add(emit);
-			}
-		}
-		for (Emit removeEmit : removeEmits) {
-			collectedEmits.remove(removeEmit);
-		}
-	}
-
-    private void removePartialMatchesWhiteSpaceSeparated(CharSequence searchText, List<Emit> collectedEmits) {
-        long size = searchText.length();
-        List<Emit> removeEmits = new ArrayList<>();
-        for (Emit emit : collectedEmits) {
-            if ((emit.getStart() == 0 || Character.isWhitespace(searchText.charAt(emit.getStart() - 1))) &&
-                (emit.getEnd() + 1 == size || Character.isWhitespace(searchText.charAt(emit.getEnd() + 1)))) {
-                continue;
+            Collection<String> emits = currentState.emit();
+            if (emits != null && !emits.isEmpty()) {
+                for (String emit : emits) {
+                    int start = position - emit.length() + 1;
+                    if (!trieConfig.isOnlyWholeWords() || isWholeWord(text, start, position)) {
+                        emitCandidateHolder.addCandidate(new Emit(start, position, emit));
+                    }
+                }
             }
-            removeEmits.add(emit);
+
         }
-        for (Emit removeEmit : removeEmits) {
-            collectedEmits.remove(removeEmit);
-        }
+        flushHandler.flush();
     }
 
-    private State getState(State currentState, Character character) {
+    private boolean isWholeWord(CharSequence text, int start, int end) {
+        return (start == 0 || Character.isWhitespace(text.charAt(start - 1))) &&
+               (end == text.length() - 1 || Character.isWhitespace(text.charAt(end + 1)));
+    }
+
+    private State getState(State currentState, Character character, EmitCandidateFlushHandler flushHandler) {
         State newCurrentState = currentState.nextState(character);
         while (newCurrentState == null) {
-            currentState = currentState.failure();
+            currentState = currentState.failure(flushHandler);
             newCurrentState = currentState.nextState(character);
         }
         return newCurrentState;
@@ -191,15 +141,6 @@ public class Trie {
         }
     }
 
-    private void storeEmits(int position, State currentState, EmitHandler emitHandler) {
-        Collection<String> emits = currentState.emit();
-        if (emits != null && !emits.isEmpty()) {
-            for (String emit : emits) {
-                emitHandler.emit(new Emit(position - emit.length() + 1, position, emit));
-            }
-        }
-    }
-
     public static TrieBuilder builder() {
         return new TrieBuilder();
     }
@@ -224,11 +165,6 @@ public class Trie {
 
         public TrieBuilder onlyWholeWords() {
             this.trieConfig.setOnlyWholeWords(true);
-            return this;
-        }
-
-        public TrieBuilder onlyWholeWordsWhiteSpaceSeparated() {
-            this.trieConfig.setOnlyWholeWordsWhiteSpaceSeparated(true);
             return this;
         }
 
