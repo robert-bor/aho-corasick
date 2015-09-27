@@ -54,6 +54,18 @@ public class TrieTest {
     }
 
     @Test
+    public void sameKeywordTwice() {
+        Trie trie = Trie.builder()
+                .addKeyword("abc")
+                .addKeyword("abc")
+                .build();
+        Collection<Emit> emits = trie.parseText("abc");
+        assertEquals(1, emits.size());
+        Iterator<Emit> iterator = emits.iterator();
+        checkEmit(iterator.next(), 0, 2, "abc");
+    }
+
+    @Test
     public void variousKeywordsOneMatch() {
         Trie trie = Trie.builder()
                 .addKeyword("abc")
@@ -341,12 +353,27 @@ public class TrieTest {
         Collection<Token> tokens = trie.tokenize("Alpha AlphaAlpha Alpha");
         assertEquals(6, tokens.size());
         Iterator<Token> tokensIt = tokens.iterator();
-        assertToken(tokensIt.next(), "Alpha", true, true);
-        assertToken(tokensIt.next(), " ", false, false);
-        assertToken(tokensIt.next(), "Alpha", true, false);
-        assertToken(tokensIt.next(), "Alpha", true, false);
-        assertToken(tokensIt.next(), " ", false, false);
-        assertToken(tokensIt.next(), "Alpha", true, true);
+        assertToken(tokensIt.next(), "Alpha", true, true, false);
+        assertToken(tokensIt.next(), " ", false, false, true);
+        assertToken(tokensIt.next(), "Alpha", true, false, false);
+        assertToken(tokensIt.next(), "Alpha", true, false, false);
+        assertToken(tokensIt.next(), " ", false, false, true);
+        assertToken(tokensIt.next(), "Alpha", true, true, false);
+    }
+
+    @Test
+    public void whiteSpaceTokens() {
+        Trie trie = Trie.builder()
+                .addKeyword("Alpha")
+                .build();
+        Collection<Token> tokens = trie.tokenize("Alpha \tthe\t Alpha\n   Alpha");
+        assertEquals(5, tokens.size());
+        Iterator<Token> tokensIt = tokens.iterator();
+        assertToken(tokensIt.next(), "Alpha", true, true, false);
+        assertToken(tokensIt.next(), " \tthe\t ", false, false, false);
+        assertToken(tokensIt.next(), "Alpha", true, true, false);
+        assertToken(tokensIt.next(), "\n   ", false, false, true);
+        assertToken(tokensIt.next(), "Alpha", true, true, false);
     }
 
     @Test
@@ -359,13 +386,13 @@ public class TrieTest {
         Collection<Token> tokens = trie.tokenize("Hear: Alpha team first, Beta from the rear, Gamma in reserve");
         assertEquals(7, tokens.size());
         Iterator<Token> tokensIt = tokens.iterator();
-        assertToken(tokensIt.next(), "Hear: ", false, false);
-        assertToken(tokensIt.next(), "Alpha", true, true);
-        assertToken(tokensIt.next(), " team first, ", false, false);
-        assertToken(tokensIt.next(), "Beta", true, true);
-        assertToken(tokensIt.next(), " from the rear, ", false, false);
-        assertToken(tokensIt.next(), "Gamma", true, true);
-        assertToken(tokensIt.next(), " in reserve", false, false);
+        assertToken(tokensIt.next(), "Hear: ", false, false, false);
+        assertToken(tokensIt.next(), "Alpha", true, true, false);
+        assertToken(tokensIt.next(), " team first, ", false, false, false);
+        assertToken(tokensIt.next(), "Beta", true, true, false);
+        assertToken(tokensIt.next(), " from the rear, ", false, false, false);
+        assertToken(tokensIt.next(), "Gamma", true, true, false);
+        assertToken(tokensIt.next(), " in reserve", false, false, false);
     }
 
     @Test
@@ -473,10 +500,11 @@ public class TrieTest {
         checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
     }
 
-    private void assertToken(Token token, String fragment, boolean match, boolean wholeWord) {
+    private void assertToken(Token token, String fragment, boolean match, boolean wholeWord, boolean whiteSpace) {
         assertEquals(fragment, token.getFragment());
         assertEquals(match, token.isMatch());
         assertEquals(wholeWord, token.isWholeWord());
+        assertEquals(whiteSpace, token.isWhiteSpace());
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

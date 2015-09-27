@@ -18,6 +18,10 @@ public abstract class Token {
         return false;
     }
 
+    public boolean isWhiteSpace() {
+        return false;
+    }
+
     public abstract Emit getEmit();
 
 }
