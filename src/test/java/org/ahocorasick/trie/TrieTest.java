@@ -75,22 +75,6 @@ public class TrieTest {
     }
 
     @Test
-    public void ushersTestAndStopOnHit() {
-        Trie trie = Trie.builder()
-                .addKeyword("hers")
-                .addKeyword("his")
-                .addKeyword("she")
-                .addKeyword("he")
-                .stopOnHit()
-                .build();
-        Collection<Emit> emits = trie.parseText("ushers");
-        assertEquals(2, emits.size()); // she @ 3, he @ 3, hers @ 5
-        Iterator<Emit> iterator = emits.iterator();
-        checkEmit(iterator.next(), 2, 3, "he");
-        checkEmit(iterator.next(), 1, 3, "she");
-    }
-
-    @Test
     public void ushersTest() {
         Trie trie = Trie.builder()
                 .addKeyword("hers")
