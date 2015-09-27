@@ -86,12 +86,10 @@ public class Trie {
             currentState = getState(currentState, character, flushHandler);
 
             Collection<String> emits = currentState.emit();
-            if (emits != null && !emits.isEmpty()) {
-                for (String emit : emits) {
-                    int start = position - emit.length() + 1;
-                    if (!trieConfig.isOnlyWholeWords() || isWholeWord(text, start, position)) {
-                        emitCandidateHolder.addCandidate(new Emit(start, position, emit));
-                    }
+            for (String emit : emits) {
+                int start = position - emit.length() + 1;
+                if (!trieConfig.isOnlyWholeWords() || isWholeWord(text, start, position)) {
+                    emitCandidateHolder.addCandidate(new Emit(start, position, emit));
                 }
             }
 
