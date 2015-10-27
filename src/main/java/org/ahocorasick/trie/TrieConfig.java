@@ -7,6 +7,8 @@ public class TrieConfig {
     private boolean onlyWholeWords = false;
 
     private boolean caseInsensitive = false;
+    
+    private boolean wordNodes = false;
 
     public boolean isAllowOverlaps() {
         return allowOverlaps;
@@ -17,7 +19,7 @@ public class TrieConfig {
     }
 
     public boolean isOnlyWholeWords() {
-        return onlyWholeWords;
+        return wordNodes || onlyWholeWords;
     }
 
     public void setOnlyWholeWords(boolean onlyWholeWords) {
@@ -30,5 +32,13 @@ public class TrieConfig {
 
     public void setCaseInsensitive(boolean caseInsensitive) {
         this.caseInsensitive = caseInsensitive;
+    }
+    
+    public boolean hasOnlyWordNodes() {
+        return wordNodes;
+    }
+    
+    public void setOnlyWordNodes(boolean wordNodes) {
+        this.wordNodes = wordNodes;
     }
 }

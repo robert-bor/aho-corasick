@@ -19,27 +19,112 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class Trie {
 
-    private TrieConfig trieConfig;
+    private final TrieConfig trieConfig;
 
-    private State rootState;
+    private final State rootState;
 
     private Trie(TrieConfig trieConfig) {
         this.trieConfig = trieConfig;
         this.rootState = new State();
     }
+    
+    private interface KeywordTokenizer {
+        public Transition nextTransition();
+    }
+    
+    private class WordTokenizer implements KeywordTokenizer {
+        private final java.util.StringTokenizer st;
+        private boolean lastWasSpace = true;
+        public WordTokenizer(String keyword) {
+            st = new java.util.StringTokenizer(keyword);
+        }
+        @Override
+        public Transition<String> nextTransition() {
+            Transition t;
+            if (lastWasSpace) {
+                t = new Transition<>(st.nextToken());
+            } else {
+                t = new Transition<>(' ');
+            }
+            lastWasSpace = !lastWasSpace;
+            return t;
+        }
+    }
+    
+    private class CharacterTokenizer implements KeywordTokenizer {
+        private final java.text.StringCharacterIterator ct;
+        public CharacterTokenizer(String keyword) {
+            ct = new java.text.StringCharacterIterator(keyword);
+        }
+        @Override
+        public Transition<Character> nextTransition() {
+            return new Transition<>(ct.next());
+        }
+    }
+    
+    private KeywordTokenizer keywordTokenizer(String keyword) {
+        KeywordTokenizer kwt;
+        if (trieConfig.hasOnlyWordNodes()) {
+            kwt = new WordTokenizer(keyword);
+        }
+        else {
+            kwt = new CharacterTokenizer(keyword);
+        }
+        return kwt;
+    }
 
+    private class TokenStream {
+        private final KeywordTokenizer kwt;
+        private Transition lookahead;
+        private final StringBuffer input = new StringBuffer();
+        
+        public TokenStream(KeywordTokenizer kwt) {
+            this.kwt = kwt;
+        }
+        
+        public Transition nextTransition() {
+            Transition next = lookahead;
+            if (next == null) {
+                next = kwt.nextTransition();
+            }
+            else {
+                lookahead = null;
+            }
+            if (next != null) {
+                input.append(next.transitionToken().toString());
+            }
+            return next;
+        }
+        
+        public int position() {
+            return input.length();
+        }
+        
+        public boolean isWholeWord(int start) {
+            if (lookahead == null) {
+                lookahead = kwt.nextTransition();
+            }
+            return ((start == 0 || 
+                     Character.isSpaceChar(input.codePointAt(start))) && 
+                    (lookahead == null || lookahead.isWordSeparator()));
+        }
+    }
+        
     private void addKeyword(String keyword) {
         if (keyword == null || keyword.length() == 0) {
             return;
         }
-        State currentState = this.rootState;
-        for (Character character : keyword.toCharArray()) {
-            if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
-            }
-            currentState = currentState.addState(character);
+        if (trieConfig.isCaseInsensitive()) {
+            keyword = keyword.toLowerCase();
         }
-        currentState.addEmit(trieConfig.isCaseInsensitive() ? keyword.toLowerCase() : keyword);
+        State currentState = this.rootState;
+        KeywordTokenizer tknz = keywordTokenizer(keyword);
+        Transition tn = tknz.nextTransition();
+        while (tn != null) {
+            currentState = currentState.addState(tn);
+            tn = tknz.nextTransition();
+        }
+        currentState.addEmit(keyword);
     }
 
     public Collection<Token> tokenize(String text) {
@@ -53,10 +138,10 @@ public class Trie {
         return emitHandler.getEmits();
     }
 
-	public boolean containsMatch(CharSequence text) {
-		Emit firstMatch = firstMatch(text);
-		return firstMatch != null;
-	}
+    public boolean containsMatch(CharSequence text) {
+            Emit firstMatch = firstMatch(text);
+            return firstMatch != null;
+    }
 
     public Emit firstMatch(CharSequence text) {
         FirstMatchHandler emitHandler = new FirstMatchHandler();
@@ -72,41 +157,35 @@ public class Trie {
 
         final EmitCandidateFlushHandler flushHandler = new EmitCandidateFlushHandler(emitHandler, emitCandidateHolder);
 
+        String input = text.toString();
+        if (trieConfig.isCaseInsensitive()) {
+            input = input.toLowerCase();
+        }
+        TokenStream tknz = new TokenStream(keywordTokenizer(input));
+        
         State currentState = this.rootState;
-        for (int position = 0; position < text.length(); position++) {
-
-            if (flushHandler.stop()) {
-                return;
-            }
-
-            Character character = text.charAt(position);
-            if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
-            }
-            currentState = getState(currentState, character, flushHandler);
-
+        Transition tn = tknz.nextTransition();
+        while (tn != null) {
+            currentState = getState(currentState, tn, flushHandler);
+            
             Collection<String> emits = currentState.emit();
             for (String emit : emits) {
-                int start = position - emit.length() + 1;
-                if (!trieConfig.isOnlyWholeWords() || isWholeWord(text, start, position)) {
+                int position = tknz.position();
+                int start = tknz.position() - emit.length() + 1;
+                if (!trieConfig.isOnlyWholeWords() || tknz.isWholeWord(start)) {
                     emitCandidateHolder.addCandidate(new Emit(start, position, emit));
                 }
             }
-
+            tn = tknz.nextTransition();
         }
         flushHandler.flush();
     }
 
-    public static boolean isWholeWord(CharSequence text, int start, int end) {
-        return (start == 0 || Character.isWhitespace(text.charAt(start - 1))) &&
-               (end == text.length() - 1 || Character.isWhitespace(text.charAt(end + 1)));
-    }
-
-    private State getState(State currentState, Character character, EmitCandidateFlushHandler flushHandler) {
-        State newCurrentState = currentState.nextState(character);
+    private State getState(State currentState, Transition transition, EmitCandidateFlushHandler flushHandler) {
+        State newCurrentState = currentState.nextState(transition);
         while (newCurrentState == null) {
             currentState = currentState.failure(flushHandler);
-            newCurrentState = currentState.nextState(character);
+            newCurrentState = currentState.nextState(transition);
         }
         return newCurrentState;
     }
@@ -124,7 +203,7 @@ public class Trie {
         while (!queue.isEmpty()) {
             State currentState = queue.remove();
 
-            for (Character transition : currentState.getTransitions()) {
+            for (Transition transition : currentState.getTransitions()) {
                 State targetState = currentState.nextState(transition);
                 queue.add(targetState);
 
@@ -145,9 +224,9 @@ public class Trie {
 
     public static class TrieBuilder {
 
-        private TrieConfig trieConfig = new TrieConfig();
+        private final TrieConfig trieConfig = new TrieConfig();
 
-        private Trie trie = new Trie(trieConfig);
+        private final Trie trie = new Trie(trieConfig);
 
         private TrieBuilder() {}
 

@@ -10,8 +10,8 @@ import java.util.*;
  * </p>
  *
  * <ul>
- *     <li>success; when a character points to another state, it must return that state</li>
- *     <li>failure; when a character has no matching state, the algorithm must be able to fall back on a
+ *     <li>success; when a transition points to another state, it must return that state</li>
+ *     <li>failure; when a transition has no matching state, the algorithm must be able to fall back on a
  *         state with less depth</li>
  *     <li>emits; when this state is passed and keywords have been matched, the matches must be
  *         'emitted' so that they can be used later on.</li>
@@ -19,7 +19,7 @@ import java.util.*;
  *
  * <p>
  *     The root state is special in the sense that it has no failure state; it cannot fail. If it 'fails'
- *     it will still parse the next character and start from the root node. This ensures that the algorithm
+ *     it will still parse the next transition and start from the root node. This ensures that the algorithm
  *     always runs. All other states always have a fail state.
  * </p>
  *
@@ -35,9 +35,9 @@ public class State {
 
     /**
      * referred to in the white paper as the 'goto' structure. From a state it is possible to go
-     * to other states, depending on the character passed.
+     * to other states, depending on the transition passed.
      */
-    private Map<Character,State> success = new HashMap<Character, State>();
+    private final Map<Transition,State> success = new HashMap<>();
 
     /** if no matching states are found, the failure state will be returned */
     private State failure = null;
@@ -54,27 +54,27 @@ public class State {
         this.rootState = depth == 0 ? this : null;
     }
 
-    private State nextState(Character character, boolean ignoreRootState) {
-        State nextState = this.success.get(character);
+    private State nextState(Transition t, boolean ignoreRootState) {
+        State nextState = this.success.get(t);
         if (!ignoreRootState && nextState == null && this.rootState != null) {
             nextState = this.rootState;
         }
         return nextState;
     }
 
-    public State nextState(Character character) {
-        return nextState(character, false);
+    public State nextState(Transition t) {
+        return nextState(t, false);
     }
 
-    public State nextStateIgnoreRootState(Character character) {
-        return nextState(character, true);
+    public State nextStateIgnoreRootState(Transition t) {
+        return nextState(t, true);
     }
 
-    public State addState(Character character) {
-        State nextState = nextStateIgnoreRootState(character);
+    public State addState(Transition t) {
+        State nextState = nextStateIgnoreRootState(t);
         if (nextState == null) {
             nextState = new State(this.depth+1);
-            this.success.put(character, nextState);
+            this.success.put(t, nextState);
         }
         return nextState;
     }
@@ -119,7 +119,7 @@ public class State {
         return this.success.values();
     }
 
-    public Collection<Character> getTransitions() {
+    public Collection<Transition> getTransitions() {
         return this.success.keySet();
     }
 
