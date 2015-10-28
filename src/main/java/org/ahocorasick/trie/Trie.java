@@ -1,5 +1,7 @@
 package org.ahocorasick.trie;
 
+import java.text.CharacterIterator;
+import java.util.Arrays;
 import org.ahocorasick.trie.candidate.EmitCandidateFlushHandler;
 import org.ahocorasick.trie.candidate.EmitCandidateHolder;
 import org.ahocorasick.trie.candidate.NonOverlappingEmitCandidateHolder;
@@ -9,6 +11,7 @@ import org.ahocorasick.trie.handler.EmitHandler;
 import org.ahocorasick.trie.handler.FirstMatchHandler;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -33,24 +36,37 @@ public class Trie {
     }
     
     private class WordTokenizer implements KeywordTokenizer {
-        private final java.util.StringTokenizer st;
+        private final Iterator<String> st;
         public WordTokenizer(String keyword) {
-            st = new java.util.StringTokenizer(keyword);
+            String[] tokens = keyword.split("\\s");
+            st = Arrays.asList(tokens).iterator();
         }
         @Override
         public Transition<String> nextTransition() {
-            return new WordTransition(st.nextToken());
+            WordTransition t = null;
+            if (st.hasNext()) {
+                t = new WordTransition(st.next());
+            }
+            return t;
         }
     }
     
     private class CharacterTokenizer implements KeywordTokenizer {
         private final java.text.StringCharacterIterator ct;
+        private char cur;
         public CharacterTokenizer(String keyword) {
             ct = new java.text.StringCharacterIterator(keyword);
+            cur = ct.first();
         }
         @Override
         public Transition<Character> nextTransition() {
-            return new CharacterTransition(ct.next());
+            CharacterTransition t = null;
+            if (cur != CharacterIterator.DONE) {
+                t = new CharacterTransition(cur);
+                cur = ct.next();
+            }
+            
+            return t;
         }
     }
     
@@ -68,7 +84,7 @@ public class Trie {
     private class TokenStream {
         private final KeywordTokenizer kwt;
         private Transition lookahead;
-        private final StringBuffer match = new StringBuffer();
+        private final StringBuilder match = new StringBuilder();
         
         public TokenStream(KeywordTokenizer kwt) {
             this.kwt = kwt;
@@ -159,8 +175,10 @@ public class Trie {
         State currentState = this.rootState;
         Transition tn = tknz.nextTransition();
         while (tn != null) {
+            if (flushHandler.stop()) {
+                return;
+            }
             currentState = getState(currentState, tn, flushHandler);
-            
             Collection<String> emits = currentState.emit();
             for (String emit : emits) {
                 int position = tknz.position();

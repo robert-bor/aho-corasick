@@ -26,7 +26,7 @@ public class WordTransition extends Transition<String> {
     }
 
     @Override
-    public void updateMatch(StringBuffer match) {
+    public void updateMatch(StringBuilder match) {
         if (0 < match.length()) {
             match.append(' ');
         }

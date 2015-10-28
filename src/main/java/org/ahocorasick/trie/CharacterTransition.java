@@ -26,7 +26,7 @@ class CharacterTransition extends Transition<Character> {
     }
 
     @Override
-    public void updateMatch(StringBuffer match) {
+    public void updateMatch(StringBuilder match) {
         match.append(token);
     }
 

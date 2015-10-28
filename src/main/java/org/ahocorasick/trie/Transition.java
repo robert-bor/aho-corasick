@@ -29,6 +29,6 @@ public abstract class Transition<T> {
     public T transitionToken() {
         return token;
     }
-    public abstract void updateMatch(StringBuffer match);
+    public abstract void updateMatch(StringBuilder match);
     public abstract boolean isWordSeparator();
 }
