@@ -222,6 +222,8 @@ public class Trie {
         private final TrieConfig trieConfig = new TrieConfig();
 
         private final Trie trie = new Trie(trieConfig);
+        
+        private boolean hasAddedKeyword = false;
 
         private TrieBuilder() {}
 
@@ -240,11 +242,21 @@ public class Trie {
             return this;
         }
 
-        public TrieBuilder addKeyword(String keyword) {
-            trie.addKeyword(keyword);
+        public TrieBuilder wordTransitions() {
+            if (hasAddedKeyword) {
+                throw new IllegalStateException(
+                    "Unable to switch to word transitions after keywords added");
+            }
+            this.trieConfig.setWordTransitions(true);
             return this;
         }
 
+        public TrieBuilder addKeyword(String keyword) {
+            trie.addKeyword(keyword);
+            hasAddedKeyword = true;
+            return this;
+        }
+        
         public Trie build() {
             trie.constructFailureStates();
             return trie;
