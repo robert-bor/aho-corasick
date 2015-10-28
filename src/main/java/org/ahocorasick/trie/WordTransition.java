@@ -16,19 +16,26 @@
 package org.ahocorasick.trie;
 
 /**
- * Enables the trie to model transitions on whole words or characters
- * ... or whatever!
+ * Model transitions on words
  * @author doug.lovell
- * @param <T>
  */
-public abstract class Transition<T> {
-    protected final T token;
-    public Transition(T token) {
-        this.token = token;
+public class WordTransition extends Transition<String> {
+
+    public WordTransition(String s) {
+        super(s);
     }
-    public T transitionToken() {
-        return token;
+
+    @Override
+    public void updateMatch(StringBuffer match) {
+        if (0 < match.length()) {
+            match.append(' ');
+        }
+        match.append(token);
     }
-    public abstract void updateMatch(StringBuffer match);
-    public abstract boolean isWordSeparator();
+
+    @Override
+    public boolean isWordSeparator() {
+        return true;
+    }
+    
 }

@@ -32,22 +32,16 @@ public class Trie {
         public Transition nextTransition();
     }
     
+    
+    
     private class WordTokenizer implements KeywordTokenizer {
         private final java.util.StringTokenizer st;
-        private boolean lastWasSpace = true;
         public WordTokenizer(String keyword) {
             st = new java.util.StringTokenizer(keyword);
         }
         @Override
         public Transition<String> nextTransition() {
-            Transition t;
-            if (lastWasSpace) {
-                t = new Transition<>(st.nextToken());
-            } else {
-                t = new Transition<>(' ');
-            }
-            lastWasSpace = !lastWasSpace;
-            return t;
+            return new WordTransition(st.nextToken());
         }
     }
     
@@ -58,7 +52,7 @@ public class Trie {
         }
         @Override
         public Transition<Character> nextTransition() {
-            return new Transition<>(ct.next());
+            return new CharacterTransition(ct.next());
         }
     }
     
@@ -76,7 +70,7 @@ public class Trie {
     private class TokenStream {
         private final KeywordTokenizer kwt;
         private Transition lookahead;
-        private final StringBuffer input = new StringBuffer();
+        private final StringBuffer match = new StringBuffer();
         
         public TokenStream(KeywordTokenizer kwt) {
             this.kwt = kwt;
@@ -91,13 +85,13 @@ public class Trie {
                 lookahead = null;
             }
             if (next != null) {
-                input.append(next.transitionToken().toString());
+                next.updateMatch(match);
             }
             return next;
         }
         
         public int position() {
-            return input.length();
+            return match.length();
         }
         
         public boolean isWholeWord(int start) {
@@ -105,7 +99,7 @@ public class Trie {
                 lookahead = kwt.nextTransition();
             }
             return ((start == 0 || 
-                     Character.isSpaceChar(input.codePointAt(start))) && 
+                     Character.isSpaceChar(match.codePointAt(start))) && 
                     (lookahead == null || lookahead.isWordSeparator()));
         }
     }
@@ -155,7 +149,8 @@ public class Trie {
                 new OverlappingEmitCandidateHolder() :
                 new NonOverlappingEmitCandidateHolder();
 
-        final EmitCandidateFlushHandler flushHandler = new EmitCandidateFlushHandler(emitHandler, emitCandidateHolder);
+        final EmitCandidateFlushHandler flushHandler = 
+                new EmitCandidateFlushHandler(emitHandler, emitCandidateHolder);
 
         String input = text.toString();
         if (trieConfig.isCaseInsensitive()) {
@@ -172,8 +167,10 @@ public class Trie {
             for (String emit : emits) {
                 int position = tknz.position();
                 int start = tknz.position() - emit.length() + 1;
-                if (!trieConfig.isOnlyWholeWords() || tknz.isWholeWord(start)) {
-                    emitCandidateHolder.addCandidate(new Emit(start, position, emit));
+                boolean isWholeWord = tknz.isWholeWord(start);
+                if (isWholeWord || !trieConfig.isOnlyWholeWords()) {
+                    emitCandidateHolder.addCandidate(
+                            new Emit(start, position, emit, isWholeWord));
                 }
             }
             tn = tknz.nextTransition();
