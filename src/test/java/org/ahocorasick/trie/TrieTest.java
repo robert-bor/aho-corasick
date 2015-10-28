@@ -10,8 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 public class TrieTest {
 
@@ -393,6 +394,41 @@ public class TrieTest {
         assertToken(tokensIt.next(), " from the rear, ", false, false, false);
         assertToken(tokensIt.next(), "Gamma", true, true, false);
         assertToken(tokensIt.next(), " in reserve", false, false, false);
+    }
+
+    @Test
+    public void tokenizeFullSentenceByWords() {
+        Trie trie = Trie.builder()
+                .wordTransitions()
+                .addKeyword("Alpha")
+                .addKeyword("Beta")
+                .addKeyword("Gamma")
+                .build();
+        Collection<Token> tokens = trie.tokenize("Hear: Alpha team first, Beta from the rear, Gamma in reserve");
+        assertEquals(7, tokens.size());
+        Iterator<Token> tokensIt = tokens.iterator();
+        assertToken(tokensIt.next(), "Hear: ", false, false, false);
+        assertToken(tokensIt.next(), "Alpha", true, true, false);
+        assertToken(tokensIt.next(), " team first, ", false, false, false);
+        assertToken(tokensIt.next(), "Beta", true, true, false);
+        assertToken(tokensIt.next(), " from the rear, ", false, false, false);
+        assertToken(tokensIt.next(), "Gamma", true, true, false);
+        assertToken(tokensIt.next(), " in reserve", false, false, false);
+    }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+    
+    @Test
+    public void wordTransitionsThrowsExceptionAfterKeywordsAdded()
+      throws IllegalStateException {
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("Unable to switch to word transitions after keywords added");
+        Trie trie = Trie.builder()
+                .addKeyword("Happy for now")
+                .wordTransitions()
+                .addKeyword("Not so happy")
+                .build();
     }
 
     @Test
