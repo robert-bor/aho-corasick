@@ -32,8 +32,6 @@ public class Trie {
         public Transition nextTransition();
     }
     
-    
-    
     private class WordTokenizer implements KeywordTokenizer {
         private final java.util.StringTokenizer st;
         public WordTokenizer(String keyword) {
@@ -58,7 +56,7 @@ public class Trie {
     
     private KeywordTokenizer keywordTokenizer(String keyword) {
         KeywordTokenizer kwt;
-        if (trieConfig.hasOnlyWordNodes()) {
+        if (trieConfig.hasWordTransitions()) {
             kwt = new WordTokenizer(keyword);
         }
         else {
