@@ -65,7 +65,6 @@ public class Trie {
                 t = new CharacterTransition(cur);
                 cur = ct.next();
             }
-            
             return t;
         }
     }
@@ -105,7 +104,7 @@ public class Trie {
         }
         
         public int position() {
-            return match.length();
+            return match.length() - 1;
         }
         
         public boolean isWholeWord(int start) {
@@ -113,7 +112,7 @@ public class Trie {
                 lookahead = kwt.nextTransition();
             }
             return ((start == 0 || 
-                     Character.isSpaceChar(match.codePointAt(start))) && 
+                     Character.isSpaceChar(match.codePointAt(start-1))) && 
                     (lookahead == null || lookahead.isWordSeparator()));
         }
     }
@@ -182,7 +181,7 @@ public class Trie {
             Collection<String> emits = currentState.emit();
             for (String emit : emits) {
                 int position = tknz.position();
-                int start = tknz.position() - emit.length() + 1;
+                int start = position - emit.length() + 1;
                 boolean isWholeWord = tknz.isWholeWord(start);
                 if (isWholeWord || !trieConfig.isOnlyWholeWords()) {
                     emitCandidateHolder.addCandidate(
