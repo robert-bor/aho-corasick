@@ -79,8 +79,9 @@ public class TrieTest {
     }
 
     @Test
-    public void variousKeywordsFirstMatch() {
+    public void variousKeywordsFirstMatchWordTransitions() {
         Trie trie = Trie.builder()
+                .wordTransitions()
                 .addKeyword("abc")
                 .addKeyword("bcd")
                 .addKeyword("cde")
@@ -194,6 +195,23 @@ public class TrieTest {
         checkEmit(iterator.next(), 51, 58, "broccoli");
     }
 
+@Test
+    public void recipesWordTransitions() {
+        Trie trie = Trie.builder()
+                .wordTransitions()
+                .addKeyword("veal")
+                .addKeyword("cauliflower")
+                .addKeyword("broccoli")
+                .addKeyword("tomatoes")
+                .build();
+        Collection<Emit> emits = trie.parseText("2 cauliflower 3 tomatoes 4 slices of veal 100g broccoli");
+        Iterator<Emit> iterator = emits.iterator();
+        checkEmit(iterator.next(), 2, 12, "cauliflower");
+        checkEmit(iterator.next(), 16, 23, "tomatoes");
+        checkEmit(iterator.next(), 37, 40, "veal");
+        checkEmit(iterator.next(), 47, 54, "broccoli");
+    }
+    
     @Test
     public void recipesFirstMatch() {
         Trie trie = Trie.builder()
@@ -229,6 +247,25 @@ public class TrieTest {
         Trie trie = Trie.builder()
                 .removeOverlaps()
                 .onlyWholeWords()
+                .addKeyword("peper molen")
+                .addKeyword("molen wiel")
+                .addKeyword("wiel dop")
+                .addKeyword("dop")
+                .build();
+        Collection<Emit> emits = trie.parseText("peper molen wiel dop xwiel dop wiel dopx wiel dop");
+        assertEquals(4, emits.size());
+        Iterator<Emit> iterator = emits.iterator();
+        checkEmit(iterator.next(), 0, 10, "peper molen");
+        checkEmit(iterator.next(), 12, 19, "wiel dop");
+        checkEmit(iterator.next(), 27, 29, "dop");
+        checkEmit(iterator.next(), 41, 48, "wiel dop");
+    }
+
+    @Test
+    public void nonOverlappingWordTransitions() {
+        Trie trie = Trie.builder()
+                .removeOverlaps()
+                .wordTransitions()
                 .addKeyword("peper molen")
                 .addKeyword("molen wiel")
                 .addKeyword("wiel dop")
