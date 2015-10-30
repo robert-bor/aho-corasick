@@ -1,7 +1,5 @@
 package org.ahocorasick.trie;
 
-import java.text.CharacterIterator;
-import java.util.Arrays;
 import org.ahocorasick.trie.candidate.EmitCandidateFlushHandler;
 import org.ahocorasick.trie.candidate.EmitCandidateHolder;
 import org.ahocorasick.trie.candidate.NonOverlappingEmitCandidateHolder;
@@ -11,7 +9,6 @@ import org.ahocorasick.trie.handler.EmitHandler;
 import org.ahocorasick.trie.handler.FirstMatchHandler;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -33,6 +30,15 @@ public class Trie {
     
     private abstract class KeywordTokenizer {
         protected int position = 0;
+        protected CharSequence input;
+        protected int length;
+        protected KeywordTokenizer(CharSequence input) {
+            this.input = input;
+            this.length = input.length();
+        }
+        protected char currentChar() {
+            return (position < length) ? input.charAt(position) : '\0';
+        }
         public abstract Transition nextTransition();
         public int getPosition() {
             return position;
@@ -40,63 +46,54 @@ public class Trie {
     }
     
     private class WordTokenizer extends KeywordTokenizer {
-        private final Iterator<String> st;
-        public WordTokenizer(String keyword) {
-            String[] tokens = keyword.split("\\s");
-            st = Arrays.asList(tokens).iterator();
+        public WordTokenizer(CharSequence input) {
+            super(input);
         }
         @Override
         public Transition<String> nextTransition() {
             WordTransition t = null;
-            if (st.hasNext()) {
-                String word = st.next();
-                t = new WordTransition(word, position);
-                if (0 < position) {
-                    position += 1; // a space
+            while (position < length && Character.isWhitespace(currentChar())) {
+                ++position;
+            }
+            int start = position;
+            if (start < length) {
+                while (position < length && !Character.isWhitespace(currentChar())) {
+                    ++position;
                 }
-                position += word.length();
+                String word = input.subSequence(start, position).toString();
+                t = new WordTransition(word, start);
             }
             return t;
         }
     }
     
     private class CharacterTokenizer extends KeywordTokenizer {
-        private final java.text.StringCharacterIterator ct;
-        private char cur;
-        public CharacterTokenizer(String keyword) {
-            ct = new java.text.StringCharacterIterator(keyword);
-            cur = ct.first();
+        public CharacterTokenizer(CharSequence input) {
+            super(input);
         }
         @Override
         public Transition<Character> nextTransition() {
             CharacterTransition t = null;
-            if (cur != CharacterIterator.DONE) {
-                t = new CharacterTransition(cur, position);
-                cur = ct.next();
+            if (position < length) {
+                t = new CharacterTransition(currentChar(), position);
+                position += 1;
             }
-            position += 1;
             return t;
         }
     }
     
-    private KeywordTokenizer keywordTokenizer(String keyword) {
-        KeywordTokenizer kwt;
-        if (trieConfig.hasWordTransitions()) {
-            kwt = new WordTokenizer(keyword);
-        }
-        else {
-            kwt = new CharacterTokenizer(keyword);
-        }
-        return kwt;
-    }
-
     private class TokenStream {
         private final KeywordTokenizer kwt;
-        private final String input;
+        private final StringBuilder input;
         private Transition lookahead;
         
-        public TokenStream(String input) {
-            this.input = input;
+        public TokenStream(CharSequence text) {
+            input = new StringBuilder(text.length());
+            for (int p = 0; p < text.length(); ++p) {
+                char ch = text.charAt(p);
+                input.append(trieConfig.isCaseInsensitive() ?
+                        Character.toLowerCase(ch) : ch);
+            }
             if (trieConfig.hasWordTransitions()) {
                 kwt = new WordTokenizer(input);
             }
@@ -122,26 +119,27 @@ public class Trie {
                 lookahead = kwt.nextTransition();
             }
             return ((start == 0 || 
-                     Character.isSpaceChar(input.codePointAt(start-1))) && 
+                     Character.isWhitespace(input.charAt(start-1))) && 
                     (lookahead == null || lookahead.isWordSeparator()));
+        }
+        
+        public String input() {
+            return input.toString();
         }
     }
         
-    private void addKeyword(String keyword) {
+    private void addKeyword(CharSequence keyword) {
         if (keyword == null || keyword.length() == 0) {
             return;
         }
-        if (trieConfig.isCaseInsensitive()) {
-            keyword = keyword.toLowerCase();
-        }
         State currentState = this.rootState;
-        KeywordTokenizer tknz = keywordTokenizer(keyword);
+        TokenStream tknz = new TokenStream(keyword);
         Transition tn = tknz.nextTransition();
         while (tn != null) {
             currentState = currentState.addState(tn);
             tn = tknz.nextTransition();
         }
-        currentState.addEmit(keyword);
+        currentState.addEmit(tknz.input());
     }
 
     public Collection<Token> tokenize(String text) {
@@ -175,11 +173,7 @@ public class Trie {
         final EmitCandidateFlushHandler flushHandler = 
                 new EmitCandidateFlushHandler(emitHandler, emitCandidateHolder);
 
-        String input = text.toString();
-        if (trieConfig.isCaseInsensitive()) {
-            input = input.toLowerCase();
-        }
-        TokenStream tknz = new TokenStream(input);
+        TokenStream tknz = new TokenStream(text);
         
         State currentState = this.rootState;
         Transition tn = tknz.nextTransition();
@@ -190,12 +184,12 @@ public class Trie {
             currentState = getState(currentState, tn, flushHandler);
             Collection<String> emits = currentState.emit();
             for (String emit : emits) {
-                int position = tn.getStart() + tn.getLength() - 1;
-                int start = position - emit.length() + 1;
+                int position = tn.getStart() + tn.getLength();
+                int start = position - emit.length();
                 boolean isWholeWord = tknz.isWholeWord(start);
                 if (isWholeWord || !trieConfig.isOnlyWholeWords()) {
                     emitCandidateHolder.addCandidate(
-                            new Emit(start, position, emit, isWholeWord));
+                            new Emit(start, position - 1, emit, isWholeWord));
                 }
             }
             tn = tknz.nextTransition();

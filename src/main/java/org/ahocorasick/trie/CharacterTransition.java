@@ -31,7 +31,7 @@ class CharacterTransition extends Transition<Character> {
 
     @Override
     public boolean isWordSeparator() {
-        return Character.isSpaceChar(token);
+        return Character.isWhitespace(token);
     }
     
 }
