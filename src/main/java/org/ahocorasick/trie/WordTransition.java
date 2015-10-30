@@ -21,21 +21,16 @@ package org.ahocorasick.trie;
  */
 public class WordTransition extends Transition<String> {
 
-    public WordTransition(String s) {
-        super(s);
+    public WordTransition(String s, int start) {
+        super(s, start, s.length());
     }
 
-    @Override
-    public void updateMatch(StringBuilder match) {
-        if (0 < match.length()) {
-            match.append(' ');
-        }
-        match.append(token);
+    public WordTransition(String s) {
+        this(s, 0);
     }
 
     @Override
     public boolean isWordSeparator() {
         return true;
     }
-    
 }

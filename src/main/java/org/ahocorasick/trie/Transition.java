@@ -25,16 +25,27 @@ import java.util.Objects;
  */
 public abstract class Transition<T> {
     protected final T token;
+    protected final int start;
+    protected final int length;
     
-    public Transition(T token) {
+    public Transition(T token, int start, int length) {
         this.token = token;
+        this.start = start;
+        this.length = length;
     }
     
     public T transitionToken() {
         return token;
     }
     
-    public abstract void updateMatch(StringBuilder match);
+    public int getStart() {
+        return start;
+    }
+    
+    public int getLength() {
+        return length;
+    }
+    
     public abstract boolean isWordSeparator();
     
     @Override

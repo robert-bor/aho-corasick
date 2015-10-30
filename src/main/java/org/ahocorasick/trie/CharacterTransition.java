@@ -21,13 +21,12 @@ package org.ahocorasick.trie;
  */
 class CharacterTransition extends Transition<Character> {
 
-    public CharacterTransition(Character c) {
-        super(c);
+    public CharacterTransition(Character c, int start) {
+        super(c, start, 1);
     }
 
-    @Override
-    public void updateMatch(StringBuilder match) {
-        match.append(token);
+    public CharacterTransition(Character c) {
+        this(c, 0);
     }
 
     @Override
