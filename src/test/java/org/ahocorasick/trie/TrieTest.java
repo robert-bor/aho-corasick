@@ -562,6 +562,22 @@ public class TrieTest {
         checkEmit(firstMatch, 5, 8, "this");
     }
 
+   @Test
+    public void unicodeInKeyword() {
+        // The upper case character ('İ') is Unicode,
+        // which was read by AC as a 2-byte char
+        String target = "it is so much LİKE Unicode to mess with Java"; 
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("so much LİKE Unicode")
+                .addKeyword("it is")
+                .build();
+        Collection<Emit> emits = trie.parseText(target);
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 0, 4, "it is");
+        checkEmit(it.next(), 6, 25, "so much LİKE Unicode");
+    }
+
     @Test
     public void partialMatchWhiteSpaces() {
         Trie trie = Trie.builder()
@@ -571,6 +587,41 @@ public class TrieTest {
         Collection < Emit > emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
         assertEquals(1, emits.size()); // Match must not be made
         checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
+    }
+
+    /* 
+    What does "onlyWholeWords" mean when the keyword itself has spaces?
+    @Test
+    public void spacesAroundKeyword() {
+        String keyword = " lorem ipso facto genera linden pharma six 1 ";
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .caseInsensitive()
+                .addKeyword(keyword)
+                .build();
+        Collection < Emit > emits = trie.parseText(
+                "gravita conundrum" + keyword + "under addressed object ");
+        assertEquals(1, emits.size());
+        checkEmit(emits.iterator().next(), 0, keyword.length() + 1, keyword);
+    }
+    */
+    
+    /*
+    For wordTransitions, we'll ignore leading and trailing white space
+    included on keywords
+    */
+    @Test
+    public void spacesAroundKeywordByWords() {
+        String keyword = "lorem ipso facto genera linden pharma six 1";
+        Trie trie = Trie.builder()
+                .wordTransitions()
+                .caseInsensitive()
+                .addKeyword(" " + keyword + " ")
+                .build();
+        Collection < Emit > emits = trie.parseText(
+                keyword + " under addressed object ");
+        assertEquals(1, emits.size());
+        checkEmit(emits.iterator().next(), 0, keyword.length(), keyword);
     }
 
     private void assertToken(Token token, String fragment, boolean match, boolean wholeWord, boolean whiteSpace) {
