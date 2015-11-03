@@ -45,7 +45,6 @@ public class Trie {
         public int getPosition() {
             return position;
         }
-        public abstract Emit match(Keyword kwd, int start, int position);
     }
     
     private class WordTokenizer extends KeywordTokenizer {
@@ -68,15 +67,6 @@ public class Trie {
             }
             return t;
         }
-        /*
-        On word matching, we return the matched text, which can be of different
-        length that the keyword, due to whitespace differences.
-        */
-        @Override
-        public Emit match(Keyword kwd, int start, int position) {
-            String matchedText = input.subSequence(start, position).toString();
-            return new Emit(start, position - 1, matchedText);
-        }
     }
     
     private class CharacterTokenizer extends KeywordTokenizer {
@@ -91,14 +81,6 @@ public class Trie {
                 position += 1;
             }
             return t;
-        }
-        /*
-        On character matching, the tests expect the implementation to
-        return the matched keyword.
-        */
-        @Override
-        public Emit match(Keyword kwd, int start, int position) {
-            return new Emit(start, position - 1, kwd.getText());
         }
     }
     
@@ -136,10 +118,6 @@ public class Trie {
         
         public String input() {
             return input.toString();
-        }
-        
-        public Emit match(Keyword kwd, int start, int position) {
-            return kwt.match(kwd, start, position);
         }
 
     }
@@ -209,7 +187,8 @@ public class Trie {
                 int position = tn.getStart() + tn.getLength();
                 int start = tknHistory.get(depth - emit.getDepth()).getStart();
                 ListIterator<Transition> tns = tknHistory.listIterator();
-                emitCandidateHolder.addCandidate(tknz.match(emit, start, position));
+                emitCandidateHolder.addCandidate(
+                        new Emit(start, position - 1, emit.getText()));
             }
             tn = tknz.nextTransition();
         }

@@ -595,16 +595,17 @@ public class TrieTest {
     */
     @Test
     public void spacesAroundKeywordByWords() {
-        String keyword = "lorem ipso facto genera linden pharma six 1";
+        String text = "lorem ipso facto genera linden pharma six 1";
+        String keyword = " " + text + " ";
         Trie trie = Trie.builder()
                 .onlyWholeWords()
                 .caseInsensitive()
-                .addKeyword(" " + keyword + " ")
+                .addKeyword(keyword)
                 .build();
         Collection < Emit > emits = trie.parseText(
-                keyword + " under addressed object ");
+                text + " under addressed object ");
         assertEquals(1, emits.size());
-        checkEmit(emits.iterator().next(), 0, keyword.length() - 1, keyword);
+        checkEmit(emits.iterator().next(), 0, text.length() - 1, keyword);
     }
 
     private void assertToken(Token token, String fragment, boolean match, boolean wholeWord, boolean whiteSpace) {
