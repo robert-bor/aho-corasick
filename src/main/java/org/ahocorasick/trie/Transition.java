@@ -23,7 +23,7 @@ import java.util.Objects;
  * @author doug.lovell
  * @param <T>
  */
-public abstract class Transition<T> {
+public class Transition<T> {
     protected final T token;
     protected final int start;
     protected final int length;
@@ -46,11 +46,10 @@ public abstract class Transition<T> {
         return length;
     }
     
-    public abstract boolean isWordSeparator();
-    
     @Override
     public String toString() {
-        return "Transition on " + token;
+        return "Transition on '" + token + "' start: " + start +
+                ", length: " + length;
     }
     
     @Override

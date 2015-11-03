@@ -81,7 +81,7 @@ public class TrieTest {
     @Test
     public void variousKeywordsFirstMatchWordTransitions() {
         Trie trie = Trie.builder()
-                .wordTransitions()
+                .onlyWholeWords()
                 .addKeyword("abc")
                 .addKeyword("bcd")
                 .addKeyword("cde")
@@ -198,7 +198,7 @@ public class TrieTest {
 @Test
     public void recipesWordTransitions() {
         Trie trie = Trie.builder()
-                .wordTransitions()
+                .onlyWholeWords()
                 .addKeyword("veal")
                 .addKeyword("cauliflower")
                 .addKeyword("broccoli")
@@ -265,7 +265,7 @@ public class TrieTest {
     public void nonOverlappingWordTransitions() {
         Trie trie = Trie.builder()
                 .removeOverlaps()
-                .wordTransitions()
+                .onlyWholeWords()
                 .addKeyword("peper molen")
                 .addKeyword("molen wiel")
                 .addKeyword("wiel dop")
@@ -436,7 +436,7 @@ public class TrieTest {
     @Test
     public void tokenizeFullSentenceByWords() {
         Trie trie = Trie.builder()
-                .wordTransitions()
+                .onlyWholeWords()
                 .addKeyword("Alpha")
                 .addKeyword("Beta")
                 .addKeyword("Gamma")
@@ -457,13 +457,13 @@ public class TrieTest {
     public ExpectedException thrown = ExpectedException.none();
     
     @Test
-    public void wordTransitionsThrowsExceptionAfterKeywordsAdded()
+    public void onlyWholeWordsThrowsExceptionAfterKeywordsAdded()
       throws IllegalStateException {
         thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("Unable to switch to word transitions after keywords added");
+        thrown.expectMessage("Unable to switch to only whole words after keywords added");
         Trie trie = Trie.builder()
                 .addKeyword("Happy for now")
-                .wordTransitions()
+                .onlyWholeWords()
                 .addKeyword("Not so happy")
                 .build();
     }
@@ -589,46 +589,27 @@ public class TrieTest {
         checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
     }
 
-    /* 
-    What does "onlyWholeWords" mean when the keyword itself has spaces?
-    @Test
-    public void spacesAroundKeyword() {
-        String keyword = " lorem ipso facto genera linden pharma six 1 ";
-        Trie trie = Trie.builder()
-                .onlyWholeWords()
-                .caseInsensitive()
-                .addKeyword(keyword)
-                .build();
-        Collection < Emit > emits = trie.parseText(
-                "gravita conundrum" + keyword + "under addressed object ");
-        assertEquals(1, emits.size());
-        checkEmit(emits.iterator().next(), 0, keyword.length() + 1, keyword);
-    }
-    */
-    
     /*
-    For wordTransitions, we'll ignore leading and trailing white space
+    For onlyWholeWords, we'll ignore leading and trailing white space
     included on keywords
     */
     @Test
     public void spacesAroundKeywordByWords() {
         String keyword = "lorem ipso facto genera linden pharma six 1";
         Trie trie = Trie.builder()
-                .wordTransitions()
+                .onlyWholeWords()
                 .caseInsensitive()
                 .addKeyword(" " + keyword + " ")
                 .build();
         Collection < Emit > emits = trie.parseText(
                 keyword + " under addressed object ");
         assertEquals(1, emits.size());
-        checkEmit(emits.iterator().next(), 0, keyword.length(), keyword);
+        checkEmit(emits.iterator().next(), 0, keyword.length() - 1, keyword);
     }
 
     private void assertToken(Token token, String fragment, boolean match, boolean wholeWord, boolean whiteSpace) {
         assertEquals(fragment, token.getFragment());
         assertEquals(match, token.isMatch());
-        assertEquals(wholeWord, token.isWholeWord());
-        assertEquals(whiteSpace, token.isWhiteSpace());
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

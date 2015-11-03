@@ -10,11 +10,6 @@ public class MatchToken extends Token {
     }
 
     @Override
-    public boolean isWholeWord() {
-        return emit.isWholeWord();
-    }
-
-    @Override
     public boolean isMatch() {
         return true;
     }

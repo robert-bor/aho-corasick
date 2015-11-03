@@ -28,9 +28,4 @@ public class WordTransition extends Transition<String> {
     public WordTransition(String s) {
         this(s, 0);
     }
-
-    @Override
-    public boolean isWordSeparator() {
-        return true;
-    }
 }

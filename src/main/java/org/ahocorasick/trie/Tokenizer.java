@@ -9,7 +9,7 @@ public class Tokenizer {
     private final Collection<Emit> emits;
 
     private final String text;
-
+    
     public Tokenizer(Collection<Emit> emits, String text) {
         this.emits = emits;
         this.text = text;

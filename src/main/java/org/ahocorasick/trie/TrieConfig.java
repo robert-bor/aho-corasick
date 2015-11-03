@@ -8,8 +8,6 @@ public class TrieConfig {
 
     private boolean caseInsensitive = false;
     
-    private boolean wordTransitions = false;
-
     public boolean isAllowOverlaps() {
         return allowOverlaps;
     }
@@ -32,13 +30,5 @@ public class TrieConfig {
 
     public void setCaseInsensitive(boolean caseInsensitive) {
         this.caseInsensitive = caseInsensitive;
-    }
-    
-    public boolean hasWordTransitions() {
-        return wordTransitions;
-    }
-    
-    public void setWordTransitions(boolean wordNodes) {
-        this.wordTransitions = wordNodes;
     }
 }

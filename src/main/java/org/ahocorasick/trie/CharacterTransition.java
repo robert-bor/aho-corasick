@@ -29,9 +29,4 @@ class CharacterTransition extends Transition<Character> {
         this(c, 0);
     }
 
-    @Override
-    public boolean isWordSeparator() {
-        return Character.isWhitespace(token);
-    }
-    
 }

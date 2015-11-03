@@ -43,7 +43,7 @@ public class State {
     private State failure = null;
 
     /** whenever this state is reached, it will emit the matches keywords for future reference */
-    private Set<String> emits = null;
+    private Set<Keyword> emits = null;
 
     public State() {
         this(0);
@@ -83,21 +83,25 @@ public class State {
         return this.depth;
     }
 
-    public void addEmit(String keyword) {
+    public void addEmit(Keyword keyword) {
         if (this.emits == null) {
             this.emits = new TreeSet<>();
         }
         this.emits.add(keyword);
     }
 
-    public void addEmit(Collection<String> emits) {
-        for (String emit : emits) {
+    public void addEmit(Collection<Keyword> emits) {
+        for (Keyword emit : emits) {
             addEmit(emit);
         }
     }
+    
+    public void addEmitString(String key) {
+        addEmit(new Keyword(key, depth));
+    }
 
-    public Collection<String> emit() {
-        return this.emits == null ? Collections.<String> emptyList() : this.emits;
+    public Collection<Keyword> emit() {
+        return this.emits == null ? Collections.<Keyword> emptyList() : this.emits;
     }
 
     public State failure(EmitCandidateFlushHandler emitCandidateFlushHandler) {

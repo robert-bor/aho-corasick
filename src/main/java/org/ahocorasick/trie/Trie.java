@@ -10,6 +10,8 @@ import org.ahocorasick.trie.handler.FirstMatchHandler;
 
 import java.util.Collection;
 import java.util.Queue;
+import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -43,34 +45,16 @@ public class Trie {
         public int getPosition() {
             return position;
         }
+        public abstract Emit match(Keyword kwd, int start, int position);
     }
     
     private class WordTokenizer extends KeywordTokenizer {
         public WordTokenizer(CharSequence input) {
             super(input);
-            System.out.println("WORDTOKENIZER input '" + input + "'");
-            // leading and trailing white space cannot be part of the
-            // search pattern
-            int start = 0;
-            while (start < length && Character.isWhitespace(input.charAt(start))) {
-                ++start;
-            }
-            int end = length - 1;
-            while (start < end && Character.isWhitespace(input.charAt(end))) {
-                --end;
-            }
-            this.input = input.subSequence(start, end + 1);
-            this.length = end - start + 1;
-            System.out.println("WORDTOKENIZER input '" + this.input + "'");
-            System.out.println("input.length " + this.input.length() + ", this.length " + this.length);
         }
         @Override
         public Transition<String> nextTransition() {
             WordTransition t = null;
-            System.out.println("WORDTOKENIZER get next word transition");
-            System.out.println("Position: " + position);
-            System.out.println("Text under cursor, '" + 
-                input.subSequence(Math.min(length-1, position), Math.min(length, position + 10)) + "'");
             while (position < length && Character.isWhitespace(currentChar())) {
                 ++position;
             }
@@ -82,9 +66,16 @@ public class Trie {
                 String word = input.subSequence(start, position).toString();
                 t = new WordTransition(word, start);
             }
-            System.out.println("New position: " + position);
-            System.out.println("Text in transition, '" + (t == null ? "null" : t.transitionToken()) + "'");
             return t;
+        }
+        /*
+        On word matching, we return the matched text, which can be of different
+        length that the keyword, due to whitespace differences.
+        */
+        @Override
+        public Emit match(Keyword kwd, int start, int position) {
+            String matchedText = input.subSequence(start, position).toString();
+            return new Emit(start, position - 1, matchedText);
         }
     }
     
@@ -95,16 +86,19 @@ public class Trie {
         @Override
         public Transition<Character> nextTransition() {
             CharacterTransition t = null;
-            System.out.println("CHARACTERTOKENIZER get next character transition");
-            System.out.println("Position: " + position);
-            System.out.println("Text under cursor, '" + input.subSequence(position, Math.min(length, position + 10)) + "'");
             if (position < length) {
                 t = new CharacterTransition(currentChar(), position);
                 position += 1;
             }
-            System.out.println("New position: " + position);
-            System.out.println("Text in transition, '" + (t == null ? "null" : t.transitionToken()) + "'");
             return t;
+        }
+        /*
+        On character matching, the tests expect the implementation to
+        return the matched keyword.
+        */
+        @Override
+        public Emit match(Keyword kwd, int start, int position) {
+            return new Emit(start, position - 1, kwd.getText());
         }
     }
     
@@ -120,7 +114,7 @@ public class Trie {
                 input.append(trieConfig.isCaseInsensitive() ?
                         Character.toLowerCase(ch) : ch);
             }
-            if (trieConfig.hasWordTransitions()) {
+            if (trieConfig.isOnlyWholeWords()) {
                 kwt = new WordTokenizer(input);
             }
             else {
@@ -140,18 +134,14 @@ public class Trie {
             return next;
         }
         
-        public boolean isWholeWord(int start) {
-            if (lookahead == null) {
-                lookahead = kwt.nextTransition();
-            }
-            return ((start == 0 || 
-                     Character.isWhitespace(input.charAt(start-1))) && 
-                    (lookahead == null || lookahead.isWordSeparator()));
-        }
-        
         public String input() {
             return input.toString();
         }
+        
+        public Emit match(Keyword kwd, int start, int position) {
+            return kwt.match(kwd, start, position);
+        }
+
     }
         
     private void addKeyword(CharSequence keyword) {
@@ -165,7 +155,7 @@ public class Trie {
             currentState = currentState.addState(tn);
             tn = tknz.nextTransition();
         }
-        currentState.addEmit(tknz.input());
+        currentState.addEmitString(tknz.input());
     }
 
     public Collection<Token> tokenize(String text) {
@@ -201,27 +191,25 @@ public class Trie {
 
         TokenStream tknz = new TokenStream(text);
         
+        LinkedList<Transition> tknHistory = new LinkedList<>();
         State currentState = this.rootState;
         Transition tn = tknz.nextTransition();
         while (tn != null) {
             if (flushHandler.stop()) {
                 return;
             }
+            tknHistory.add(tn);
             currentState = getState(currentState, tn, flushHandler);
-            Collection<String> emits = currentState.emit();
-            for (String emit : emits) {
+            Collection<Keyword> emits = currentState.emit();
+            int depth = currentState.getDepth();
+            while (depth < tknHistory.size()) {
+                tknHistory.remove();
+            }
+            for (Keyword emit : emits) {
                 int position = tn.getStart() + tn.getLength();
-                int start = position - emit.length();
-                if (start < 0) {
-                    System.out.println("START < 0 !! at " + position + " on '" + emit + "', length " + emit.length());
-                    System.out.println("TEXT is '" + text + "'");
-                    System.out.println(tn);
-                }
-                boolean isWholeWord = tknz.isWholeWord(start);
-                if (isWholeWord || !trieConfig.isOnlyWholeWords()) {
-                    emitCandidateHolder.addCandidate(
-                            new Emit(start, position - 1, emit, isWholeWord));
-                }
+                int start = tknHistory.get(depth - emit.getDepth()).getStart();
+                ListIterator<Transition> tns = tknHistory.listIterator();
+                emitCandidateHolder.addCandidate(tknz.match(emit, start, position));
             }
             tn = tknz.nextTransition();
         }
@@ -290,16 +278,11 @@ public class Trie {
         }
 
         public TrieBuilder onlyWholeWords() {
-            this.trieConfig.setOnlyWholeWords(true);
-            return this;
-        }
-
-        public TrieBuilder wordTransitions() {
             if (hasAddedKeyword) {
                 throw new IllegalStateException(
-                    "Unable to switch to word transitions after keywords added");
+                    "Unable to switch to only whole words after keywords added");
             }
-            this.trieConfig.setWordTransitions(true);
+            this.trieConfig.setOnlyWholeWords(true);
             return this;
         }
 
