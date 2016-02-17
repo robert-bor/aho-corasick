@@ -28,10 +28,6 @@ public class Keyword implements Comparable {
         this.depth = depth;
     }
     
-    public void setDepth(int depth) {
-        this.depth = depth;
-    }
-    
     public int getDepth() {
         return depth;
     }

@@ -263,25 +263,6 @@ public class TrieTest {
     }
 
     @Test
-    public void nonOverlappingWordTransitions() {
-        Trie trie = Trie.builder()
-                .removeOverlaps()
-                .onlyWholeWords()
-                .addKeyword("peper molen")
-                .addKeyword("molen wiel")
-                .addKeyword("wiel dop")
-                .addKeyword("dop")
-                .build();
-        Collection<Emit> emits = trie.parseText("peper molen wiel dop xwiel dop wiel dopx wiel dop");
-        assertEquals(4, emits.size());
-        Iterator<Emit> iterator = emits.iterator();
-        checkEmit(iterator.next(), 0, 10, "peper molen");
-        checkEmit(iterator.next(), 12, 19, "wiel dop");
-        checkEmit(iterator.next(), 27, 29, "dop");
-        checkEmit(iterator.next(), 41, 48, "wiel dop");
-    }
-
-    @Test
     public void nonOverlappingWholeWordsWithCustomEmitHandler() {
         Trie trie = Trie.builder()
                 .removeOverlaps()

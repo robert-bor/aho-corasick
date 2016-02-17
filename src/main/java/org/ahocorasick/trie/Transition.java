@@ -34,10 +34,6 @@ public class Transition<T> {
         this.length = length;
     }
     
-    public T transitionToken() {
-        return token;
-    }
-    
     public int getStart() {
         return start;
     }
