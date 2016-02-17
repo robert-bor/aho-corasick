@@ -59,9 +59,9 @@ public class Trie {
             }
             int start = position;
             if (start < length) {
-                while (position < length && !Character.isWhitespace(currentChar())) {
+                do {
                     ++position;
-                }
+                } while (position < length && Character.isLetterOrDigit(currentChar()));
                 String word = input.subSequence(start, position).toString();
                 t = new WordTransition(word, start);
             }

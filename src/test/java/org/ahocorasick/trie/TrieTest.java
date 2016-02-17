@@ -2,6 +2,7 @@ package org.ahocorasick.trie;
 
 import org.ahocorasick.trie.handler.EmitHandler;
 import org.ahocorasick.trie.handler.SimpleEmitHandler;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -606,6 +607,39 @@ public class TrieTest {
                 text + " under addressed object ");
         assertEquals(1, emits.size());
         checkEmit(emits.iterator().next(), 0, text.length() - 1, keyword);
+    }
+
+    @Test
+    public void punctuationInText() {
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("pie")
+                .build();
+
+        Collection<Emit> emits = trie.parseText("Want some pie? Gimme pie! pie, pie. The pie's revenge.");
+        Assert.assertEquals(5, emits.size());
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 10, 12, "pie");
+        checkEmit(it.next(), 21, 23, "pie");
+        checkEmit(it.next(), 26, 28, "pie");
+        checkEmit(it.next(), 31, 33, "pie");
+        checkEmit(it.next(), 40, 42, "pie");
+    }
+
+    @Test
+    public void punctuationInSearchTerm() {
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("Dr. Feelgood")
+                .addKeyword("Oi!")
+                .build();
+
+        Collection<Emit> emits = trie
+                .parseText("The Oi! music genre is inspired by Dr. Feelgood and other bands. Oi or Dr Feelgood should not match.");
+
+        Assert.assertEquals(2, emits.size());
+
+
     }
 
     private void assertToken(Token token, String fragment, boolean match, boolean wholeWord, boolean whiteSpace) {
