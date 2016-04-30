@@ -286,9 +286,9 @@ public class TrieTest {
                 .onlyWholeWords()
                 .addKeyword("sugar")
                 .build();
-        Collection<Emit> emits = trie.parseText("sugarcane sugarcane sugar canesugar"); // left, middle, right test
+        Collection<Emit> emits = trie.parseText("sugar-cane sugarcane sugar canesugar"); // left, middle, right test
         assertEquals(1, emits.size()); // Match must not be made
-        checkEmit(emits.iterator().next(), 20, 24, "sugar");
+        checkEmit(emits.iterator().next(), 21, 25, "sugar");
     }
 
     @Test
@@ -297,9 +297,9 @@ public class TrieTest {
                 .onlyWholeWords()
                 .addKeyword("sugar")
                 .build();
-        Emit firstMatch = trie.firstMatch("sugarcane sugarcane sugar canesugar"); // left, middle, right test
+        Emit firstMatch = trie.firstMatch("sugar-cane sugarcane sugar canesugar"); // left, middle, right test
 
-        checkEmit(firstMatch, 20, 24, "sugar");
+        checkEmit(firstMatch, 21, 25, "sugar");
     }
 
     @Test

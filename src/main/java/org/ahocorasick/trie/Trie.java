@@ -146,12 +146,27 @@ public class Trie {
 		return null;
 	}
 
-	private boolean isPartialMatch(CharSequence searchText, Emit emit) {
-		return (emit.getStart() != 0 &&
-			Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
-			(emit.getEnd() + 1 != searchText.length() &&
-			Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
-	}
+    private boolean isPartialMatch(CharSequence searchText, Emit emit) {
+        for (int i = emit.getStart() - 1; i >= 0; i--) {
+	    if (Character.isWhitespace(searchText.charAt(i))) {
+                break;
+            } 
+            if (Character.isLetterOrDigit(searchText.charAt(i))) {
+                return true;
+            }
+        }
+
+        for(int i = emit.getEnd() + 1; i <= searchText.length() - 1; i++){
+	    if (Character.isWhitespace(searchText.charAt(i))) {
+                break;
+            } 
+            if (Character.isLetterOrDigit(searchText.charAt(i))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 	private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
 		List<Emit> removeEmits = new ArrayList<>();
