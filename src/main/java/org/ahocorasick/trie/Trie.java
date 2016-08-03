@@ -11,7 +11,6 @@ import org.ahocorasick.trie.handler.FirstMatchHandler;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.LinkedList;
-import java.util.ListIterator;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -42,9 +41,6 @@ public class Trie {
             return (position < length) ? input.charAt(position) : '\0';
         }
         public abstract Transition nextTransition();
-        public int getPosition() {
-            return position;
-        }
     }
     
     private class WordTokenizer extends KeywordTokenizer {
@@ -59,9 +55,9 @@ public class Trie {
             }
             int start = position;
             if (start < length) {
-                while (position < length && !Character.isWhitespace(currentChar())) {
+                do {
                     ++position;
-                }
+                } while (position < length && Character.isLetterOrDigit(currentChar()));
                 String word = input.subSequence(start, position).toString();
                 t = new WordTransition(word, start);
             }
@@ -186,7 +182,6 @@ public class Trie {
             for (Keyword emit : emits) {
                 int position = tn.getStart() + tn.getLength();
                 int start = tknHistory.get(depth - emit.getDepth()).getStart();
-                ListIterator<Transition> tns = tknHistory.listIterator();
                 emitCandidateHolder.addCandidate(
                         new Emit(start, position - 1, emit.getText()));
             }
