@@ -11,11 +11,11 @@ public class Emit extends Interval implements Intervalable {
         super(start, end);
         this.keyword = keyword;
     }
-
+    
     public String getKeyword() {
         return this.keyword;
     }
-
+    
     @Override
     public String toString() {
         return super.toString() + "=" + this.keyword;
