@@ -12,7 +12,7 @@ public class IntervalableComparatorByPositionTest {
 
     @Test
     public void sortOnPosition() {
-        List<Intervalable> intervals = new ArrayList<Intervalable>();
+        List<Intervalable> intervals = new ArrayList<>();
         intervals.add(new Interval(4,5));
         intervals.add(new Interval(1,4));
         intervals.add(new Interval(3,8));

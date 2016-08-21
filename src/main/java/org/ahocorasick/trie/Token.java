@@ -2,7 +2,7 @@ package org.ahocorasick.trie;
 
 public abstract class Token {
 
-    private String fragment;
+    private final String fragment;
 
     public Token(String fragment) {
         this.fragment = fragment;

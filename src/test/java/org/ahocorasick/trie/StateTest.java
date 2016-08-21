@@ -1,7 +1,9 @@
 package org.ahocorasick.trie;
 
-import org.ahocorasick.trie.State;
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Test;
+
+import java.io.Serializable;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -11,9 +13,9 @@ public class StateTest {
     public void constructSequenceOfCharacters() {
         State rootState = new State();
         rootState
-            .addState('a')
-            .addState('b')
-            .addState('c');
+                .addState('a')
+                .addState('b')
+                .addState('c');
         State currentState = rootState.nextState('a');
         assertEquals(1, currentState.getDepth());
         currentState = currentState.nextState('b');
@@ -22,4 +24,15 @@ public class StateTest {
         assertEquals(3, currentState.getDepth());
     }
 
+    @Test
+    public void testSerialization() {
+        State rootState = new State();
+        rootState.addState('a')
+                 .addState('b')
+                 .addState('c');
+        Trie.constructFailureStates(rootState);
+
+        Serializable copy = SerializationUtils.clone(rootState);
+        assertEquals(copy, rootState);
+    }
 }

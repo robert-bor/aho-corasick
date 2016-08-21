@@ -7,7 +7,7 @@ import java.util.List;
 
 public class DefaultEmitHandler implements EmitHandler {
 
-    private List<Emit> emits = new ArrayList<>();
+    private final List<Emit> emits = new ArrayList<>();
 
     @Override
     public void emit(Emit emit) {

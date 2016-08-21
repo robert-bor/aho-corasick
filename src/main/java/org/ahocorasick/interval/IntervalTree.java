@@ -18,7 +18,7 @@ public class IntervalTree {
         // Sort the intervals on size, then left-most position
         Collections.sort(intervals, new IntervalableComparatorBySize());
 
-        Set<Intervalable> removeIntervals = new TreeSet<Intervalable>();
+        Set<Intervalable> removeIntervals = new TreeSet<>();
 
         for (Intervalable interval : intervals) {
             // If the interval was already removed, ignore it
@@ -31,9 +31,7 @@ public class IntervalTree {
         }
 
         // Remove all intervals that were overlapping
-        for (Intervalable removeInterval : removeIntervals) {
-            intervals.remove(removeInterval);
-        }
+        removeIntervals.forEach(intervals::remove);
 
         // Sort the intervals, now on left-most position only
         Collections.sort(intervals, new IntervalableComparatorByPosition());

@@ -1,6 +1,9 @@
 package org.ahocorasick.interval;
 
-public class Interval implements Intervalable {
+import java.io.IOException;
+import java.io.Serializable;
+
+public class Interval implements Intervalable, Serializable {
 
     private int start;
     private int end;
@@ -10,21 +13,24 @@ public class Interval implements Intervalable {
         this.end = end;
     }
 
+    @Override
     public int getStart() {
         return this.start;
     }
 
+    @Override
     public int getEnd() {
         return this.end;
     }
 
+    @Override
     public int size() {
         return end - start + 1;
     }
 
     public boolean overlapsWith(Interval other) {
         return this.start <= other.getEnd() &&
-               this.end >= other.getStart();
+                this.end >= other.getStart();
     }
 
     public boolean overlapsWith(int point) {
@@ -36,9 +42,9 @@ public class Interval implements Intervalable {
         if (!(o instanceof Intervalable)) {
             return false;
         }
-        Intervalable other = (Intervalable)o;
+        Intervalable other = (Intervalable) o;
         return this.start == other.getStart() &&
-               this.end == other.getEnd();
+                this.end == other.getEnd();
     }
 
     @Override
@@ -51,7 +57,7 @@ public class Interval implements Intervalable {
         if (!(o instanceof Intervalable)) {
             return -1;
         }
-        Intervalable other = (Intervalable)o;
+        Intervalable other = (Intervalable) o;
         int comparison = this.start - other.getStart();
         return comparison != 0 ? comparison : this.end - other.getEnd();
     }
@@ -61,4 +67,15 @@ public class Interval implements Intervalable {
         return this.start + ":" + this.end;
     }
 
+    protected void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        stream.writeInt(start);
+        stream.writeInt(end);
+    }
+
+    protected void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException, IllegalAccessException, NoSuchFieldException {
+        this.start = stream.readInt();
+        this.end = stream.readInt();
+    }
 }

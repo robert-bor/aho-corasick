@@ -12,7 +12,7 @@ public class IntervalableComparatorBySizeTest {
 
     @Test
     public void sortOnSize() {
-        List<Intervalable> intervals = new ArrayList<Intervalable>();
+        List<Intervalable> intervals = new ArrayList<>();
         intervals.add(new Interval(4,5));
         intervals.add(new Interval(1,4));
         intervals.add(new Interval(3,8));
@@ -24,7 +24,7 @@ public class IntervalableComparatorBySizeTest {
 
     @Test
     public void sortOnSizeThenPosition() {
-        List<Intervalable> intervals = new ArrayList<Intervalable>();
+        List<Intervalable> intervals = new ArrayList<>();
         intervals.add(new Interval(4,7));
         intervals.add(new Interval(2,5));
         Collections.sort(intervals, new IntervalableComparatorBySize());

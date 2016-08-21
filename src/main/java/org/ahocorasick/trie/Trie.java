@@ -1,22 +1,28 @@
 package org.ahocorasick.trie;
 
+import com.google.common.base.Objects;
 import org.ahocorasick.interval.IntervalTree;
 import org.ahocorasick.interval.Intervalable;
 import org.ahocorasick.trie.handler.DefaultEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- *
  * Based on the Aho-Corasick white paper, Bell technologies: http://cr.yp.to/bib/1975/aho.pdf
+ *
  * @author Robert Bor
  */
-public class Trie {
+public class Trie implements Serializable {
 
     private TrieConfig trieConfig;
 
@@ -62,11 +68,11 @@ public class Trie {
     }
 
     private Token createFragment(Emit emit, String text, int lastCollectedPosition) {
-        return new FragmentToken(text.substring(lastCollectedPosition+1, emit == null ? text.length() : emit.getStart()));
+        return new FragmentToken(text.substring(lastCollectedPosition + 1, emit == null ? text.length() : emit.getStart()));
     }
 
     private Token createMatch(Emit emit, String text) {
-        return new MatchToken(text.substring(emit.getStart(), emit.getEnd()+1), emit);
+        return new MatchToken(text.substring(emit.getStart(), emit.getEnd() + 1), emit);
     }
 
     @SuppressWarnings("unchecked")
@@ -85,17 +91,17 @@ public class Trie {
         }
 
         if (!trieConfig.isAllowOverlaps()) {
-            IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
+            IntervalTree intervalTree = new IntervalTree((List<Intervalable>) (List<?>) collectedEmits);
             intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
         }
 
         return collectedEmits;
     }
 
-	public boolean containsMatch(CharSequence text) {
-		Emit firstMatch = firstMatch(text);
-		return firstMatch != null;
-	}
+    public boolean containsMatch(CharSequence text) {
+        Emit firstMatch = firstMatch(text);
+        return firstMatch != null;
+    }
 
     public void parseText(CharSequence text, EmitHandler emitHandler) {
         State currentState = this.rootState;
@@ -112,72 +118,63 @@ public class Trie {
 
     }
 
-	public Emit firstMatch(CharSequence text) {
-		if (!trieConfig.isAllowOverlaps()) {
-			// Slow path. Needs to find all the matches to detect overlaps.
-			Collection<Emit> parseText = parseText(text);
-			if (parseText != null && !parseText.isEmpty()) {
-				return parseText.iterator().next();
-			}
-		} else {
-			// Fast path. Returns first match found.
-			State currentState = this.rootState;
+    public Emit firstMatch(CharSequence text) {
+        if (!trieConfig.isAllowOverlaps()) {
+            // Slow path. Needs to find all the matches to detect overlaps.
+            Collection<Emit> parseText = parseText(text);
+            if (parseText != null && !parseText.isEmpty()) {
+                return parseText.iterator().next();
+            }
+        } else {
+            // Fast path. Returns first match found.
+            State currentState = this.rootState;
             for (int position = 0; position < text.length(); position++) {
                 Character character = text.charAt(position);
-				if (trieConfig.isCaseInsensitive()) {
-					character = Character.toLowerCase(character);
-				}
-				currentState = getState(currentState, character);
-				Collection<String> emitStrs = currentState.emit();
-				if (emitStrs != null && !emitStrs.isEmpty()) {
-					for (String emitStr : emitStrs) {
-						final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
-						if (trieConfig.isOnlyWholeWords()) {
-							if (!isPartialMatch(text, emit)) {
-								return emit;
-							}
-						} else {
-							return emit;
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
+                if (trieConfig.isCaseInsensitive()) {
+                    character = Character.toLowerCase(character);
+                }
+                currentState = getState(currentState, character);
+                Collection<String> emitStrs = currentState.emit();
+                if (emitStrs != null && !emitStrs.isEmpty()) {
+                    for (String emitStr : emitStrs) {
+                        final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
+                        if (trieConfig.isOnlyWholeWords()) {
+                            if (!isPartialMatch(text, emit)) {
+                                return emit;
+                            }
+                        } else {
+                            return emit;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-	private boolean isPartialMatch(CharSequence searchText, Emit emit) {
-		return (emit.getStart() != 0 &&
-			Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
-			(emit.getEnd() + 1 != searchText.length() &&
-			Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
-	}
+    private boolean isPartialMatch(CharSequence searchText, Emit emit) {
+        return (emit.getStart() != 0 &&
+                Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
+                (emit.getEnd() + 1 != searchText.length() &&
+                        Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
+    }
 
-	private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
-		List<Emit> removeEmits = new ArrayList<>();
-		for (Emit emit : collectedEmits) {
-			if (isPartialMatch(searchText, emit)) {
-				removeEmits.add(emit);
-			}
-		}
-		for (Emit removeEmit : removeEmits) {
-			collectedEmits.remove(removeEmit);
-		}
-	}
+    private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
+        List<Emit> removeEmits = collectedEmits.stream().filter(emit -> isPartialMatch(searchText, emit)).collect(Collectors.toList());
+        removeEmits.forEach(collectedEmits::remove);
+    }
 
     private void removePartialMatchesWhiteSpaceSeparated(CharSequence searchText, List<Emit> collectedEmits) {
         long size = searchText.length();
         List<Emit> removeEmits = new ArrayList<>();
         for (Emit emit : collectedEmits) {
             if ((emit.getStart() == 0 || Character.isWhitespace(searchText.charAt(emit.getStart() - 1))) &&
-                (emit.getEnd() + 1 == size || Character.isWhitespace(searchText.charAt(emit.getEnd() + 1)))) {
+                    (emit.getEnd() + 1 == size || Character.isWhitespace(searchText.charAt(emit.getEnd() + 1)))) {
                 continue;
             }
             removeEmits.add(emit);
         }
-        for (Emit removeEmit : removeEmits) {
-            collectedEmits.remove(removeEmit);
-        }
+        removeEmits.forEach(collectedEmits::remove);
     }
 
     private State getState(State currentState, Character character) {
@@ -190,11 +187,15 @@ public class Trie {
     }
 
     private void constructFailureStates() {
+        constructFailureStates(this.rootState);
+    }
+
+    static void constructFailureStates(State rootState) {
         Queue<State> queue = new LinkedBlockingDeque<>();
 
         // First, set the fail state of all depth 1 states to the root state
-        for (State depthOneState : this.rootState.getStates()) {
-            depthOneState.setFailure(this.rootState);
+        for (State depthOneState : rootState.getStates()) {
+            depthOneState.setFailure(rootState);
             queue.add(depthOneState);
         }
 
@@ -229,17 +230,38 @@ public class Trie {
         return emitted;
     }
 
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+            stream.writeObject(trieConfig);
+            stream.writeObject(rootState);
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+            trieConfig = checkNotNull((TrieConfig) stream.readObject());
+            rootState = checkNotNull((State) stream.readObject());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Trie trie = (Trie) o;
+        return Objects.equal(trieConfig, trie.trieConfig) && Objects.equal(rootState, trie.rootState);
+    }
+
     public static TrieBuilder builder() {
         return new TrieBuilder();
     }
 
     public static class TrieBuilder {
 
-        private TrieConfig trieConfig = new TrieConfig();
+        private final TrieConfig trieConfig = new TrieConfig();
 
-        private Trie trie = new Trie(trieConfig);
+        private final Trie trie = new Trie(trieConfig);
 
-        private TrieBuilder() {}
+        private TrieBuilder() {
+        }
 
         public TrieBuilder caseInsensitive() {
             this.trieConfig.setCaseInsensitive(true);

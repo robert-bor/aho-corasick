@@ -2,11 +2,11 @@ package org.ahocorasick.interval;
 
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 public class IntervalTest {
 
@@ -44,7 +44,7 @@ public class IntervalTest {
 
     @Test
     public void comparable() {
-        Set<Interval> intervals = new TreeSet<Interval>();
+        Set<Interval> intervals = new TreeSet<>();
         intervals.add(new Interval(4, 6));
         intervals.add(new Interval(2, 7));
         intervals.add(new Interval(3, 4));

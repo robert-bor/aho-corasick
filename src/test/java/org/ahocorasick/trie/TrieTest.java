@@ -1,6 +1,7 @@
 package org.ahocorasick.trie;
 
 import org.ahocorasick.trie.handler.EmitHandler;
+import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class TrieTest {
         Collection<Emit> emits = trie.parseText("abc");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 0, 2, "abc");
+        checkSerialization(trie);
     }
 
     @Test
@@ -30,6 +32,7 @@ public class TrieTest {
                 .build();
         Emit firstMatch = trie.firstMatch("abc");
         checkEmit(firstMatch, 0, 2, "abc");
+        checkSerialization(trie);
     }
 
     @Test
@@ -40,6 +43,7 @@ public class TrieTest {
         Collection<Emit> emits = trie.parseText(" abc");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 1, 3, "abc");
+        checkSerialization(trie);
     }
 
     @Test
@@ -61,6 +65,7 @@ public class TrieTest {
         Collection<Emit> emits = trie.parseText("bcd");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 0, 2, "bcd");
+        checkSerialization(trie);
     }
 
     @Test
@@ -72,6 +77,7 @@ public class TrieTest {
                 .build();
         Emit firstMatch = trie.firstMatch("bcd");
         checkEmit(firstMatch, 0, 2, "bcd");
+        checkSerialization(trie);
     }
 
     @Test
@@ -88,6 +94,7 @@ public class TrieTest {
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 2, 3, "he");
         checkEmit(iterator.next(), 1, 3, "she");
+        checkSerialization(trie);
     }
 
     @Test
@@ -104,6 +111,7 @@ public class TrieTest {
         checkEmit(iterator.next(), 2, 3, "he");
         checkEmit(iterator.next(), 1, 3, "she");
         checkEmit(iterator.next(), 2, 5, "hers");
+        checkSerialization(trie);
     }
 
     @Test
@@ -121,6 +129,7 @@ public class TrieTest {
         checkEmit(iterator.next(), 2, 3, "he");
         checkEmit(iterator.next(), 1, 3, "she");
         checkEmit(iterator.next(), 2, 5, "hers");
+        checkSerialization(trie);
     }
 
     @Test
@@ -133,6 +142,7 @@ public class TrieTest {
                 .build();
         Emit firstMatch = trie.firstMatch("ushers");
         checkEmit(firstMatch, 2, 3, "he");
+        checkSerialization(trie);
     }
 
     @Test
@@ -143,15 +153,9 @@ public class TrieTest {
                 .addKeyword("she")
                 .addKeyword("he")
                 .build();
-
+        checkSerialization(trie);
         final List<Emit> emits = new ArrayList<>();
-        EmitHandler emitHandler = new EmitHandler() {
-
-            @Override
-            public void emit(Emit emit) {
-                emits.add(emit);
-            }
-        };
+        EmitHandler emitHandler = emits::add;
         trie.parseText("ushers", emitHandler);
         assertEquals(3, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<Emit> iterator = emits.iterator();
@@ -168,6 +172,7 @@ public class TrieTest {
         Collection<Emit> emits = trie.parseText("h he her hers");
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 9, 12, "hers");
+        checkSerialization(trie);
     }
 
     @Test
@@ -177,6 +182,7 @@ public class TrieTest {
                 .build();
         Emit firstMatch = trie.firstMatch("h he her hers");
         checkEmit(firstMatch, 9, 12, "hers");
+        checkSerialization(trie);
     }
 
     @Test
@@ -193,6 +199,7 @@ public class TrieTest {
         checkEmit(iterator.next(), 18, 25, "tomatoes");
         checkEmit(iterator.next(), 40, 43, "veal");
         checkEmit(iterator.next(), 51, 58, "broccoli");
+        checkSerialization(trie);
     }
 
     @Test
@@ -206,6 +213,7 @@ public class TrieTest {
         Emit firstMatch = trie.firstMatch("2 cauliflowers, 3 tomatoes, 4 slices of veal, 100g broccoli");
 
         checkEmit(firstMatch, 2, 12, "cauliflower");
+        checkSerialization(trie);
     }
 
     @Test
@@ -223,6 +231,7 @@ public class TrieTest {
         checkEmit(iterator.next(), 0, 7, "hehehehe");
         checkEmit(iterator.next(), 8, 9, "he");
         checkEmit(iterator.next(), 2, 9, "hehehehe");
+        checkSerialization(trie);
     }
 
     @Test
@@ -238,6 +247,7 @@ public class TrieTest {
         // With overlaps: ab@1, ab@3, ababc@4, cba@6, ab@7
         checkEmit(iterator.next(), 0, 4, "ababc");
         checkEmit(iterator.next(), 6, 7, "ab");
+        checkSerialization(trie);
     }
 
     @Test
@@ -250,6 +260,7 @@ public class TrieTest {
         Emit firstMatch = trie.firstMatch("ababcbab");
 
         checkEmit(firstMatch, 0, 4, "ababc");
+        checkSerialization(trie);
     }
 
     @Test
@@ -260,6 +271,7 @@ public class TrieTest {
                 .addKeyword("ababc")
                 .build();
         assertTrue(trie.containsMatch("ababcbab"));
+        checkSerialization(trie);
     }
 
     @Test
@@ -278,6 +290,7 @@ public class TrieTest {
                 .build();
         Collection<Emit> emits = trie.parseText("Turning");
         assertEquals(2, emits.size());
+        checkSerialization(trie);
     }
 
     @Test
@@ -289,6 +302,7 @@ public class TrieTest {
         Collection<Emit> emits = trie.parseText("sugarcane sugarcane sugar canesugar"); // left, middle, right test
         assertEquals(1, emits.size()); // Match must not be made
         checkEmit(emits.iterator().next(), 20, 24, "sugar");
+        checkSerialization(trie);
     }
 
     @Test
@@ -300,6 +314,7 @@ public class TrieTest {
         Emit firstMatch = trie.firstMatch("sugarcane sugarcane sugar canesugar"); // left, middle, right test
 
         checkEmit(firstMatch, 20, 24, "sugar");
+        checkSerialization(trie);
     }
 
     @Test
@@ -319,6 +334,7 @@ public class TrieTest {
         assertEquals(" from the rear, ", tokensIt.next().getFragment());
         assertEquals("Gamma", tokensIt.next().getFragment());
         assertEquals(" in reserve", tokensIt.next().getFragment());
+        checkSerialization(trie);
     }
 
     @Test
@@ -336,6 +352,7 @@ public class TrieTest {
         checkEmit(it.next(), 8, 11, "once");
         checkEmit(it.next(), 13, 17, "again");
         checkEmit(it.next(), 19, 23, "börkü");
+        checkSerialization(trie);
     }
 
     @Test
@@ -353,6 +370,7 @@ public class TrieTest {
         checkEmit(it.next(), 8, 11, "once");
         checkEmit(it.next(), 13, 17, "again");
         checkEmit(it.next(), 19, 23, "börkü");
+        checkSerialization(trie);
     }
 
     @Test
@@ -366,6 +384,7 @@ public class TrieTest {
         Emit firstMatch = trie.firstMatch("TurninG OnCe AgAiN BÖRKÜ");
 
         checkEmit(firstMatch, 0, 6, "turning");
+        checkSerialization(trie);
     }
 
     @Test
@@ -377,6 +396,7 @@ public class TrieTest {
                 .build();
         Collection<Token> tokens = trie.tokenize("Alpha Beta Gamma");
         assertEquals(5, tokens.size());
+        checkSerialization(trie);
     }
 
     // Test offered by XCurry, https://github.com/robert-bor/aho-corasick/issues/7
@@ -386,6 +406,7 @@ public class TrieTest {
                 .addKeyword("")
                 .build();
         trie.tokenize("Try a natural lip and subtle bronzer to keep all the focus on those big bright eyes with NARS Eyeshadow Duo in Rated R And the winner is... Boots No7 Advanced Renewal Anti-ageing Glycolic Peel Kit ($25 amazon.com) won most-appealing peel.");
+        checkSerialization(trie);
     }
 
     // Test offered by dwyerk, https://github.com/robert-bor/aho-corasick/issues/8
@@ -400,6 +421,7 @@ public class TrieTest {
         assertEquals(1, emits.size());
         Iterator<Emit> it = emits.iterator();
         checkEmit(it.next(), 5, 8, "this");
+        checkSerialization(trie);
     }
 
     @Test
@@ -413,6 +435,7 @@ public class TrieTest {
         assertEquals("THIS", target.substring(5, 9)); // Java does it the right way
         Emit firstMatch = trie.firstMatch(target);
         checkEmit(firstMatch, 5, 8, "this");
+        checkSerialization(trie);
     }
 
     @Test
@@ -421,9 +444,10 @@ public class TrieTest {
                 .onlyWholeWordsWhiteSpaceSeparated()
                 .addKeyword("#sugar-123")
                 .build();
-        Collection < Emit > emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
+        Collection<Emit> emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
         assertEquals(1, emits.size()); // Match must not be made
         checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
+        checkSerialization(trie);
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {
@@ -432,4 +456,8 @@ public class TrieTest {
         assertEquals(expectedKeyword, next.getKeyword());
     }
 
+    private void checkSerialization(Trie trie) {
+        Trie clonedTrie = SerializationUtils.clone(trie);
+        assertEquals(trie, clonedTrie);
+    }
 }

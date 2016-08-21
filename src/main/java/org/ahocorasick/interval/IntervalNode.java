@@ -3,6 +3,7 @@ package org.ahocorasick.interval;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class IntervalNode {
 
@@ -10,14 +11,14 @@ public class IntervalNode {
 
     private IntervalNode left = null;
     private IntervalNode right = null;
-    private int point;
-    private List<Intervalable> intervals = new ArrayList<Intervalable>();
+    private final int point;
+    private final List<Intervalable> intervals = new ArrayList<>();
 
     public IntervalNode(List<Intervalable> intervals) {
         this.point = determineMedian(intervals);
 
-        List<Intervalable> toLeft = new ArrayList<Intervalable>();
-        List<Intervalable> toRight = new ArrayList<Intervalable>();
+        List<Intervalable> toLeft = new ArrayList<>();
+        List<Intervalable> toRight = new ArrayList<>();
 
         for (Intervalable interval : intervals) {
             if (interval.getEnd() < this.point) {
@@ -37,7 +38,7 @@ public class IntervalNode {
         }
     }
 
-    public int determineMedian(List<Intervalable> intervals) {
+    private int determineMedian(List<Intervalable> intervals) {
         int start = -1;
         int end = -1;
         for (Intervalable interval : intervals) {
@@ -55,7 +56,7 @@ public class IntervalNode {
 
     public List<Intervalable> findOverlaps(Intervalable interval) {
 
-        List<Intervalable> overlaps = new ArrayList<Intervalable>();
+        List<Intervalable> overlaps = new ArrayList<>();
 
         if (this.point < interval.getStart()) { // Tends to the right
             addToOverlaps(interval, overlaps, findOverlappingRanges(this.right, interval));
@@ -72,25 +73,21 @@ public class IntervalNode {
         return overlaps;
     }
 
-    protected void addToOverlaps(Intervalable interval, List<Intervalable> overlaps, List<Intervalable> newOverlaps) {
-        for (Intervalable currentInterval : newOverlaps) {
-            if (!currentInterval.equals(interval)) {
-                overlaps.add(currentInterval);
-            }
-        }
+    private void addToOverlaps(Intervalable interval, List<Intervalable> overlaps, List<Intervalable> newOverlaps) {
+        overlaps.addAll(newOverlaps.stream().filter(currentInterval -> !currentInterval.equals(interval)).collect(Collectors.toList()));
     }
 
-    protected List<Intervalable> checkForOverlapsToTheLeft(Intervalable interval) {
+    private List<Intervalable> checkForOverlapsToTheLeft(Intervalable interval) {
         return checkForOverlaps(interval, Direction.LEFT);
     }
 
-    protected List<Intervalable> checkForOverlapsToTheRight(Intervalable interval) {
+    private List<Intervalable> checkForOverlapsToTheRight(Intervalable interval) {
         return checkForOverlaps(interval, Direction.RIGHT);
     }
 
-    protected List<Intervalable> checkForOverlaps(Intervalable interval, Direction direction) {
+    private List<Intervalable> checkForOverlaps(Intervalable interval, Direction direction) {
 
-        List<Intervalable> overlaps = new ArrayList<Intervalable>();
+        List<Intervalable> overlaps = new ArrayList<>();
         for (Intervalable currentInterval : this.intervals) {
             switch (direction) {
                 case LEFT :
@@ -109,7 +106,7 @@ public class IntervalNode {
     }
 
 
-    protected List<Intervalable> findOverlappingRanges(IntervalNode node, Intervalable interval) {
+    private List<Intervalable> findOverlappingRanges(IntervalNode node, Intervalable interval) {
         if (node != null) {
             return node.findOverlaps(interval);
         }
