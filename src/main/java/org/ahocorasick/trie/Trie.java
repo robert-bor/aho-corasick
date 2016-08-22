@@ -32,13 +32,10 @@ public class Trie {
             return;
         }
         State currentState = this.rootState;
-        for (Character character : keyword.toCharArray()) {
-            if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
-            }
+        String caseAdjustedKeyword = adjustCase(keyword).toString();
+        for (Character character : caseAdjustedKeyword.toCharArray())
             currentState = currentState.addState(character);
-        }
-        currentState.addEmit(trieConfig.isCaseInsensitive() ? keyword.toLowerCase() : keyword);
+        currentState.addEmit(caseAdjustedKeyword);
     }
 
     public Collection<Token> tokenize(String text) {
@@ -85,25 +82,23 @@ public class Trie {
         }
 
         if (!trieConfig.isAllowOverlaps()) {
-            IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
+            IntervalTree intervalTree = new IntervalTree((List<Intervalable>) (List<?>) collectedEmits);
             intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
         }
 
         return collectedEmits;
     }
 
-	public boolean containsMatch(CharSequence text) {
-		Emit firstMatch = firstMatch(text);
-		return firstMatch != null;
-	}
+    public boolean containsMatch(CharSequence text) {
+        Emit firstMatch = firstMatch(text);
+        return firstMatch != null;
+    }
 
     public void parseText(CharSequence text, EmitHandler emitHandler) {
         State currentState = this.rootState;
-        for (int position = 0; position < text.length(); position++) {
-            Character character = text.charAt(position);
-            if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
-            }
+        CharSequence caseAdjustedText = adjustCase(text);
+        for (int position = 0; position < caseAdjustedText.length(); position++) {
+            Character character = caseAdjustedText.charAt(position);
             currentState = getState(currentState, character);
             if (storeEmits(position, currentState, emitHandler) && trieConfig.isStopOnHit()) {
                 return;
@@ -112,46 +107,44 @@ public class Trie {
 
     }
 
-	public Emit firstMatch(CharSequence text) {
-		if (!trieConfig.isAllowOverlaps()) {
-			// Slow path. Needs to find all the matches to detect overlaps.
-			Collection<Emit> parseText = parseText(text);
-			if (parseText != null && !parseText.isEmpty()) {
-				return parseText.iterator().next();
-			}
-		} else {
-			// Fast path. Returns first match found.
-			State currentState = this.rootState;
-            for (int position = 0; position < text.length(); position++) {
-                Character character = text.charAt(position);
-				if (trieConfig.isCaseInsensitive()) {
-					character = Character.toLowerCase(character);
-				}
-				currentState = getState(currentState, character);
-				Collection<String> emitStrs = currentState.emit();
-				if (emitStrs != null && !emitStrs.isEmpty()) {
-					for (String emitStr : emitStrs) {
-						final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
-						if (trieConfig.isOnlyWholeWords()) {
-							if (!isPartialMatch(text, emit)) {
-								return emit;
-							}
-						} else {
-							return emit;
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
+    public Emit firstMatch(CharSequence text) {
+        if (!trieConfig.isAllowOverlaps()) {
+            // Slow path. Needs to find all the matches to detect overlaps.
+            Collection<Emit> parseText = parseText(text);
+            if (parseText != null && !parseText.isEmpty()) {
+                return parseText.iterator().next();
+            }
+        } else {
+            // Fast path. Returns first match found.
+            State currentState = this.rootState;
+            CharSequence caseAdjustedText = adjustCase(text);
+            for (int position = 0; position < caseAdjustedText.length(); position++) {
+                Character character = caseAdjustedText.charAt(position);
+                currentState = getState(currentState, character);
+                Collection<String> emitStrs = currentState.emit();
+                if (emitStrs != null && !emitStrs.isEmpty()) {
+                    for (String emitStr : emitStrs) {
+                        final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
+                        if (trieConfig.isOnlyWholeWords()) {
+                            if (!isPartialMatch(text, emit)) {
+                                return emit;
+                            }
+                        } else {
+                            return emit;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-	private boolean isPartialMatch(CharSequence searchText, Emit emit) {
-		return (emit.getStart() != 0 &&
-			Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
-			(emit.getEnd() + 1 != searchText.length() &&
-			Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
-	}
+    private boolean isPartialMatch(CharSequence searchText, Emit emit) {
+            return (emit.getStart() != 0 &&
+                    Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
+                    (emit.getEnd() + 1 != searchText.length() &&
+                            Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
+    }
 
 	private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
 		List<Emit> removeEmits = new ArrayList<>();
@@ -227,6 +220,17 @@ public class Trie {
             }
         }
         return emitted;
+    }
+
+    private CharSequence adjustCase(CharSequence text) {
+        if(trieConfig.isCaseInsensitive()){
+            char[] textChars = text.toString().toCharArray();
+            char[] adjustedTextChars = new char[textChars.length];
+            for(int i = 0; i < textChars.length; i++)
+                adjustedTextChars[i] = Character.toLowerCase(textChars[i]);
+            return new String(adjustedTextChars);
+        }
+        return text;
     }
 
     public static TrieBuilder builder() {

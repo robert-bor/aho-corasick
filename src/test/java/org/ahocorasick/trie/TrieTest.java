@@ -416,6 +416,23 @@ public class TrieTest {
     }
 
     @Test
+    public void unicodeIssueBug39ReportedByHumanzz(){
+        // Problem: "İ".length => 1, "İ".toLowerCase().length => 2. This causes all sorts of unexpected behaviors
+        // and bugs where the Emit will have a size different from the original string.
+        // Soln: As in issue #8, convert at character level Character.toLowerCase('İ') => 'i'  + make sure
+        // that emit gets the properly cased keyword.
+        String upperLengthOne = "İnt";
+        Trie trie = Trie.builder()
+                .caseInsensitive()
+                .onlyWholeWords()
+                .addKeyword(upperLengthOne)
+                .build();
+        Collection<Emit> emits = trie.parseText("İnt is good");
+        assertEquals(1, emits.size());
+        checkEmit(emits.iterator().next(), 0, 2, "int");
+    }
+
+    @Test
     public void partialMatchWhiteSpaces() {
         Trie trie = Trie.builder()
                 .onlyWholeWordsWhiteSpaceSeparated()
