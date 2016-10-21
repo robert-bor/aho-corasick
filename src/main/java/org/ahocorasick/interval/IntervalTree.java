@@ -5,15 +5,30 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * The tree of intervals.
+ */
 public class IntervalTree {
 
+    /**
+     * The root node.
+     */
     private IntervalNode rootNode = null;
 
-    public IntervalTree(List<Intervalable> intervals) {
+    /**
+     * The constructor splits the intervals on the median value.
+     * @param intervals the intervals.
+     */
+    public IntervalTree(List<? extends Intervalable> intervals) {
         this.rootNode = new IntervalNode(intervals);
     }
 
-    public List<Intervalable> removeOverlaps(List<Intervalable> intervals) {
+    /**
+     * Removes overlaps from the given list of intervals and returns the same collection.
+     * @param intervals the list of intervals.
+     * @return the original list of intervals.
+     */
+    public List<? extends Intervalable> removeOverlaps(List<? extends Intervalable> intervals) {
 
         // Sort the intervals on size, then left-most position
         Collections.sort(intervals, new IntervalableComparatorBySize());
@@ -26,7 +41,7 @@ public class IntervalTree {
                 continue;
             }
 
-            // Remove all overallping intervals
+            // Remove all overlapping intervals
             removeIntervals.addAll(findOverlaps(interval));
         }
 
@@ -41,6 +56,11 @@ public class IntervalTree {
         return intervals;
     }
 
+    /**
+     * Finds the list of intervals that overlap the given interval.
+     * @param interval the interval to match against.
+     * @return the list of intervals that overlap the given interval.
+     */
     public List<Intervalable> findOverlaps(Intervalable interval) {
         return rootNode.findOverlaps(interval);
     }
