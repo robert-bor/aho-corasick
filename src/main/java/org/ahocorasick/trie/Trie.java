@@ -1,10 +1,12 @@
 package org.ahocorasick.trie;
 
 import org.ahocorasick.interval.IntervalTree;
-import org.ahocorasick.interval.Intervalable;
 import org.ahocorasick.trie.handler.DefaultEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,13 +16,15 @@ import java.util.concurrent.LinkedBlockingDeque;
 /**
  *
  * Based on the Aho-Corasick white paper, Bell technologies: http://cr.yp.to/bib/1975/aho.pdf
- * @author Robert Bor
+ * @author Robert Bor, Keith Player
  */
 public class Trie {
 
     private TrieConfig trieConfig;
 
     private State rootState;
+
+    private StreamingDataStore streamingDataStore = null;
 
     private Trie(TrieConfig trieConfig) {
         this.trieConfig = trieConfig;
@@ -69,7 +73,12 @@ public class Trie {
         return new MatchToken(text.substring(emit.getStart(), emit.getEnd()+1), emit);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Parse through a char sequence.
+     *
+     * @param text a char sequence.
+     * @return the collection of emits.
+     */
     public Collection<Emit> parseText(CharSequence text) {
         DefaultEmitHandler emitHandler = new DefaultEmitHandler();
         parseText(text, emitHandler);
@@ -85,8 +94,8 @@ public class Trie {
         }
 
         if (!trieConfig.isAllowOverlaps()) {
-            IntervalTree intervalTree = new IntervalTree((List<Intervalable>)(List<?>)collectedEmits);
-            intervalTree.removeOverlaps((List<Intervalable>) (List<?>) collectedEmits);
+            IntervalTree intervalTree = new IntervalTree(collectedEmits);
+            intervalTree.removeOverlaps(collectedEmits);
         }
 
         return collectedEmits;
@@ -97,6 +106,138 @@ public class Trie {
 		return firstMatch != null;
 	}
 
+    /**
+     * Setup the emit collector.
+     */
+    public void setupEmitCollector()
+    {
+        streamingDataStore = new StreamingDataStore(this.rootState, 2000);
+    }
+
+
+    /**
+     * This method allows an external class to stream data directly through the {@code Trie}.  This makes it efficient
+     * to process through multiple {@code Trie}s at the same time while only reading over a file stream once.
+     * {@see parseStreamingText} for an example pushing to a single {@code Trie}.
+     *
+     * @param characterInt the current character.
+     * @param nextCharacter the next character.
+     * @return whether an end state has occurred.
+     * @throws IOException
+     */
+    public boolean pushToEmitCollector(int characterInt, int nextCharacter) throws IOException
+    {
+        RecentInputBuffer recentInputBuffer = streamingDataStore.getRecentInputBuffer();
+        recentInputBuffer.add(characterInt);
+        char character = (char) characterInt;
+
+        if (trieConfig.isCaseInsensitive()) {
+            character = Character.toLowerCase(character);
+        }
+
+        State currentState = getState(streamingDataStore.getCurrentState(), character);
+        // isStopOnHit stops processing as soon as the first hit is found.
+        if (storeValidatedEmits(streamingDataStore.getPosition(), currentState, streamingDataStore.getEmitHandler(), recentInputBuffer, (char) nextCharacter) && trieConfig.isStopOnHit()) {
+            return true;
+        }
+
+        streamingDataStore.setCurrentState(currentState);
+        streamingDataStore.incrementPosition();
+        return false;
+    }
+
+    /**
+     * Returns the collection of emits based on the Trie configuration.
+     * @return the collection of emits.
+     */
+    public Collection<Emit> getEmitCollection() {
+        if (streamingDataStore == null) {
+            throw new IllegalStateException("getEmitCollection called before setupEmitCollector.");
+        }
+
+        List<Emit> collectedEmits = streamingDataStore.getEmitHandler().getEmits();
+
+        if (!trieConfig.isAllowOverlaps()) {
+            IntervalTree intervalTree = new IntervalTree(collectedEmits);
+            intervalTree.removeOverlaps(collectedEmits);
+        }
+
+        return collectedEmits;
+    }
+
+    /**
+     * Parses the text in a single sweep removing partial matches as specified.
+     *
+     * @param textReader the text reader.
+     */
+    public Collection<Emit> parseStreamingText(Reader textReader) throws IOException
+    {
+        setupEmitCollector();
+        try (BufferedReader bufferedReader = new BufferedReader(textReader))
+        {
+            int currentRead = bufferedReader.read();
+            while (currentRead > 0)
+            {
+                int nextCharacter = bufferedReader.read();
+                pushToEmitCollector(currentRead, nextCharacter);
+                currentRead = nextCharacter;
+            }
+        }
+        return getEmitCollection();
+    }
+
+
+    /**
+     * Parses the text in a single sweep removing partial matches if specified.
+     *
+     * @param textReader the text reader.
+     */
+    public Collection<Emit> parseText(Reader textReader) throws IOException
+    {
+        DefaultEmitHandler emitHandler = new DefaultEmitHandler();
+        ///
+        State currentState = this.rootState;
+
+        int position = 0;
+        RecentInputBuffer recentInputBuffer = new RecentInputBuffer(2000);
+        try (BufferedReader bufferedReader = new BufferedReader(textReader))
+        {
+            int currentRead = bufferedReader.read();
+            while (currentRead > 0)
+            {
+                recentInputBuffer.add(currentRead);
+                char character = (char) currentRead;
+
+                if (trieConfig.isCaseInsensitive()) {
+                    character = Character.toLowerCase(character);
+                }
+                currentState = getState(currentState, character);
+                int nextCharacter = bufferedReader.read();
+                // isStopOnHit stops processing as soon as the first hit is found.
+                if (storeValidatedEmits(position, currentState, emitHandler, recentInputBuffer, (char) nextCharacter) && trieConfig.isStopOnHit()) {
+                    break;
+                }
+
+                position++;
+                currentRead = nextCharacter;
+            }
+        }
+
+        List<Emit> collectedEmits = emitHandler.getEmits();
+
+        if (!trieConfig.isAllowOverlaps()) {
+            IntervalTree intervalTree = new IntervalTree(collectedEmits);
+            intervalTree.removeOverlaps(collectedEmits);
+        }
+
+        return collectedEmits;
+    }
+
+    /**
+     * Parse the text for a char sequence.
+     * @param text the char sequence.
+     * @param emitHandler the emit handler.
+     */
     public void parseText(CharSequence text, EmitHandler emitHandler) {
         State currentState = this.rootState;
         for (int position = 0; position < text.length(); position++) {
@@ -146,11 +287,41 @@ public class Trie {
 		return null;
 	}
 
-	private boolean isPartialMatch(CharSequence searchText, Emit emit) {
+    /**
+     * Returns {@code true} if the current emit is white space separated.
+     *
+     * @param recentInputBuffer the recent input buffer.
+     * @param emit the emit.
+     * @param nextChar the next char after the emit.
+     * @return {@code true} if the current emit is white space separated.
+     */
+    private boolean isWhiteSpaceSeparated(RecentInputBuffer recentInputBuffer, Emit emit, int nextChar)
+    {
+        // We get the character before the emit using the {@code recentInputBuffer}.
+        return ((emit.getStart() == 0 || Character.isWhitespace(recentInputBuffer.getByFilePosition(emit.getStart() - 1))) &&
+                (nextChar == -1 || Character.isWhitespace(nextChar)));
+    }
+
+    /**
+     * Returns {@code true} if the current emit is only a partial match (e.g. cat inside catastrophe).
+     *
+     * @param recentInputBuffer the recent input buffer.
+     * @param emit the emit.
+     * @param nextChar the next char after the emit.
+     * @return {@code true} if the current emit is only a partial match (e.g. cat inside catastrophe).
+     */
+    private boolean isPartialMatch(RecentInputBuffer recentInputBuffer, Emit emit, int nextChar) {
+        // We get the character before the emit using the {@code recentInputBuffer}.
+        return (emit.getStart() != 0 &&
+                Character.isLetterOrDigit(recentInputBuffer.getByFilePosition(emit.getStart() - 1))) ||
+                (nextChar != -1 && Character.isLetterOrDigit(nextChar));
+    }
+
+    private boolean isPartialMatch(CharSequence searchText, Emit emit) {
 		return (emit.getStart() != 0 &&
-			Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
+			Character.isLetterOrDigit(searchText.charAt(emit.getStart() - 1))) ||
 			(emit.getEnd() + 1 != searchText.length() &&
-			Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
+			Character.isLetterOrDigit(searchText.charAt(emit.getEnd() + 1)));
 	}
 
 	private void removePartialMatches(CharSequence searchText, List<Emit> collectedEmits) {
@@ -217,6 +388,42 @@ public class Trie {
         }
     }
 
+    /**
+     * Stores emits if they pass the required validation steps.
+     *
+     * @param position the current position.
+     * @param currentState the current state.
+     * @param emitHandler the emit handler.
+     * @param recentInputBuffer the recent input buffer used to retrieve characters before and after the emit.
+     * @param nextChar the next char after the emit.
+     * @return whether an emit was stored.
+     */
+    private boolean storeValidatedEmits(int position, State currentState, EmitHandler emitHandler, RecentInputBuffer recentInputBuffer, char nextChar) {
+        boolean emitted = false;
+        Collection<String> emits = currentState.emit();
+        if (emits != null && !emits.isEmpty()) {
+            for (String emitString : emits) {
+                String originalString = recentInputBuffer.substringByFilePosition(position - emitString.length() + 1, position + 1);
+                Emit emit = new Emit(position - emitString.length() + 1, position, originalString);
+                if (trieConfig.isOnlyWholeWords()) {
+                    if (isPartialMatch(recentInputBuffer, emit, nextChar)) {
+                        continue;
+                    }
+                }
+
+                if (trieConfig.isOnlyWholeWordsWhiteSpaceSeparated()) {
+                    if (!isWhiteSpaceSeparated(recentInputBuffer, emit, nextChar)) {
+                        continue;
+                    }
+                }
+
+                emitHandler.emit(emit);
+                emitted = true;
+            }
+        }
+        return emitted;
+    }
+
     private boolean storeEmits(int position, State currentState, EmitHandler emitHandler) {
         boolean emitted = false;
         Collection<String> emits = currentState.emit();
@@ -229,8 +436,54 @@ public class Trie {
         return emitted;
     }
 
+    /**
+     * Gets a new trie builder.
+     *
+     * @return a new trie builder.
+     */
     public static TrieBuilder builder() {
         return new TrieBuilder();
+    }
+
+    /**
+     * Holds the data necessary to process streaming data.
+     */
+    private static class StreamingDataStore {
+        private State currentState;
+        private int position;
+        private RecentInputBuffer recentInputBuffer;
+        private DefaultEmitHandler emitHandler = new DefaultEmitHandler();
+
+        public StreamingDataStore(State rootState, int recentInputBufferSize)
+        {
+            currentState = rootState;
+            position = 0;
+            recentInputBuffer = new RecentInputBuffer(recentInputBufferSize);
+        }
+
+        public State getCurrentState() {
+            return currentState;
+        }
+
+        public void setCurrentState(State currentState) {
+            this.currentState = currentState;
+        }
+
+        public int getPosition() {
+            return position;
+        }
+
+        public void incrementPosition() {
+            position++;
+        }
+
+        public RecentInputBuffer getRecentInputBuffer() {
+            return recentInputBuffer;
+        }
+
+        public DefaultEmitHandler getEmitHandler() {
+            return emitHandler;
+        }
     }
 
     public static class TrieBuilder {

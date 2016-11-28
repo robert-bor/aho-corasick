@@ -3,6 +3,8 @@ package org.ahocorasick.trie;
 import org.ahocorasick.trie.handler.EmitHandler;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -356,6 +358,40 @@ public class TrieTest {
     }
 
     @Test
+    public void caseInsensitiveWholeWord() {
+        Trie trie = Trie.builder().caseInsensitive().onlyWholeWords()
+                .addKeyword("turning")
+                .addKeyword("once")
+                .addKeyword("again")
+                .addKeyword("börkü")
+                .build();
+        Collection<Emit> emits = trie.parseText("TurninG.OnCe,AgAiN_BÖRKÜ");
+        assertEquals(4, emits.size()); // Match must not be made
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 0, 6, "turning");
+        checkEmit(it.next(), 8, 11, "once");
+        checkEmit(it.next(), 13, 17, "again");
+        checkEmit(it.next(), 19, 23, "börkü");
+    }
+
+    @Test
+    public void caseInsensitiveNoSpaces() {
+        Trie trie = Trie.builder().caseInsensitive()
+                .addKeyword("turning")
+                .addKeyword("once")
+                .addKeyword("again")
+                .addKeyword("börkü")
+                .build();
+        Collection<Emit> emits = trie.parseText("TurninGOnCeAgAiNBÖRKÜ");
+        assertEquals(4, emits.size()); // Match must not be made
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 0, 6, "turning");
+        checkEmit(it.next(), 7, 10, "once");
+        checkEmit(it.next(), 11, 15, "again");
+        checkEmit(it.next(), 16, 20, "börkü");
+    }
+
+    @Test
     public void caseInsensitiveFirstMatch() {
         Trie trie = Trie.builder().caseInsensitive()
                 .addKeyword("turning")
@@ -390,7 +426,7 @@ public class TrieTest {
 
     // Test offered by dwyerk, https://github.com/robert-bor/aho-corasick/issues/8
     @Test
-    public void unicodeIssueBug8ReportedByDwyerk() {
+    public void unicodeIssueBug8ReportedByDwyerk() throws Exception {
         String target = "LİKE THIS"; // The second character ('İ') is Unicode, which was read by AC as a 2-byte char
         assertEquals("THIS", target.substring(5, 9)); // Java does it the right way
         Trie trie = Trie.builder().caseInsensitive().onlyWholeWords()
@@ -400,6 +436,11 @@ public class TrieTest {
         assertEquals(1, emits.size());
         Iterator<Emit> it = emits.iterator();
         checkEmit(it.next(), 5, 8, "this");
+
+        // Test Reader implementation
+        Collection <Emit> readerEmits = trie.parseText(new StringReader(target));
+        assertEquals(1, readerEmits.size()); // Match must not be made
+        checkEmit(readerEmits.iterator().next(), 5, 8, "THIS");
     }
 
     @Test
@@ -415,8 +456,13 @@ public class TrieTest {
         checkEmit(firstMatch, 5, 8, "this");
     }
 
+    public void unicodeCoverage()
+    {
+        // todo
+    }
+
     @Test
-    public void partialMatchWhiteSpaces() {
+    public void partialMatchWhiteSpaces() throws IOException {
         Trie trie = Trie.builder()
                 .onlyWholeWordsWhiteSpaceSeparated()
                 .addKeyword("#sugar-123")
@@ -424,7 +470,108 @@ public class TrieTest {
         Collection < Emit > emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
         assertEquals(1, emits.size()); // Match must not be made
         checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
+
+        Collection < Emit > readerEmits = trie.parseText(new StringReader("#sugar-123 #sugar-1234")); // left, middle, right test
+        assertEquals(1, readerEmits.size()); // Match must not be made
+        checkEmit(readerEmits.iterator().next(), 0, 9, "#sugar-123");
     }
+
+    @Test
+    public void partialMatchWhiteSpacesMatchMiddle() throws IOException {
+        Trie trie = Trie.builder()
+                .onlyWholeWordsWhiteSpaceSeparated()
+                .addKeyword("#sugar-123")
+                .build();
+        Collection < Emit > emits = trie.parseText("#sugar-1234 #sugar-123 #sugar-1234"); // left, middle, right test
+        assertEquals(1, emits.size()); // Match must not be made
+        checkEmit(emits.iterator().next(), 12, 21, "#sugar-123");
+        // Test Reader implementation
+        Collection <Emit> readerEmits = trie.parseText(new StringReader("#sugar-1234 #sugar-123 #sugar-1234")); // left, middle, right test
+        assertEquals(1, readerEmits.size()); // Match must not be made
+        checkEmit(readerEmits.iterator().next(), 12, 21, "#sugar-123");
+
+    }
+
+    @Test
+    public void partialMatchWhiteSpaces2() throws Exception {
+        String target = "#sugar-123.. #sugar-1234";
+        Trie trie = Trie.builder()
+                .onlyWholeWordsWhiteSpaceSeparated()
+                .addKeyword("#sugar-123")
+                .build();
+        Collection < Emit > emits = trie.parseText(target); // left, middle, right test
+        assertEquals(0, emits.size()); // Match must not be made
+
+        // Test Reader implementation
+        Collection <Emit> readerEmits = trie.parseText(new StringReader(target));
+        assertEquals(0, readerEmits.size()); // Match must not be made
+
+    }
+
+    @Test
+    public void wholeWordMatch() throws Exception {
+        String target = "#sugar-123.. #sugar-123t4";
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("#sugar-123")
+                .build();
+        Collection < Emit > emits = trie.parseText(target); // left, middle, right test
+        assertEquals(1, emits.size()); // Match must not be made
+        checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
+
+        // Test Reader implementation
+        Collection <Emit> readerEmits = trie.parseStreamingText(new StringReader(target));
+        assertEquals(1, readerEmits.size()); // Match must not be made
+        checkEmit(readerEmits.iterator().next(), 0, 9, "#sugar-123");
+    }
+
+    @Test
+    public void wholeWordMatch2() throws Exception {
+        String target = "#sugar-123.. #sugar-1234";
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("#sugar-123")
+                .build();
+        Collection < Emit > emits = trie.parseText(target); // left, middle, right test
+        assertEquals(1, emits.size()); // Match must not be made
+
+        // Test Reader implementation
+        Collection <Emit> readerEmits = trie.parseStreamingText(new StringReader(target));
+        assertEquals(1, readerEmits.size()); // Match must not be made
+    }
+
+    @Test
+    public void testCountry() throws Exception {
+        String target = "Greece: 24 July (1974)\ngreece: 24 July (1974)";
+        Trie trie = Trie.builder()
+                .caseInsensitive()
+                .addKeyword("Greece")
+                .build();
+        Collection < Emit > emits = trie.parseText(target); // left, middle, right test
+//        assertEquals(1, emits.size()); // Match must not be made
+
+        // Test Reader implementation
+        Collection <Emit> readerEmits = trie.parseStreamingText(new StringReader(target));
+        assertEquals(2, readerEmits.size()); // Match must not be made
+    }
+
+    @Test
+    public void testArabic() throws Exception {
+
+        String target = "Greece: 24 July (1974)\ngreece: 24 July (1974)";
+        Trie trie = Trie.builder()
+                .caseInsensitive()
+                .addKeyword("Greece")
+                .build();
+        Collection < Emit > emits = trie.parseText(target); // left, middle, right test
+//        assertEquals(1, emits.size()); // Match must not be made
+
+        // Test Reader implementation
+        Collection <Emit> readerEmits = trie.parseStreamingText(new StringReader(target));
+        assertEquals(2, readerEmits.size()); // Match must not be made
+    }
+
+
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {
         assertEquals("Start of emit should have been " + expectedStart, expectedStart, next.getStart());

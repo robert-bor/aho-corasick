@@ -13,7 +13,7 @@ public class IntervalNode {
     private int point;
     private List<Intervalable> intervals = new ArrayList<Intervalable>();
 
-    public IntervalNode(List<Intervalable> intervals) {
+    public IntervalNode(List<? extends Intervalable> intervals) {
         this.point = determineMedian(intervals);
 
         List<Intervalable> toLeft = new ArrayList<Intervalable>();
@@ -37,7 +37,7 @@ public class IntervalNode {
         }
     }
 
-    public int determineMedian(List<Intervalable> intervals) {
+    public int determineMedian(List<? extends Intervalable> intervals) {
         int start = -1;
         int end = -1;
         for (Intervalable interval : intervals) {
