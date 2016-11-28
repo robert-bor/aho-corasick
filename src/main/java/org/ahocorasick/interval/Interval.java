@@ -5,24 +5,51 @@ public class Interval implements Intervalable {
     private int start;
     private int end;
 
+    /**
+     * Constructs an interval with a start and end position.
+     *
+     * @param start The interval's starting text position.
+     * @param end The interval's ending text position.
+     */
     public Interval(final int start, final int end) {
         this.start = start;
         this.end = end;
     }
 
+    /**
+     * Returns the starting offset into the text for this interval.
+     *
+     * @return A number between 0 (start of text) and the text length.
+     */
     public int getStart() {
         return this.start;
     }
 
+    /**
+     * Returns the ending offset into the text for this interval.
+     *
+     * @return A number between getStart() + 1 and the text length.
+     */
     public int getEnd() {
         return this.end;
     }
 
+    /**
+     * Returns the length of the interval.
+     *
+     * @return The end position less the start position, plus one.
+     */
     public int size() {
         return end - start + 1;
     }
 
-    public boolean overlapsWith(Interval other) {
+    /**
+     * Answers whether the given interval overlaps this interval
+     * instance.
+     *
+     * @return true The intervals overlap.
+     */
+    public boolean overlapsWith(final Interval other) {
         return this.start <= other.getEnd() &&
                this.end >= other.getStart();
     }
@@ -56,9 +83,14 @@ public class Interval implements Intervalable {
         return comparison != 0 ? comparison : this.end - other.getEnd();
     }
 
+    /**
+     * Returns the starting offset and ending offset separated
+     * by a full colon (:).
+     *
+     * @return A non-null String, never empty.
+     */
     @Override
     public String toString() {
         return this.start + ":" + this.end;
     }
-
 }
