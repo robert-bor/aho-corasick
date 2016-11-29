@@ -12,9 +12,13 @@ public class TrieConfig {
 
     private boolean stopOnHit = false;
 
-    public boolean isStopOnHit() { return stopOnHit; }
+    public boolean isStopOnHit() {
+        return stopOnHit;
+    }
 
-    public void setStopOnHit(boolean stopOnHit) { this.stopOnHit = stopOnHit; }
+    public void setStopOnHit(boolean stopOnHit) {
+        this.stopOnHit = stopOnHit;
+    }
 
     public boolean isAllowOverlaps() {
         return allowOverlaps;
@@ -32,7 +36,9 @@ public class TrieConfig {
         this.onlyWholeWords = onlyWholeWords;
     }
 
-    public boolean isOnlyWholeWordsWhiteSpaceSeparated() { return onlyWholeWordsWhiteSpaceSeparated; }
+    public boolean isOnlyWholeWordsWhiteSpaceSeparated() {
+        return onlyWholeWordsWhiteSpaceSeparated;
+    }
 
     public void setOnlyWholeWordsWhiteSpaceSeparated(boolean onlyWholeWordsWhiteSpaceSeparated) {
         this.onlyWholeWordsWhiteSpaceSeparated = onlyWholeWordsWhiteSpaceSeparated;

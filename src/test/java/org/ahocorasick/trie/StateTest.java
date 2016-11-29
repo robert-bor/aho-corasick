@@ -11,9 +11,9 @@ public class StateTest {
     public void constructSequenceOfCharacters() {
         State rootState = new State();
         rootState
-            .addState('a')
-            .addState('b')
-            .addState('c');
+                .addState('a')
+                .addState('b')
+                .addState('c');
         State currentState = rootState.nextState('a');
         assertEquals(1, currentState.getDepth());
         currentState = currentState.nextState('b');

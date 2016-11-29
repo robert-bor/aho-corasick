@@ -12,19 +12,19 @@ public class IntervalTest {
 
     @Test
     public void construct() {
-        Interval i = new Interval(1,3);
+        Interval i = new Interval(1, 3);
         assertEquals(1, i.getStart());
         assertEquals(3, i.getEnd());
     }
 
     @Test
     public void size() {
-        assertEquals(3, new Interval(0,2).size());
+        assertEquals(3, new Interval(0, 2).size());
     }
 
     @Test
     public void intervaloverlaps() {
-        assertTrue(new Interval(1,3).overlapsWith(new Interval(2,4)));
+        assertTrue(new Interval(1, 3).overlapsWith(new Interval(2, 4)));
     }
 
     @Test
@@ -34,7 +34,7 @@ public class IntervalTest {
 
     @Test
     public void pointOverlaps() {
-        assertTrue(new Interval(1,3).overlapsWith(2));
+        assertTrue(new Interval(1, 3).overlapsWith(2));
     }
 
     @Test
