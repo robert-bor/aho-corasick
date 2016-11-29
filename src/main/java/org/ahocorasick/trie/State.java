@@ -35,37 +35,49 @@ public class State {
      * referred to in the white paper as the 'goto' structure. From a state it is possible to go
      * to other states, depending on the character passed.
      */
-    private Map<Character,State> success = new HashMap<Character, State>();
+    private final Map<Character,State> success = new HashMap<>();
 
     /** if no matching states are found, the failure state will be returned */
-    private State failure = null;
+    private State failure;
 
     /** whenever this state is reached, it will emit the matches keywords for future reference */
-    private Set<String> emits = null;
+    private Set<String> emits;
 
     public State() {
         this(0);
     }
 
-    public State(int depth) {
+    public State(final int depth) {
         this.depth = depth;
         this.rootState = depth == 0 ? this : null;
     }
 
-    private State nextState(Character character, boolean ignoreRootState) {
+    private State nextState(final Character character, final boolean ignoreRootState) {
         State nextState = this.success.get(character);
+        
         if (!ignoreRootState && nextState == null && this.rootState != null) {
             nextState = this.rootState;
         }
+        
         return nextState;
     }
 
-    public State nextState(Character character) {
+    public State nextState(final Character character) {
         return nextState(character, false);
     }
 
     public State nextStateIgnoreRootState(Character character) {
         return nextState(character, true);
+    }
+    
+    public State addState( String keyword ) {
+      State state = this;
+          
+      for (final Character character : keyword.toCharArray()) {
+          state = state.addState(character);
+      }
+      
+      return state;
     }
 
     public State addState(Character character) {
@@ -113,5 +125,4 @@ public class State {
     public Collection<Character> getTransitions() {
         return this.success.keySet();
     }
-
 }
