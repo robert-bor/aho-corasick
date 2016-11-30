@@ -2,8 +2,8 @@ package org.ahocorasick.interval;
 
 public class Interval implements Intervalable {
 
-    private int start;
-    private int end;
+    private final int start;
+    private final int end;
 
     /**
      * Constructs an interval with a start and end position.
@@ -21,6 +21,7 @@ public class Interval implements Intervalable {
      *
      * @return A number between 0 (start of text) and the text length.
      */
+    @Override
     public int getStart() {
         return this.start;
     }
@@ -30,6 +31,7 @@ public class Interval implements Intervalable {
      *
      * @return A number between getStart() + 1 and the text length.
      */
+    @Override
     public int getEnd() {
         return this.end;
     }
@@ -39,6 +41,7 @@ public class Interval implements Intervalable {
      *
      * @return The end position less the start position, plus one.
      */
+    @Override
     public int size() {
         return end - start + 1;
     }
@@ -47,6 +50,7 @@ public class Interval implements Intervalable {
      * Answers whether the given interval overlaps this interval
      * instance.
      *
+     * @param other
      * @return true The intervals overlap.
      */
     public boolean overlapsWith(final Interval other) {

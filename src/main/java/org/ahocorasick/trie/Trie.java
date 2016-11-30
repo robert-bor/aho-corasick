@@ -147,10 +147,17 @@ public class Trie {
         }
     }
 
+    /**
+     * The first matching text sequence.
+     * 
+     * @param text The text to search for keywords.
+     * @return null if no matches found.
+     */
     public Emit firstMatch(final CharSequence text) {
         if (!trieConfig.isAllowOverlaps()) {
             // Slow path. Needs to find all the matches to detect overlaps.
-            Collection<Emit> parseText = parseText(text);
+            final Collection<Emit> parseText = parseText(text);
+
             if (parseText != null && !parseText.isEmpty()) {
                 return parseText.iterator().next();
             }
@@ -170,7 +177,7 @@ public class Trie {
                 Collection<String> emitStrs = currentState.emit();
                 
                 if (emitStrs != null && !emitStrs.isEmpty()) {
-                    for (String emitStr : emitStrs) {
+                    for (final String emitStr : emitStrs) {
                         final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
                         if (trieConfig.isOnlyWholeWords()) {
                             if (!isPartialMatch(text, emit)) {
@@ -310,6 +317,29 @@ public class Trie {
         private TrieBuilder() {}
 
         /**
+         * Configure the Trie to ignore case when searching for keywords in
+         * the text. This must be called before calling addKeyword because
+         * the algorithm converts keywords to lowercase as they are added,
+         * depending on this case sensitivity setting.
+         * 
+         * @return This builder.
+         */
+        public TrieBuilder ignoreCase() {
+            this.trieConfig.setCaseInsensitive(true);
+            return this;
+        }
+
+        /**
+         * Configure the Trie to ignore overlapping keywords.
+         * 
+         * @return This builder.
+         */
+        public TrieBuilder ignoreOverlaps() {
+            this.trieConfig.setAllowOverlaps(false);
+            return this;
+        }
+
+        /**
          * Adds a keyword to the Trie's list of text search keywords.
          * 
          * @param keyword The keyword to add to the list.
@@ -344,27 +374,6 @@ public class Trie {
         public TrieBuilder addKeywords(final Collection<String> keywords) {
           this.trie.addKeywords(keywords);
           return this;
-        }
-
-        /**
-         * Configure the Trie to ignore case when searching for keywords in
-         * the text.
-         * 
-         * @return This builder.
-         */
-        public TrieBuilder ignoreCase() {
-            this.trieConfig.setCaseInsensitive(true);
-            return this;
-        }
-
-        /**
-         * Configure the Trie to ignore overlapping keywords.
-         * 
-         * @return This builder.
-         */
-        public TrieBuilder ignoreOverlaps() {
-            this.trieConfig.setAllowOverlaps(false);
-            return this;
         }
 
         /**
