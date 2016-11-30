@@ -1,26 +1,26 @@
 package org.ahocorasick.interval;
 
-import java.util.Collections;
+import static java.util.Collections.sort;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class IntervalTree {
 
-    private IntervalNode rootNode = null;
+    private final IntervalNode rootNode;
 
     public IntervalTree(List<Intervalable> intervals) {
         this.rootNode = new IntervalNode(intervals);
     }
 
-    public List<Intervalable> removeOverlaps(List<Intervalable> intervals) {
+    public List<Intervalable> removeOverlaps(final List<Intervalable> intervals) {
 
         // Sort the intervals on size, then left-most position
-        Collections.sort(intervals, new IntervalableComparatorBySize());
+        sort(intervals, new IntervalableComparatorBySize());
 
-        Set<Intervalable> removeIntervals = new TreeSet<Intervalable>();
+        final Set<Intervalable> removeIntervals = new TreeSet<>();
 
-        for (Intervalable interval : intervals) {
+        for (final Intervalable interval : intervals) {
             // If the interval was already removed, ignore it
             if (removeIntervals.contains(interval)) {
                 continue;
@@ -31,17 +31,17 @@ public class IntervalTree {
         }
 
         // Remove all intervals that were overlapping
-        for (Intervalable removeInterval : removeIntervals) {
+        for (final Intervalable removeInterval : removeIntervals) {
             intervals.remove(removeInterval);
         }
 
         // Sort the intervals, now on left-most position only
-        Collections.sort(intervals, new IntervalableComparatorByPosition());
+        sort(intervals, new IntervalableComparatorByPosition());
 
         return intervals;
     }
 
-    public List<Intervalable> findOverlaps(Intervalable interval) {
+    public List<Intervalable> findOverlaps(final Intervalable interval) {
         return rootNode.findOverlaps(interval);
     }
 

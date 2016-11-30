@@ -44,7 +44,7 @@ public class IntervalTest {
 
     @Test
     public void comparable() {
-        Set<Interval> intervals = new TreeSet<Interval>();
+        Set<Interval> intervals = new TreeSet<>();
         intervals.add(new Interval(4, 6));
         intervals.add(new Interval(2, 7));
         intervals.add(new Interval(3, 4));
