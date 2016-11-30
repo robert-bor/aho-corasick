@@ -11,9 +11,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 
-import static java.lang.Character.*;
-
-import java.lang.Character;
+import static java.lang.Character.isWhitespace;
 
 /**
  * Based on the Aho-Corasick white paper, Bell technologies:
@@ -39,12 +37,36 @@ public class Trie {
      * @throws NullPointerException if the keyword is null.
      */
     private void addKeyword(String keyword) {
-        if (keyword.length() > 0) {
-            if (isCaseInsensitive()) {
-                keyword = keyword.toLowerCase();
-            }
+        if (keyword.isEmpty()) {
+            return;
+        }
 
-            addState(keyword).addEmit(keyword);
+        if (isCaseInsensitive()) {
+            keyword = keyword.toLowerCase();
+        }
+
+        addState(keyword).addEmit(keyword);
+    }
+
+    /**
+     * Delegates to addKeyword.
+     *
+     * @param keywords List of search term to add to the list of search terms.
+     */
+    private void addKeywords(final String[] keywords) {
+        for (final String keyword : keywords) {
+            addKeyword(keyword);
+        }
+    }
+
+    /**
+     * Delegates to addKeyword.
+     *
+     * @param keywords List of search term to add to the list of search terms.
+     */
+    private void addKeywords(final Collection<String> keywords) {
+        for (final String keyword : keywords) {
+            addKeyword(keyword);
         }
     }
 
@@ -73,14 +95,11 @@ public class Trie {
         return tokens;
     }
 
-    private Token createFragment(
-            final Emit emit,
-            final String text,
-            final int lastCollectedPosition) {
+    private Token createFragment(final Emit emit, final String text, final int lastCollectedPosition) {
         return new FragmentToken(text.substring(lastCollectedPosition + 1, emit == null ? text.length() : emit.getStart()));
     }
 
-    private Token createMatch(final Emit emit, final String text) {
+    private Token createMatch(Emit emit, String text) {
         return new MatchToken(text.substring(emit.getStart(), emit.getEnd() + 1), emit);
     }
 
@@ -119,7 +138,7 @@ public class Trie {
 
             // TODO: Maybe lowercase the entire string at once?
             if (trieConfig.isCaseInsensitive()) {
-                character = toLowerCase(character);
+                character = Character.toLowerCase(character);
             }
 
             currentState = getState(currentState, character);
@@ -129,10 +148,17 @@ public class Trie {
         }
     }
 
+    /**
+     * The first matching text sequence.
+     *
+     * @param text The text to search for keywords.
+     * @return null if no matches found.
+     */
     public Emit firstMatch(final CharSequence text) {
         if (!trieConfig.isAllowOverlaps()) {
             // Slow path. Needs to find all the matches to detect overlaps.
-            Collection<Emit> parseText = parseText(text);
+            final Collection<Emit> parseText = parseText(text);
+
             if (parseText != null && !parseText.isEmpty()) {
                 return parseText.iterator().next();
             }
@@ -145,7 +171,7 @@ public class Trie {
 
                 // TODO: Lowercase the entire string at once?
                 if (trieConfig.isCaseInsensitive()) {
-                    character = toLowerCase(character);
+                    character = Character.toLowerCase(character);
                 }
 
                 currentState = getState(currentState, character);
@@ -171,9 +197,9 @@ public class Trie {
 
     private boolean isPartialMatch(final CharSequence searchText, final Emit emit) {
         return (emit.getStart() != 0 &&
-                isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
+                Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
                 (emit.getEnd() + 1 != searchText.length() &&
-                        isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
+                        Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
     }
 
     private void removePartialMatches(final CharSequence searchText, final List<Emit> collectedEmits) {
@@ -207,16 +233,15 @@ public class Trie {
         }
     }
 
-    private State getState(final State initialState, final Character character) {
-        State currentState = initialState;
-        State updatedState = currentState.nextState(character);
+    private State getState(State currentState, final Character character) {
+        State newCurrentState = currentState.nextState(character);
 
-        while (updatedState == null) {
+        while (newCurrentState == null) {
             currentState = currentState.failure();
-            updatedState = currentState.nextState(character);
+            newCurrentState = currentState.nextState(character);
         }
 
-        return updatedState;
+        return newCurrentState;
     }
 
     private void constructFailureStates() {
@@ -249,10 +274,7 @@ public class Trie {
         }
     }
 
-    private boolean storeEmits(
-            final int position,
-            final State currentState,
-            final EmitHandler emitHandler) {
+    private boolean storeEmits(final int position, final State currentState, final EmitHandler emitHandler) {
         boolean emitted = false;
         final Collection<String> emits = currentState.emit();
 
@@ -276,8 +298,7 @@ public class Trie {
     }
 
     /**
-     * Constructs a TrieBuilder instance for configuring the Trie using a fluent
-     * interface.
+     * Provides a fluent interface for constructing Trie instances.
      *
      * @return The builder used to configure its Trie.
      */
@@ -285,9 +306,6 @@ public class Trie {
         return new TrieBuilder();
     }
 
-    /**
-     * Provides a fluent interface for constructing Trie instances.
-     */
     public static class TrieBuilder {
 
         private final TrieConfig trieConfig = new TrieConfig();
@@ -301,49 +319,15 @@ public class Trie {
         }
 
         /**
-         * Adds a keyword to the Trie's list of text search keywords.
-         *
-         * @param keyword The keyword to add to the list.
-         * @return This builder.
-         * @throws NullPointerException if the keyword is null.
-         */
-        public TrieBuilder addKeyword(final CharSequence keyword) {
-            getTrie().addKeyword(keyword.toString());
-            return this;
-        }
-
-        /**
-         * Adds a list of keywords to the Trie's list of text search keywords.
-         *
-         * @param keywords The keywords to add to the list.
-         * @return This builder.
-         */
-        public TrieBuilder addKeywords(final CharSequence... keywords) {
-            for (final CharSequence keyword : keywords) {
-                addKeyword(keyword);
-            }
-
-            return this;
-        }
-
-        /**
-         * Adds a list of keywords to the Trie's list of text search keywords.
-         *
-         * @param keywords The keywords to add to the list.
-         * @return This builder.
-         */
-        public TrieBuilder addKeywords(final Collection<CharSequence> keywords) {
-            return addKeywords(keywords.toArray(new CharSequence[keywords.size()]));
-        }
-
-        /**
-         * Configure the Trie to ignore case when searching for keywords in the
-         * text.
+         * Configure the Trie to ignore case when searching for keywords in
+         * the text. This must be called before calling addKeyword because
+         * the algorithm converts keywords to lowercase as they are added,
+         * depending on this case sensitivity setting.
          *
          * @return This builder.
          */
         public TrieBuilder ignoreCase() {
-            getTrieConfig().setCaseInsensitive(true);
+            this.trieConfig.setCaseInsensitive(true);
             return this;
         }
 
@@ -353,7 +337,41 @@ public class Trie {
          * @return This builder.
          */
         public TrieBuilder ignoreOverlaps() {
-            getTrieConfig().setAllowOverlaps(false);
+            this.trieConfig.setAllowOverlaps(false);
+            return this;
+        }
+
+        /**
+         * Adds a keyword to the Trie's list of text search keywords.
+         *
+         * @param keyword The keyword to add to the list.
+         * @return This builder.
+         * @throws NullPointerException if the keyword is null.
+         */
+        public TrieBuilder addKeyword(final String keyword) {
+            this.trie.addKeyword(keyword);
+            return this;
+        }
+
+        /**
+         * Adds a list of keywords to the Trie's list of text search keywords.
+         *
+         * @param keywords The keywords to add to the list.
+         * @return This builder.
+         */
+        public TrieBuilder addKeywords(final String... keywords) {
+            this.trie.addKeywords(keywords);
+            return this;
+        }
+
+        /**
+         * Adds a list of keywords to the Trie's list of text search keywords.
+         *
+         * @param keywords The keywords to add to the list.
+         * @return This builder.
+         */
+        public TrieBuilder addKeywords(final Collection<String> keywords) {
+            this.trie.addKeywords(keywords);
             return this;
         }
 
@@ -363,7 +381,7 @@ public class Trie {
          * @return This builder.
          */
         public TrieBuilder onlyWholeWords() {
-            getTrieConfig().setOnlyWholeWords(true);
+            this.trieConfig.setOnlyWholeWords(true);
             return this;
         }
 
@@ -375,47 +393,33 @@ public class Trie {
          * @return This builder.
          */
         public TrieBuilder onlyWholeWordsWhiteSpaceSeparated() {
-            getTrieConfig().setOnlyWholeWordsWhiteSpaceSeparated(true);
+            this.trieConfig.setOnlyWholeWordsWhiteSpaceSeparated(true);
             return this;
         }
 
         /**
-         * Configure the Trie to stop searching for matches after the first
-         * keyword is found in the text.
+         * Configure the Trie to stop after the first keyword is found in the
+         * text.
          *
          * @return This builder.
          */
-        public TrieBuilder onlyFirstMatch() {
-            getTrieConfig().setStopOnHit(true);
+        public TrieBuilder stopOnHit() {
+            trie.trieConfig.setStopOnHit(true);
             return this;
         }
 
         /**
-         * Construct the Trie using the builder settings.
+         * Configure the Trie based on the builder settings.
          *
          * @return The configured Trie.
          */
         public Trie build() {
-            getTrie().constructFailureStates();
-            return getTrie();
-        }
-
-        private Trie getTrie() {
+            this.trie.constructFailureStates();
             return this.trie;
         }
 
-        private TrieConfig getTrieConfig() {
-            return this.trieConfig;
-        }
-
         /**
-         * @deprecated Use onlyFirstMatch()
-         */
-        public TrieBuilder stopOnHit() {
-            return onlyFirstMatch();
-        }
-
-        /**
+         * @return This builder.
          * @deprecated Use ignoreCase()
          */
         public TrieBuilder caseInsensitive() {
@@ -423,6 +427,7 @@ public class Trie {
         }
 
         /**
+         * @return This builder.
          * @deprecated Use ignoreOverlaps()
          */
         public TrieBuilder removeOverlaps() {
