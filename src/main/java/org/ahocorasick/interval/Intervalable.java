@@ -7,4 +7,5 @@ public interface Intervalable extends Comparable {
     public int getEnd();
 
     public int size();
+
 }
