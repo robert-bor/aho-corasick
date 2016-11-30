@@ -5,30 +5,34 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+
 import static junit.framework.Assert.assertEquals;
+
 import org.ahocorasick.trie.handler.EmitHandler;
+
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 public class TrieTest {
     private final static String[] ALPHABET = new String[]{
-      "abc", "bcd", "cde"
+            "abc", "bcd", "cde"
     };
-    
+
     private final static String[] PRONOUNS = new String[]{
-      "hers", "his", "she", "he"
+            "hers", "his", "she", "he"
     };
 
     private final static String[] FOOD = new String[]{
-      "veal", "cauliflower", "broccoli", "tomatoes"
+            "veal", "cauliflower", "broccoli", "tomatoes"
     };
 
     private final static String[] GREEK_LETTERS = new String[]{
-      "Alpha", "Beta", "Gamma"
+            "Alpha", "Beta", "Gamma"
     };
-    
+
     private final static String[] UNICODE = new String[]{
-      "turning", "once", "again", "börkü"
+            "turning", "once", "again", "börkü"
     };
 
     @Test
@@ -406,7 +410,7 @@ public class TrieTest {
                 .onlyWholeWordsWhiteSpaceSeparated()
                 .addKeyword("#sugar-123")
                 .build();
-        Collection < Emit > emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
+        Collection<Emit> emits = trie.parseText("#sugar-123 #sugar-1234"); // left, middle, right test
         assertEquals(1, emits.size()); // Match must not be made
         checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
     }
@@ -415,57 +419,57 @@ public class TrieTest {
     public void testLargeString() {
         final int interval = 100;
         final int textSize = 1000000;
-        final String keyword = FOOD[ 1 ];
-        final StringBuilder text = randomNumbers( textSize );
+        final String keyword = FOOD[1];
+        final StringBuilder text = randomNumbers(textSize);
 
-        injectKeyword( text, keyword, interval );
+        injectKeyword(text, keyword, interval);
 
         Trie trie = Trie.builder()
-            .onlyWholeWords()
-            .addKeyword( keyword )
-            .build();
+                .onlyWholeWords()
+                .addKeyword(keyword)
+                .build();
 
-        final Collection<Emit> emits = trie.parseText( text );
+        final Collection<Emit> emits = trie.parseText(text);
 
-        assertEquals( textSize / interval, emits.size() );
+        assertEquals(textSize / interval, emits.size());
     }
-    
+
     /**
      * Generates a random sequence of ASCII numbers.
-     * 
+     *
      * @param count The number of numbers to generate.
      * @return A character sequence filled with random digits.
      */
-    private StringBuilder randomNumbers( int count ) {
-        final StringBuilder sb = new StringBuilder( count );
+    private StringBuilder randomNumbers(int count) {
+        final StringBuilder sb = new StringBuilder(count);
 
-        while( --count > 0 ) {
-            sb.append( randomInt( 0, 10 ) );
+        while (--count > 0) {
+            sb.append(randomInt(0, 10));
         }
 
         return sb;
     }
-    
+
     /**
      * Injects keywords into a string builder.
-     * 
-     * @param source Should contain a bunch of random data that cannot match
-     * any keyword.
-     * @param keyword A keyword to inject repeatedly in the text.
+     *
+     * @param source   Should contain a bunch of random data that cannot match
+     *                 any keyword.
+     * @param keyword  A keyword to inject repeatedly in the text.
      * @param interval How often to inject the keyword.
      */
-    private void injectKeyword( 
-        final StringBuilder source, 
-        final String keyword,
-        final int interval ) {
+    private void injectKeyword(
+            final StringBuilder source,
+            final String keyword,
+            final int interval) {
         final int length = source.length();
-        for( int i = 0; i < length; i += interval ) {
-            source.replace( i, i + keyword.length(), keyword );
+        for (int i = 0; i < length; i += interval) {
+            source.replace(i, i + keyword.length(), keyword);
         }
     }
-    
-    private int randomInt( final int min, final int max ) {
-        return ThreadLocalRandom.current().nextInt( min, max );
+
+    private int randomInt(final int min, final int max) {
+        return ThreadLocalRandom.current().nextInt(min, max);
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

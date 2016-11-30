@@ -6,7 +6,7 @@ import java.util.List;
 
 public class IntervalNode {
 
-    private enum Direction { LEFT, RIGHT }
+    private enum Direction {LEFT, RIGHT}
 
     private IntervalNode left = null;
     private IntervalNode right = null;
@@ -93,12 +93,12 @@ public class IntervalNode {
         List<Intervalable> overlaps = new ArrayList<Intervalable>();
         for (Intervalable currentInterval : this.intervals) {
             switch (direction) {
-                case LEFT :
+                case LEFT:
                     if (currentInterval.getStart() <= interval.getEnd()) {
                         overlaps.add(currentInterval);
                     }
                     break;
-                case RIGHT :
+                case RIGHT:
                     if (currentInterval.getEnd() >= interval.getStart()) {
                         overlaps.add(currentInterval);
                     }

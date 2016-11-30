@@ -9,7 +9,7 @@ public class Interval implements Intervalable {
      * Constructs an interval with a start and end position.
      *
      * @param start The interval's starting text position.
-     * @param end The interval's ending text position.
+     * @param end   The interval's ending text position.
      */
     public Interval(final int start, final int end) {
         this.start = start;
@@ -51,7 +51,7 @@ public class Interval implements Intervalable {
      */
     public boolean overlapsWith(final Interval other) {
         return this.start <= other.getEnd() &&
-               this.end >= other.getStart();
+                this.end >= other.getStart();
     }
 
     public boolean overlapsWith(int point) {
@@ -63,9 +63,9 @@ public class Interval implements Intervalable {
         if (!(o instanceof Intervalable)) {
             return false;
         }
-        Intervalable other = (Intervalable)o;
+        Intervalable other = (Intervalable) o;
         return this.start == other.getStart() &&
-               this.end == other.getEnd();
+                this.end == other.getEnd();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class Interval implements Intervalable {
         if (!(o instanceof Intervalable)) {
             return -1;
         }
-        Intervalable other = (Intervalable)o;
+        Intervalable other = (Intervalable) o;
         int comparison = this.start - other.getStart();
         return comparison != 0 ? comparison : this.end - other.getEnd();
     }
