@@ -74,11 +74,11 @@ public class State {
         return nextState(character, false);
     }
 
-    public State nextStateIgnoreRootState(final Character character) {
+    public State nextStateIgnoreRootState(Character character) {
         return nextState(character, true);
     }
 
-    public State addState(final String keyword) {
+    public State addState(String keyword) {
         State state = this;
 
         for (final Character character : keyword.toCharArray()) {
@@ -88,7 +88,7 @@ public class State {
         return state;
     }
 
-    public State addState(final Character character) {
+    public State addState(Character character) {
         State nextState = nextStateIgnoreRootState(character);
         if (nextState == null) {
             nextState = new State(this.depth + 1);
@@ -101,14 +101,14 @@ public class State {
         return this.depth;
     }
 
-    public void addEmit(final String keyword) {
+    public void addEmit(String keyword) {
         if (this.emits == null) {
             this.emits = new TreeSet<>();
         }
         this.emits.add(keyword);
     }
 
-    public void addEmit(final Collection<String> emits) {
+    public void addEmit(Collection<String> emits) {
         for (String emit : emits) {
             addEmit(emit);
         }
