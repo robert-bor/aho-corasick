@@ -20,5 +20,4 @@ public class Emit extends Interval implements Intervalable {
     public String toString() {
         return super.toString() + "=" + this.keyword;
     }
-
 }

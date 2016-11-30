@@ -2,9 +2,9 @@ package org.ahocorasick.trie;
 
 public class MatchToken extends Token {
 
-    private Emit emit;
+    private final Emit emit;
 
-    public MatchToken(String fragment, Emit emit) {
+    public MatchToken(final String fragment, final Emit emit) {
         super(fragment);
         this.emit = emit;
     }
@@ -18,5 +18,4 @@ public class MatchToken extends Token {
     public Emit getEmit() {
         return this.emit;
     }
-
 }

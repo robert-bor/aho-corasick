@@ -12,7 +12,7 @@ public class IntervalTreeTest {
     
     @Test
     public void findOverlaps() {
-        List<Intervalable> intervals = new ArrayList<Intervalable>();
+        List<Intervalable> intervals = new ArrayList<>();
         intervals.add(new Interval(0, 2));
         intervals.add(new Interval(1, 3));
         intervals.add(new Interval(2, 4));
@@ -30,7 +30,7 @@ public class IntervalTreeTest {
 
     @Test
     public void removeOverlaps() {
-        List<Intervalable> intervals = new ArrayList<Intervalable>();
+        List<Intervalable> intervals = new ArrayList<>();
         intervals.add(new Interval(0, 2));
         intervals.add(new Interval(4, 5));
         intervals.add(new Interval(2, 10));

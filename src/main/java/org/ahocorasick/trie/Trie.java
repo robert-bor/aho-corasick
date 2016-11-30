@@ -1,6 +1,8 @@
 package org.ahocorasick.trie;
 
+import static java.lang.Character.isAlphabetic;
 import static java.lang.Character.isWhitespace;
+import static java.lang.Character.toLowerCase;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,42 +37,18 @@ public class Trie {
      * 
      * @throws NullPointerException if the keyword is null.
      */
-    private void addKeyword(String keyword) {
-        if( keyword.isEmpty() ) {
-          return;
+    private void addKeyword( String keyword ) {
+        if( keyword.length() > 0 ) {
+            if( isCaseInsensitive() ) {
+                keyword = keyword.toLowerCase();
+            }
+
+            addState( keyword ).addEmit( keyword );
         }
-      
-        if( isCaseInsensitive() ) {
-          keyword = keyword.toLowerCase();
-        }
-
-        addState(keyword).addEmit(keyword);
     }
 
-    /**
-     * Delegates to addKeyword.
-     * 
-     * @param keywords List of search term to add to the list of search terms.
-     */
-    private void addKeywords( final String[] keywords ) {
-      for( final String keyword : keywords ) {
-        addKeyword( keyword );
-      }
-    }
-    
-    /**
-     * Delegates to addKeyword.
-     * 
-     * @param keywords List of search term to add to the list of search terms.
-     */
-    private void addKeywords( final Collection<String> keywords ) {
-      for( final String keyword : keywords ) {
-        addKeyword( keyword );
-      }
-    }
-
-    private State addState(final String keyword) {
-        return getRootState().addState(keyword);
+    private State addState( final String keyword ) {
+        return getRootState().addState( keyword );
     }
     
     public Collection<Token> tokenize(final String text) {
@@ -94,11 +72,14 @@ public class Trie {
         return tokens;
     }
 
-    private Token createFragment(final Emit emit, final String text, final int lastCollectedPosition) {
+    private Token createFragment(
+        final Emit emit, 
+        final String text,
+        final int lastCollectedPosition) {
         return new FragmentToken(text.substring(lastCollectedPosition+1, emit == null ? text.length() : emit.getStart()));
     }
 
-    private Token createMatch(Emit emit, String text) {
+    private Token createMatch(final Emit emit, final String text) {
         return new MatchToken(text.substring(emit.getStart(), emit.getEnd()+1), emit);
     }
 
@@ -137,7 +118,7 @@ public class Trie {
             
             // TODO: Maybe lowercase the entire string at once?
             if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
+                character = toLowerCase(character);
             }
             
             currentState = getState(currentState, character);
@@ -163,14 +144,14 @@ public class Trie {
                 
                 // TODO: Lowercase the entire string at once?
                 if (trieConfig.isCaseInsensitive()) {
-                    character = Character.toLowerCase(character);
+                    character = toLowerCase(character);
                 }
                 
                 currentState = getState(currentState, character);
                 Collection<String> emitStrs = currentState.emit();
                 
                 if (emitStrs != null && !emitStrs.isEmpty()) {
-                    for (String emitStr : emitStrs) {
+                    for (final String emitStr : emitStrs) {
                         final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
                         if (trieConfig.isOnlyWholeWords()) {
                             if (!isPartialMatch(text, emit)) {
@@ -189,9 +170,9 @@ public class Trie {
 
     private boolean isPartialMatch(final CharSequence searchText, final Emit emit) {
         return (emit.getStart() != 0 &&
-            Character.isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
+            isAlphabetic(searchText.charAt(emit.getStart() - 1))) ||
             (emit.getEnd() + 1 != searchText.length() &&
-            Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
+            isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
     }
 
     private void removePartialMatches(final CharSequence searchText, final List<Emit> collectedEmits) {
@@ -225,15 +206,16 @@ public class Trie {
         }
     }
 
-    private State getState(State currentState, final Character character) {
-        State newCurrentState = currentState.nextState(character);
+    private State getState(final State initialState, final Character character) {
+        State currentState = initialState;
+        State updatedState = currentState.nextState(character);
         
-        while (newCurrentState == null) {
+        while (updatedState == null) {
             currentState = currentState.failure();
-            newCurrentState = currentState.nextState(character);
+            updatedState = currentState.nextState(character);
         }
         
-        return newCurrentState;
+        return updatedState;
     }
 
     private void constructFailureStates() {
@@ -266,7 +248,10 @@ public class Trie {
         }
     }
 
-    private boolean storeEmits(final int position, final State currentState, final EmitHandler emitHandler) {
+    private boolean storeEmits(
+        final int position,
+        final State currentState,
+        final EmitHandler emitHandler) {
         boolean emitted = false;
         final Collection<String> emits = currentState.emit();
         
@@ -290,7 +275,8 @@ public class Trie {
     }
 
     /**
-     * Provides a fluent interface for constructing Trie instances.
+     * Constructs a TrieBuilder instance for configuring the Trie using a fluent
+     * interface.
      * 
      * @return The builder used to configure its Trie.
      */
@@ -298,6 +284,9 @@ public class Trie {
         return new TrieBuilder();
     }
 
+    /**
+     * Provides a fluent interface for constructing Trie instances.
+     */
     public static class TrieBuilder {
 
         private final TrieConfig trieConfig = new TrieConfig();
@@ -317,11 +306,11 @@ public class Trie {
          * @return This builder.
          * @throws NullPointerException if the keyword is null.
          */
-        public TrieBuilder addKeyword(final String keyword) {
-            this.trie.addKeyword(keyword);
+        public TrieBuilder addKeyword(final CharSequence keyword) {
+            getTrie().addKeyword( keyword.toString() );
             return this;
         }
-        
+
         /**
          * Adds a list of keywords to the Trie's list of text search keywords.
          * 
@@ -329,9 +318,12 @@ public class Trie {
          * 
          * @return This builder.
          */
-        public TrieBuilder addKeywords(final String... keywords) {
-          this.trie.addKeywords(keywords);
-          return this;
+        public TrieBuilder addKeywords(final CharSequence... keywords) {
+            for( final CharSequence keyword : keywords ) {
+                addKeyword( keyword );
+            }
+
+            return this;
         }
 
         /**
@@ -341,19 +333,18 @@ public class Trie {
          * 
          * @return This builder.
          */
-        public TrieBuilder addKeywords(final Collection<String> keywords) {
-          this.trie.addKeywords(keywords);
-          return this;
+        public TrieBuilder addKeywords(final Collection<CharSequence> keywords) {
+            return addKeywords( keywords.toArray( new CharSequence[ keywords.size() ] ) );
         }
 
         /**
-         * Configure the Trie to ignore case when searching for keywords in
-         * the text.
+         * Configure the Trie to ignore case when searching for keywords in the
+         * text.
          * 
          * @return This builder.
          */
         public TrieBuilder ignoreCase() {
-            this.trieConfig.setCaseInsensitive(true);
+            getTrieConfig().setCaseInsensitive(true);
             return this;
         }
 
@@ -363,7 +354,7 @@ public class Trie {
          * @return This builder.
          */
         public TrieBuilder ignoreOverlaps() {
-            this.trieConfig.setAllowOverlaps(false);
+            getTrieConfig().setAllowOverlaps(false);
             return this;
         }
 
@@ -373,7 +364,7 @@ public class Trie {
          * @return This builder.
          */
         public TrieBuilder onlyWholeWords() {
-            this.trieConfig.setOnlyWholeWords(true);
+            getTrieConfig().setOnlyWholeWords(true);
             return this;
         }
 
@@ -385,35 +376,48 @@ public class Trie {
          * @return This builder.
          */
         public TrieBuilder onlyWholeWordsWhiteSpaceSeparated() {
-            this.trieConfig.setOnlyWholeWordsWhiteSpaceSeparated(true);
+            getTrieConfig().setOnlyWholeWordsWhiteSpaceSeparated(true);
             return this;
         }
-
+        
         /**
-         * Configure the Trie to stop after the first keyword is found in the
-         * text.
+         * Configure the Trie to stop searching for matches after the first
+         * keyword is found in the text.
          * 
          * @return This builder.
          */
-        public TrieBuilder stopOnHit() {
-            trie.trieConfig.setStopOnHit(true);
+        public TrieBuilder onlyFirstMatch() {
+            getTrieConfig().setStopOnHit(true);
             return this;
         }
 
         /**
-         * Configure the Trie based on the builder settings.
+         * Construct the Trie using the builder settings.
          * 
          * @return The configured Trie.
          */
         public Trie build() {
-            this.trie.constructFailureStates();
+            getTrie().constructFailureStates();
+            return getTrie();
+        }
+        
+        private Trie getTrie() {
             return this.trie;
         }
         
+        private TrieConfig getTrieConfig() {
+            return this.trieConfig;
+        }
+        
+        /**
+         * @deprecated Use onlyFirstMatch()
+         */
+        public TrieBuilder stopOnHit() {
+          return onlyFirstMatch();
+        }
+
         /**
          * @deprecated Use ignoreCase()
-         * 
-         * @return This builder.
          */
         public TrieBuilder caseInsensitive() {
             return ignoreCase();
@@ -421,8 +425,6 @@ public class Trie {
 
         /**
          * @deprecated Use ignoreOverlaps()
-         * 
-         * @return This builder.
          */
         public TrieBuilder removeOverlaps() {
             return ignoreOverlaps();
