@@ -1,9 +1,10 @@
 package org.ahocorasick.interval;
 
-import static java.util.Collections.sort;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
+import static java.util.Collections.sort;
 
 public class IntervalTree {
 

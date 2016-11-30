@@ -75,9 +75,9 @@ public class IntervalNode {
     }
 
     protected void addToOverlaps(
-        final Intervalable interval,
-        final List<Intervalable> overlaps,
-        final List<Intervalable> newOverlaps) {
+            final Intervalable interval,
+            final List<Intervalable> overlaps,
+            final List<Intervalable> newOverlaps) {
         for (final Intervalable currentInterval : newOverlaps) {
             if (!currentInterval.equals(interval)) {
                 overlaps.add(currentInterval);
@@ -94,9 +94,9 @@ public class IntervalNode {
     }
 
     protected List<Intervalable> checkForOverlaps(
-        final Intervalable interval, final Direction direction) {
+            final Intervalable interval, final Direction direction) {
         final List<Intervalable> overlaps = new ArrayList<>();
-        
+
         for (final Intervalable currentInterval : this.intervals) {
             switch (direction) {
                 case LEFT:
@@ -111,13 +111,13 @@ public class IntervalNode {
                     break;
             }
         }
-        
+
         return overlaps;
     }
-    
+
     protected List<Intervalable> findOverlappingRanges(IntervalNode node, Intervalable interval) {
         return node == null
-            ? Collections.<Intervalable>emptyList()
-            : node.findOverlaps( interval );
+                ? Collections.<Intervalable>emptyList()
+                : node.findOverlaps(interval);
     }
 }
