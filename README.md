@@ -15,7 +15,7 @@ Include this dependency in your POM. Be sure to check for the latest version in 
     <dependency>
         <groupId>org.ahocorasick</groupId>
         <artifactId>ahocorasick</artifactId>
-        <version>0.3.0</version>
+        <version>0.3.1</version>
     </dependency>
 ```
 
