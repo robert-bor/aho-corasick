@@ -1,6 +1,8 @@
 package org.ahocorasick.trie;
 
+import org.ahocorasick.trie.handler.AbstractStatefulEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
+import org.ahocorasick.trie.handler.StatefulEmitHandler;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -97,9 +99,38 @@ public class TrieTest {
                 .stopOnHit()
                 .build();
         Collection<Emit> emits = trie.parseText("ushers");
-        assertEquals(2, emits.size()); // she @ 3, he @ 3, hers @ 5
+        assertEquals(1, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 2, 3, "he");
+    }
+
+    @Test
+    public void ushersTestStopOnHitSkipOne() {
+        Trie trie = Trie.builder()
+                .addKeywords(PRONOUNS)
+                .stopOnHit()
+                .build();
+        
+        StatefulEmitHandler testEmitHandler = new AbstractStatefulEmitHandler() {
+            boolean first = true;
+
+            @Override
+            public boolean emit(final Emit emit) {
+                if(first) {
+                    // return false for the first element
+                    first = false;
+                    return false;
+                }
+                addEmit(emit);
+                return true;
+            }
+
+        };
+        
+        trie.parseText("ushers", testEmitHandler);
+        Collection<Emit> emits = testEmitHandler.getEmits();
+        assertEquals(1, emits.size()); // she @ 3, he @ 3, hers @ 5
+        Iterator<Emit> iterator = emits.iterator();
         checkEmit(iterator.next(), 1, 3, "she");
     }
 
@@ -152,8 +183,9 @@ public class TrieTest {
         EmitHandler emitHandler = new EmitHandler() {
 
             @Override
-            public void emit(Emit emit) {
+            public boolean emit(Emit emit) {
                 emits.add(emit);
+                return true;
             }
         };
         trie.parseText("ushers", emitHandler);

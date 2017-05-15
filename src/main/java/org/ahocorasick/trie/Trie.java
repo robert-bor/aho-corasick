@@ -4,6 +4,7 @@ import org.ahocorasick.interval.IntervalTree;
 import org.ahocorasick.interval.Intervalable;
 import org.ahocorasick.trie.handler.DefaultEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
+import org.ahocorasick.trie.handler.StatefulEmitHandler;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -103,10 +104,13 @@ public class Trie {
         return new MatchToken(text.substring(emit.getStart(), emit.getEnd() + 1), emit);
     }
 
-    @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(final CharSequence text) {
-        final DefaultEmitHandler emitHandler = new DefaultEmitHandler();
-        parseText(text, emitHandler);
+        return parseText(text, new DefaultEmitHandler());
+    }
+
+    @SuppressWarnings("unchecked")
+    public Collection<Emit> parseText(final CharSequence text, final StatefulEmitHandler emitHandler) {
+        parseText(text, (EmitHandler) emitHandler);
 
         final List<Emit> collectedEmits = emitHandler.getEmits();
 
@@ -281,8 +285,10 @@ public class Trie {
         // TODO: The check for empty might be superfluous.
         if (emits != null && !emits.isEmpty()) {
             for (final String emit : emits) {
-                emitHandler.emit(new Emit(position - emit.length() + 1, position, emit));
-                emitted = true;
+                emitted = emitHandler.emit(new Emit(position - emit.length() + 1, position, emit)) || emitted;
+                if  (emitted && trieConfig.isStopOnHit()) {
+                    break;
+                }
             }
         }
 
