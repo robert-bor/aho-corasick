@@ -286,7 +286,9 @@ public class Trie {
         if (emits != null && !emits.isEmpty()) {
             for (final String emit : emits) {
                 emitted = emitHandler.emit(new Emit(position - emit.length() + 1, position, emit)) || emitted;
-                if(emitted && trieConfig.isStopOnHit()) break;
+                if  (emitted && trieConfig.isStopOnHit()) {
+                    break;
+                }
             }
         }
 

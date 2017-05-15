@@ -1,5 +1,6 @@
 package org.ahocorasick.trie;
 
+import org.ahocorasick.trie.handler.AbstractStatefulEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
 import org.ahocorasick.trie.handler.StatefulEmitHandler;
 import org.junit.Test;
@@ -110,8 +111,7 @@ public class TrieTest {
                 .stopOnHit()
                 .build();
         
-        StatefulEmitHandler testEmitHandler = new StatefulEmitHandler() {
-            private final List<Emit> emits = new ArrayList<>();
+        StatefulEmitHandler testEmitHandler = new AbstractStatefulEmitHandler() {
             boolean first = true;
 
             @Override
@@ -121,14 +121,10 @@ public class TrieTest {
                     first = false;
                     return false;
                 }
-                this.emits.add(emit);
+                addEmit(emit);
                 return true;
             }
 
-            @Override
-            public List<Emit> getEmits() {
-                return this.emits;
-            }
         };
         
         trie.parseText("ushers", testEmitHandler);
