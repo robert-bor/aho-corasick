@@ -77,14 +77,14 @@ matches.
 
 ```java
     Trie trie = Trie.builder()
-        .removeOverlaps()
+        .ignoreOverlaps()
         .addKeyword("hot")
         .addKeyword("hot chocolate")
         .build();
     Collection<Emit> emits = trie.parseText("hot chocolate");
 ```
 
-The removeOverlaps method tells the Trie to remove all overlapping matches. For this it relies on the following
+The ignoreOverlaps method tells the Trie to remove all overlapping matches. For this it relies on the following
 conflict resolution rules: 1) longer matches prevail over shorter matches, 2) left-most prevails over right-most.
 There is only one result now:
 * "hot chocolate" starting at position 0, ending at position 12
@@ -121,7 +121,7 @@ It is also possible to just ask whether the text matches any of the keywords, or
 finds.
 
 ```java
-    Trie trie = Trie.builder().removeOverlaps()
+    Trie trie = Trie.builder().ignoreOverlaps()
             .addKeyword("ab")
             .addKeyword("cba")
             .addKeyword("ababc")
@@ -161,7 +161,7 @@ matches as soon as you encounter them. Let's look at an example where we want to
     String speech = "The Answer to the Great Question... Of Life, " +
             "the Universe and Everything... Is... Forty-two,' said " +
             "Deep Thought, with infinite majesty and calm.";
-    Trie trie = Trie.builder().removeOverlaps().onlyWholeWords().caseInsensitive()
+    Trie trie = Trie.builder().ignoreOverlaps().onlyWholeWords().caseInsensitive()
         .addKeyword("great question")
         .addKeyword("forty-two")
         .addKeyword("deep thought")
