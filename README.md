@@ -107,13 +107,13 @@ the Trie to lowercase the entire searchtext to ease the matching process. The lo
 
 ```java
     Trie trie = Trie.builder()
-        .caseInsensitive()
+        .ignoreCase()
         .addKeyword("casing")
         .build();
     Collection<Emit> emits = trie.parseText("CaSiNg");
 ```
 
-Normally, this match would not be found. With the caseInsensitive settings the entire search text is lowercased
+Normally, this match would not be found. With the ignoreCase settings the entire search text is lowercased
 before the matching begins. Therefore it will find exactly one match. Since you still have control of the original
 search text and you will know exactly where the match was, you can still utilize the original casing.
 
@@ -161,7 +161,7 @@ matches as soon as you encounter them. Let's look at an example where we want to
     String speech = "The Answer to the Great Question... Of Life, " +
             "the Universe and Everything... Is... Forty-two,' said " +
             "Deep Thought, with infinite majesty and calm.";
-    Trie trie = Trie.builder().ignoreOverlaps().onlyWholeWords().caseInsensitive()
+    Trie trie = Trie.builder().ignoreOverlaps().onlyWholeWords().ignoreCase()
         .addKeyword("great question")
         .addKeyword("forty-two")
         .addKeyword("deep thought")
