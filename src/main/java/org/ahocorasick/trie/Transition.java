@@ -44,8 +44,10 @@ public class Transition<T> {
     
     @Override
     public String toString() {
-        return "Transition on '" + token + "' start: " + start +
-                ", length: " + length;
+        final int s = getStart();
+        final int len = getLength();
+        
+        return "Transition on '" + token + "' start: " + s + ", length: " + len;
     }
     
     @Override

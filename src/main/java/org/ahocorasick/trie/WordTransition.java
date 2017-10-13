@@ -21,11 +21,20 @@ package org.ahocorasick.trie;
  */
 public class WordTransition extends Transition<String> {
 
-    public WordTransition(String s, int start) {
-        super(s, start, s.length());
+    /**
+     * Create a transition from a position in the source string
+     * @param word to match
+     * @param start position of first character within the source string
+     */
+    public WordTransition(String word, int start) {
+        super(word, start, word.length());
     }
 
-    public WordTransition(String s) {
-        this(s, 0);
+    /**
+     * Create a transition without regard for position
+     * @param word to match
+     */
+    public WordTransition(String word) {
+        this(word, 0);
     }
 }

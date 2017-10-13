@@ -16,13 +16,20 @@
 package org.ahocorasick.trie;
 
 /**
+ * Keyword encapsulates part of a potential match along with the count
+ * of prior source tokens consumed to create the potential match.
  *
  * @author doug.lovell
  */
 public class Keyword implements Comparable {
     private final String text;
     private int depth;
-    
+  
+    /**
+     * Create portion of potential match
+     * @param text content that matches
+     * @param depth count of prior source tokens that comprise the match
+     */
     public Keyword(String text, int depth) {
         this.text = text;
         this.depth = depth;
@@ -37,7 +44,10 @@ public class Keyword implements Comparable {
     }
     
     public String toString() {
-        return "Keyword '" + text + "' at depth " + depth;
+        final String t = getText();
+        final int d = getDepth();
+        
+        return "Keyword '" + t + "' at depth " + d;
     }
 
     @Override

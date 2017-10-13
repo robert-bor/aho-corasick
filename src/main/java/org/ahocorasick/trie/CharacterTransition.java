@@ -21,10 +21,19 @@ package org.ahocorasick.trie;
  */
 class CharacterTransition extends Transition<Character> {
 
+    /**
+     * Create a character transition from a position in the source string
+     * @param c character to match
+     * @param start positon of character in source string
+     */
     public CharacterTransition(Character c, int start) {
         super(c, start, 1);
     }
 
+    /**
+     * Create a character transition without regard for position
+     * @param c character to match
+     */
     public CharacterTransition(Character c) {
         this(c, 0);
     }

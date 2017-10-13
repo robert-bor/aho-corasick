@@ -27,7 +27,7 @@ import java.util.*;
  */
 public class State {
 
-    /** effective the size of the keyword */
+    /** effectively the size of the keyword */
     private final int depth;
 
     /** only used for the root state to refer to itself in case no matches have been found */
@@ -54,27 +54,27 @@ public class State {
         this.rootState = depth == 0 ? this : null;
     }
 
-    private State nextState(Transition t, boolean ignoreRootState) {
-        State nextState = this.success.get(t);
+    private State nextState(Transition transition, boolean ignoreRootState) {
+        State nextState = this.success.get(transition);
         if (!ignoreRootState && nextState == null && this.rootState != null) {
             nextState = this.rootState;
         }
         return nextState;
     }
 
-    public State nextState(Transition t) {
-        return nextState(t, false);
+    public State nextState(Transition transition) {
+        return nextState(transition, false);
     }
 
-    public State nextStateIgnoreRootState(Transition t) {
-        return nextState(t, true);
+    public State nextStateIgnoreRootState(Transition transition) {
+        return nextState(transition, true);
     }
 
-    public State addState(Transition t) {
-        State nextState = nextStateIgnoreRootState(t);
+    public State addState(Transition transition) {
+        State nextState = nextStateIgnoreRootState(transition);
         if (nextState == null) {
             nextState = new State(this.depth+1);
-            this.success.put(t, nextState);
+            this.success.put(transition, nextState);
         }
         return nextState;
     }
@@ -97,7 +97,7 @@ public class State {
     }
     
     public void addEmitString(String key) {
-        addEmit(new Keyword(key, depth));
+        addEmit(new Keyword(key, getDepth()));
     }
 
     public Collection<Keyword> emit() {

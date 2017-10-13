@@ -81,9 +81,8 @@ public class Trie {
     }
     
     private class TokenStream {
-        private final KeywordTokenizer kwt;
+        private final KeywordTokenizer tokenizer;
         private final StringBuilder input;
-        private Transition lookahead;
         
         public TokenStream(CharSequence text) {
             input = new StringBuilder(text.length());
@@ -93,23 +92,15 @@ public class Trie {
                         Character.toLowerCase(ch) : ch);
             }
             if (trieConfig.isOnlyWholeWords()) {
-                kwt = new WordTokenizer(input);
+                tokenizer = new WordTokenizer(input);
             }
             else {
-                kwt = new CharacterTokenizer(input);
+                tokenizer = new CharacterTokenizer(input);
             }
-            lookahead = null;
         }
         
         public Transition nextTransition() {
-            Transition next = lookahead;
-            if (next == null) {
-                next = kwt.nextTransition();
-            }
-            else {
-                lookahead = null;
-            }
-            return next;
+            return tokenizer.nextTransition();
         }
         
         public String input() {
@@ -123,13 +114,13 @@ public class Trie {
             return;
         }
         State currentState = this.rootState;
-        TokenStream tknz = new TokenStream(keyword);
-        Transition tn = tknz.nextTransition();
-        while (tn != null) {
-            currentState = currentState.addState(tn);
-            tn = tknz.nextTransition();
+        TokenStream tokenStream = new TokenStream(keyword);
+        Transition transition = tokenStream.nextTransition();
+        while (transition != null) {
+            currentState = currentState.addState(transition);
+            transition = tokenStream.nextTransition();
         }
-        currentState.addEmitString(tknz.input());
+        currentState.addEmitString(tokenStream.input());
     }
 
     public Collection<Token> tokenize(String text) {
@@ -167,25 +158,25 @@ public class Trie {
         
         LinkedList<Transition> tknHistory = new LinkedList<>();
         State currentState = this.rootState;
-        Transition tn = tknz.nextTransition();
-        while (tn != null) {
+        Transition nextTransition = tknz.nextTransition();
+        while (nextTransition != null) {
             if (flushHandler.stop()) {
                 return;
             }
-            tknHistory.add(tn);
-            currentState = getState(currentState, tn, flushHandler);
+            tknHistory.add(nextTransition);
+            currentState = getState(currentState, nextTransition, flushHandler);
             Collection<Keyword> emits = currentState.emit();
             int depth = currentState.getDepth();
             while (depth < tknHistory.size()) {
                 tknHistory.remove();
             }
+            int position = nextTransition.getStart() + nextTransition.getLength();
             for (Keyword emit : emits) {
-                int position = tn.getStart() + tn.getLength();
                 int start = tknHistory.get(depth - emit.getDepth()).getStart();
                 emitCandidateHolder.addCandidate(
                         new Emit(start, position - 1, emit.getText()));
             }
-            tn = tknz.nextTransition();
+            nextTransition = tknz.nextTransition();
         }
         flushHandler.flush();
     }
