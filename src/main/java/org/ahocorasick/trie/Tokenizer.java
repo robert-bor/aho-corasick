@@ -10,7 +10,7 @@ public class Tokenizer {
 
     private final String text;
     
-    public Tokenizer(Collection<Emit> emits, String text) {
+    public Tokenizer(final Collection<Emit> emits, final String text) {
         this.emits = emits;
         this.text = text;
     }
@@ -34,7 +34,9 @@ public class Tokenizer {
     }
 
     private Token createFragment(Emit emit, String text, int lastCollectedPosition) {
-        return new FragmentToken(text.substring(lastCollectedPosition+1, emit == null ? text.length() : emit.getStart()));
+        return new FragmentToken(text.substring(
+                lastCollectedPosition+1, 
+                emit == null ? text.length() : emit.getStart()));
     }
 
     private Token createMatch(Emit emit, String text) {

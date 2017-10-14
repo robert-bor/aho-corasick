@@ -28,7 +28,7 @@ public class Transition<T> {
     protected final int start;
     protected final int length;
     
-    public Transition(T token, int start, int length) {
+    public Transition(final T token, int start, int length) {
         this.token = token;
         this.start = start;
         this.length = length;
@@ -56,7 +56,7 @@ public class Transition<T> {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

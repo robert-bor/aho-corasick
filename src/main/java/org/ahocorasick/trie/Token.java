@@ -4,7 +4,7 @@ public abstract class Token {
 
     private final String fragment;
 
-    public Token(String fragment) {
+    public Token(final String fragment) {
         this.fragment = fragment;
     }
 

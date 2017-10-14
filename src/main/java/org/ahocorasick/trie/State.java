@@ -54,7 +54,7 @@ public class State {
         this.rootState = depth == 0 ? this : null;
     }
 
-    private State nextState(Transition transition, boolean ignoreRootState) {
+    private State nextState(final Transition transition, boolean ignoreRootState) {
         State nextState = this.success.get(transition);
         if (!ignoreRootState && nextState == null && this.rootState != null) {
             nextState = this.rootState;
@@ -62,15 +62,15 @@ public class State {
         return nextState;
     }
 
-    public State nextState(Transition transition) {
+    public State nextState(final Transition transition) {
         return nextState(transition, false);
     }
 
-    public State nextStateIgnoreRootState(Transition transition) {
+    public State nextStateIgnoreRootState(final Transition transition) {
         return nextState(transition, true);
     }
 
-    public State addState(Transition transition) {
+    public State addState(final Transition transition) {
         State nextState = nextStateIgnoreRootState(transition);
         if (nextState == null) {
             nextState = new State(this.depth+1);
@@ -83,20 +83,20 @@ public class State {
         return this.depth;
     }
 
-    public void addEmit(Keyword keyword) {
+    public void addEmit(final Keyword keyword) {
         if (this.emits == null) {
             this.emits = new TreeSet<>();
         }
         this.emits.add(keyword);
     }
 
-    public void addEmit(Collection<Keyword> emits) {
+    public void addEmit(final Collection<Keyword> emits) {
         for (Keyword emit : emits) {
             addEmit(emit);
         }
     }
     
-    public void addEmitString(String key) {
+    public void addEmitString(final String key) {
         addEmit(new Keyword(key, getDepth()));
     }
 
@@ -104,7 +104,7 @@ public class State {
         return this.emits == null ? Collections.<Keyword> emptyList() : this.emits;
     }
 
-    public State failure(EmitCandidateFlushHandler emitCandidateFlushHandler) {
+    public State failure(final EmitCandidateFlushHandler emitCandidateFlushHandler) {
         if (emitCandidateFlushHandler != null && this.failure.isRootState()) {
             emitCandidateFlushHandler.flush();
         }
@@ -115,7 +115,7 @@ public class State {
         return failure(null);
     }
 
-    public void setFailure(State failState) {
+    public void setFailure(final State failState) {
         this.failure = failState;
     }
 

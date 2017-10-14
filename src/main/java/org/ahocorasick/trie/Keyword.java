@@ -23,14 +23,14 @@ package org.ahocorasick.trie;
  */
 public class Keyword implements Comparable {
     private final String text;
-    private int depth;
+    private final int depth;
   
     /**
      * Create portion of potential match
      * @param text content that matches
      * @param depth count of prior source tokens that comprise the match
      */
-    public Keyword(String text, int depth) {
+    public Keyword(final String text, final int depth) {
         this.text = text;
         this.depth = depth;
     }
@@ -51,7 +51,7 @@ public class Keyword implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
+    public int compareTo(final Object o) {
         if (o instanceof Keyword) {
             return text.compareTo(((Keyword) o).text);
         }

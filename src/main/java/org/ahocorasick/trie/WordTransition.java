@@ -26,7 +26,7 @@ public class WordTransition extends Transition<String> {
      * @param word to match
      * @param start position of first character within the source string
      */
-    public WordTransition(String word, int start) {
+    public WordTransition(final String word, int start) {
         super(word, start, word.length());
     }
 
@@ -34,7 +34,7 @@ public class WordTransition extends Transition<String> {
      * Create a transition without regard for position
      * @param word to match
      */
-    public WordTransition(String word) {
+    public WordTransition(final String word) {
         this(word, 0);
     }
 }

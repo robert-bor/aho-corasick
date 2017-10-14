@@ -24,16 +24,16 @@ public class Trie {
 
     private final State rootState;
 
-    private Trie(TrieConfig trieConfig) {
+    private Trie(final TrieConfig trieConfig) {
         this.trieConfig = trieConfig;
         this.rootState = new State();
     }
     
     private abstract class KeywordTokenizer {
         protected int position = 0;
-        protected CharSequence input;
+        protected final CharSequence input;
         protected int length;
-        protected KeywordTokenizer(CharSequence input) {
+        protected KeywordTokenizer(final CharSequence input) {
             this.input = input;
             this.length = input.length();
         }
@@ -44,7 +44,7 @@ public class Trie {
     }
     
     private class WordTokenizer extends KeywordTokenizer {
-        public WordTokenizer(CharSequence input) {
+        public WordTokenizer(final CharSequence input) {
             super(input);
         }
         @Override
@@ -66,7 +66,7 @@ public class Trie {
     }
     
     private class CharacterTokenizer extends KeywordTokenizer {
-        public CharacterTokenizer(CharSequence input) {
+        public CharacterTokenizer(final CharSequence input) {
             super(input);
         }
         @Override
@@ -84,7 +84,7 @@ public class Trie {
         private final KeywordTokenizer tokenizer;
         private final StringBuilder input;
         
-        public TokenStream(CharSequence text) {
+        public TokenStream(final CharSequence text) {
             input = new StringBuilder(text.length());
             for (int p = 0; p < text.length(); ++p) {
                 char ch = text.charAt(p);
@@ -109,7 +109,7 @@ public class Trie {
 
     }
         
-    private void addKeyword(CharSequence keyword) {
+    private void addKeyword(final CharSequence keyword) {
         if (keyword == null || keyword.length() == 0) {
             return;
         }
@@ -128,24 +128,24 @@ public class Trie {
     }
 
     @SuppressWarnings("unchecked")
-    public Collection<Emit> parseText(CharSequence text) {
+    public Collection<Emit> parseText(final CharSequence text) {
         DefaultEmitHandler emitHandler = new DefaultEmitHandler();
         parseText(text, emitHandler);
         return emitHandler.getEmits();
     }
 
-    public boolean containsMatch(CharSequence text) {
+    public boolean containsMatch(final CharSequence text) {
             Emit firstMatch = firstMatch(text);
             return firstMatch != null;
     }
 
-    public Emit firstMatch(CharSequence text) {
+    public Emit firstMatch(final CharSequence text) {
         FirstMatchHandler emitHandler = new FirstMatchHandler();
         parseText(text, emitHandler);
         return emitHandler.getFirstMatch();
     }
 
-    public void parseText(CharSequence text, EmitHandler emitHandler) {
+    public void parseText(final CharSequence text, final EmitHandler emitHandler) {
 
         final EmitCandidateHolder emitCandidateHolder = this.trieConfig.isAllowOverlaps() ?
                 new OverlappingEmitCandidateHolder() :
@@ -181,11 +181,14 @@ public class Trie {
         flushHandler.flush();
     }
 
-    private State getState(State currentState, Transition transition, EmitCandidateFlushHandler flushHandler) {
+    private State getState(final State currentState,
+            final Transition transition,
+            final EmitCandidateFlushHandler flushHandler) {
+        State failState = currentState;
         State newCurrentState = currentState.nextState(transition);
         while (newCurrentState == null) {
-            currentState = currentState.failure(flushHandler);
-            newCurrentState = currentState.nextState(transition);
+            failState = failState.failure(flushHandler);
+            newCurrentState = failState.nextState(transition);
         }
         return newCurrentState;
     }

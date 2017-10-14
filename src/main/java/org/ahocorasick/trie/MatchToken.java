@@ -4,7 +4,7 @@ public class MatchToken extends Token {
 
     private final Emit emit;
 
-    public MatchToken(String fragment, Emit emit) {
+    public MatchToken(final String fragment, final Emit emit) {
         super(fragment);
         this.emit = emit;
     }

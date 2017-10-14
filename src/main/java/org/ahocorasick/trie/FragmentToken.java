@@ -2,7 +2,7 @@ package org.ahocorasick.trie;
 
 public class FragmentToken extends Token {
 
-    public FragmentToken(String fragment) {
+    public FragmentToken(final String fragment) {
         super(fragment);
     }
 
