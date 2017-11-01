@@ -5,6 +5,8 @@ import org.ahocorasick.interval.Intervalable;
 import org.ahocorasick.trie.handler.DefaultEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
 import org.ahocorasick.trie.handler.StatefulEmitHandler;
+import org.ahocorasick.util.ListElementRemoval;
+import org.ahocorasick.util.ListElementRemoval.RemoveElementPredicate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -207,17 +209,17 @@ public class Trie {
     }
 
     private void removePartialMatches(final CharSequence searchText, final List<Emit> collectedEmits) {
-        final List<Emit> removeEmits = new ArrayList<>();
-
-        for (final Emit emit : collectedEmits) {
-            if (isPartialMatch(searchText, emit)) {
-                removeEmits.add(emit);
+        
+        final RemoveElementPredicate<Emit> predicate = new RemoveElementPredicate<Emit>() {
+            
+            @Override
+            public boolean remove(Emit emit) {
+                return isPartialMatch(searchText, emit);
             }
-        }
-
-        for (final Emit removeEmit : removeEmits) {
-            collectedEmits.remove(removeEmit);
-        }
+            
+        };
+        
+        ListElementRemoval.removeIf(collectedEmits, predicate);
     }
 
     private void removePartialMatchesWhiteSpaceSeparated(final CharSequence searchText, final List<Emit> collectedEmits) {
