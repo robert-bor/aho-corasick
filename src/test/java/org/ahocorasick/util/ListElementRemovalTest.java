@@ -52,7 +52,7 @@ public class ListElementRemovalTest {
 
             @Override
             public boolean remove(String t) {
-                return t.equals("a") || t.endsWith("c");
+                return "a".equals(t) || "c".equals(t);
             }
             
         };
