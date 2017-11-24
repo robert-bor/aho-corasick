@@ -10,6 +10,7 @@ import org.ahocorasick.trie.handler.FirstMatchHandler;
 
 import java.util.Collection;
 import java.util.Queue;
+import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
@@ -19,27 +20,107 @@ import java.util.concurrent.LinkedBlockingDeque;
  */
 public class Trie {
 
-    private TrieConfig trieConfig;
+    private final TrieConfig trieConfig;
 
-    private State rootState;
+    private final State rootState;
 
-    private Trie(TrieConfig trieConfig) {
+    private Trie(final TrieConfig trieConfig) {
         this.trieConfig = trieConfig;
         this.rootState = new State();
     }
+    
+    private abstract class KeywordTokenizer {
+        protected int position = 0;
+        protected final CharSequence input;
+        protected int length;
+        protected KeywordTokenizer(final CharSequence input) {
+            this.input = input;
+            this.length = input.length();
+        }
+        protected char currentChar() {
+            return (position < length) ? input.charAt(position) : '\0';
+        }
+        public abstract Transition nextTransition();
+    }
+    
+    private class WordTokenizer extends KeywordTokenizer {
+        public WordTokenizer(final CharSequence input) {
+            super(input);
+        }
+        @Override
+        public Transition<String> nextTransition() {
+            WordTransition t = null;
+            while (position < length && Character.isWhitespace(currentChar())) {
+                ++position;
+            }
+            int start = position;
+            if (start < length) {
+                do {
+                    ++position;
+                } while (position < length && Character.isLetterOrDigit(currentChar()));
+                String word = input.subSequence(start, position).toString();
+                t = new WordTransition(word, start);
+            }
+            return t;
+        }
+    }
+    
+    private class CharacterTokenizer extends KeywordTokenizer {
+        public CharacterTokenizer(final CharSequence input) {
+            super(input);
+        }
+        @Override
+        public Transition<Character> nextTransition() {
+            CharacterTransition t = null;
+            if (position < length) {
+                t = new CharacterTransition(currentChar(), position);
+                position += 1;
+            }
+            return t;
+        }
+    }
+    
+    private class TokenStream {
+        private final KeywordTokenizer tokenizer;
+        private final StringBuilder input;
+        
+        public TokenStream(final CharSequence text) {
+            input = new StringBuilder(text.length());
+            for (int p = 0; p < text.length(); ++p) {
+                char ch = text.charAt(p);
+                input.append(trieConfig.isCaseInsensitive() ?
+                        Character.toLowerCase(ch) : ch);
+            }
+            if (trieConfig.isOnlyWholeWords()) {
+                tokenizer = new WordTokenizer(input);
+            }
+            else {
+                tokenizer = new CharacterTokenizer(input);
+            }
+        }
+        
+        public Transition nextTransition() {
+            return tokenizer.nextTransition();
+        }
+        
+        public String input() {
+            return input.toString();
+        }
 
-    private void addKeyword(String keyword) {
+    }
+        
+    private void addKeyword(final CharSequence keyword) {
         if (keyword == null || keyword.length() == 0) {
             return;
         }
         State currentState = this.rootState;
-        for (Character character : keyword.toCharArray()) {
-            if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
-            }
-            currentState = currentState.addState(character);
+        TokenStream tokenStream = new TokenStream(keyword);
+        Transition transition = tokenStream.nextTransition();
+        while (transition != null) {
+            currentState = currentState.addState(transition);
+            transition = tokenStream.nextTransition();
         }
-        currentState.addEmit(trieConfig.isCaseInsensitive() ? keyword.toLowerCase() : keyword);
+        currentState.addEmitString(tokenStream.input());
     }
 
     public Collection<Token> tokenize(String text) {
@@ -47,66 +128,67 @@ public class Trie {
     }
 
     @SuppressWarnings("unchecked")
-    public Collection<Emit> parseText(CharSequence text) {
+    public Collection<Emit> parseText(final CharSequence text) {
         DefaultEmitHandler emitHandler = new DefaultEmitHandler();
         parseText(text, emitHandler);
         return emitHandler.getEmits();
     }
 
-	public boolean containsMatch(CharSequence text) {
-		Emit firstMatch = firstMatch(text);
-		return firstMatch != null;
-	}
+    public boolean containsMatch(final CharSequence text) {
+            Emit firstMatch = firstMatch(text);
+            return firstMatch != null;
+    }
 
-    public Emit firstMatch(CharSequence text) {
+    public Emit firstMatch(final CharSequence text) {
         FirstMatchHandler emitHandler = new FirstMatchHandler();
         parseText(text, emitHandler);
         return emitHandler.getFirstMatch();
     }
 
-    public void parseText(CharSequence text, EmitHandler emitHandler) {
+    public void parseText(final CharSequence text, final EmitHandler emitHandler) {
 
         final EmitCandidateHolder emitCandidateHolder = this.trieConfig.isAllowOverlaps() ?
                 new OverlappingEmitCandidateHolder() :
                 new NonOverlappingEmitCandidateHolder();
 
-        final EmitCandidateFlushHandler flushHandler = new EmitCandidateFlushHandler(emitHandler, emitCandidateHolder);
+        final EmitCandidateFlushHandler flushHandler = 
+                new EmitCandidateFlushHandler(emitHandler, emitCandidateHolder);
 
+        TokenStream tknz = new TokenStream(text);
+        
+        LinkedList<Transition> tknHistory = new LinkedList<>();
         State currentState = this.rootState;
-        for (int position = 0; position < text.length(); position++) {
-
+        Transition nextTransition = tknz.nextTransition();
+        while (nextTransition != null) {
             if (flushHandler.stop()) {
                 return;
             }
-
-            Character character = text.charAt(position);
-            if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
+            tknHistory.add(nextTransition);
+            currentState = getState(currentState, nextTransition, flushHandler);
+            Collection<Keyword> emits = currentState.emit();
+            int depth = currentState.getDepth();
+            while (depth < tknHistory.size()) {
+                tknHistory.remove();
             }
-            currentState = getState(currentState, character, flushHandler);
-
-            Collection<String> emits = currentState.emit();
-            for (String emit : emits) {
-                int start = position - emit.length() + 1;
-                if (!trieConfig.isOnlyWholeWords() || isWholeWord(text, start, position)) {
-                    emitCandidateHolder.addCandidate(new Emit(start, position, emit));
-                }
+            int position = nextTransition.getStart() + nextTransition.getLength();
+            for (Keyword emit : emits) {
+                int start = tknHistory.get(depth - emit.getDepth()).getStart();
+                emitCandidateHolder.addCandidate(
+                        new Emit(start, position - 1, emit.getText()));
             }
-
+            nextTransition = tknz.nextTransition();
         }
         flushHandler.flush();
     }
 
-    public static boolean isWholeWord(CharSequence text, int start, int end) {
-        return (start == 0 || Character.isWhitespace(text.charAt(start - 1))) &&
-               (end == text.length() - 1 || Character.isWhitespace(text.charAt(end + 1)));
-    }
-
-    private State getState(State currentState, Character character, EmitCandidateFlushHandler flushHandler) {
-        State newCurrentState = currentState.nextState(character);
+    private State getState(final State currentState,
+            final Transition transition,
+            final EmitCandidateFlushHandler flushHandler) {
+        State failState = currentState;
+        State newCurrentState = currentState.nextState(transition);
         while (newCurrentState == null) {
-            currentState = currentState.failure(flushHandler);
-            newCurrentState = currentState.nextState(character);
+            failState = failState.failure(flushHandler);
+            newCurrentState = failState.nextState(transition);
         }
         return newCurrentState;
     }
@@ -124,7 +206,7 @@ public class Trie {
         while (!queue.isEmpty()) {
             State currentState = queue.remove();
 
-            for (Character transition : currentState.getTransitions()) {
+            for (Transition transition : currentState.getTransitions()) {
                 State targetState = currentState.nextState(transition);
                 queue.add(targetState);
 
@@ -145,9 +227,11 @@ public class Trie {
 
     public static class TrieBuilder {
 
-        private TrieConfig trieConfig = new TrieConfig();
+        private final TrieConfig trieConfig = new TrieConfig();
 
-        private Trie trie = new Trie(trieConfig);
+        private final Trie trie = new Trie(trieConfig);
+        
+        private boolean hasAddedKeyword = false;
 
         private TrieBuilder() {}
 
@@ -162,15 +246,20 @@ public class Trie {
         }
 
         public TrieBuilder onlyWholeWords() {
+            if (hasAddedKeyword) {
+                throw new IllegalStateException(
+                    "Unable to switch to only whole words after keywords added");
+            }
             this.trieConfig.setOnlyWholeWords(true);
             return this;
         }
 
         public TrieBuilder addKeyword(String keyword) {
             trie.addKeyword(keyword);
+            hasAddedKeyword = true;
             return this;
         }
-
+        
         public Trie build() {
             trie.constructFailureStates();
             return trie;

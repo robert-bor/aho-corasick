@@ -7,7 +7,7 @@ public class TrieConfig {
     private boolean onlyWholeWords = false;
 
     private boolean caseInsensitive = false;
-
+    
     public boolean isAllowOverlaps() {
         return allowOverlaps;
     }

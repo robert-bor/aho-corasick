@@ -2,9 +2,9 @@ package org.ahocorasick.trie;
 
 public abstract class Token {
 
-    private String fragment;
+    private final String fragment;
 
-    public Token(String fragment) {
+    public Token(final String fragment) {
         this.fragment = fragment;
     }
 
@@ -13,14 +13,6 @@ public abstract class Token {
     }
 
     public abstract boolean isMatch();
-
-    public boolean isWholeWord() {
-        return false;
-    }
-
-    public boolean isWhiteSpace() {
-        return false;
-    }
 
     public abstract Emit getEmit();
 

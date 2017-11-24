@@ -2,6 +2,7 @@ package org.ahocorasick.trie;
 
 import org.ahocorasick.trie.handler.EmitHandler;
 import org.ahocorasick.trie.handler.SimpleEmitHandler;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -10,8 +11,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 public class TrieTest {
 
@@ -78,8 +80,9 @@ public class TrieTest {
     }
 
     @Test
-    public void variousKeywordsFirstMatch() {
+    public void variousKeywordsFirstMatchWordTransitions() {
         Trie trie = Trie.builder()
+                .onlyWholeWords()
                 .addKeyword("abc")
                 .addKeyword("bcd")
                 .addKeyword("cde")
@@ -193,6 +196,23 @@ public class TrieTest {
         checkEmit(iterator.next(), 51, 58, "broccoli");
     }
 
+@Test
+    public void recipesWordTransitions() {
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("veal")
+                .addKeyword("cauliflower")
+                .addKeyword("broccoli")
+                .addKeyword("tomatoes")
+                .build();
+        Collection<Emit> emits = trie.parseText("2 cauliflower 3 tomatoes 4 slices of veal 100g broccoli");
+        Iterator<Emit> iterator = emits.iterator();
+        checkEmit(iterator.next(), 2, 12, "cauliflower");
+        checkEmit(iterator.next(), 16, 23, "tomatoes");
+        checkEmit(iterator.next(), 37, 40, "veal");
+        checkEmit(iterator.next(), 47, 54, "broccoli");
+    }
+    
     @Test
     public void recipesFirstMatch() {
         Trie trie = Trie.builder()
@@ -396,6 +416,41 @@ public class TrieTest {
     }
 
     @Test
+    public void tokenizeFullSentenceByWords() {
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("Alpha")
+                .addKeyword("Beta")
+                .addKeyword("Gamma")
+                .build();
+        Collection<Token> tokens = trie.tokenize("Hear: Alpha team first, Beta from the rear, Gamma in reserve");
+        assertEquals(7, tokens.size());
+        Iterator<Token> tokensIt = tokens.iterator();
+        assertToken(tokensIt.next(), "Hear: ", false, false, false);
+        assertToken(tokensIt.next(), "Alpha", true, true, false);
+        assertToken(tokensIt.next(), " team first, ", false, false, false);
+        assertToken(tokensIt.next(), "Beta", true, true, false);
+        assertToken(tokensIt.next(), " from the rear, ", false, false, false);
+        assertToken(tokensIt.next(), "Gamma", true, true, false);
+        assertToken(tokensIt.next(), " in reserve", false, false, false);
+    }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+    
+    @Test
+    public void onlyWholeWordsThrowsExceptionAfterKeywordsAdded()
+      throws IllegalStateException {
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("Unable to switch to only whole words after keywords added");
+        Trie trie = Trie.builder()
+                .addKeyword("Happy for now")
+                .onlyWholeWords()
+                .addKeyword("Not so happy")
+                .build();
+    }
+
+    @Test
     public void bug5InGithubReportedByXCurry() {
         Trie trie = Trie.builder().caseInsensitive().onlyWholeWords()
                 .addKeyword("turning")
@@ -489,6 +544,22 @@ public class TrieTest {
         checkEmit(firstMatch, 5, 8, "this");
     }
 
+   @Test
+    public void unicodeInKeyword() {
+        // The upper case character ('İ') is Unicode,
+        // which was read by AC as a 2-byte char
+        String target = "it is so much LİKE Unicode to mess with Java"; 
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("so much LİKE Unicode")
+                .addKeyword("it is")
+                .build();
+        Collection<Emit> emits = trie.parseText(target);
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 0, 4, "it is");
+        checkEmit(it.next(), 6, 25, "so much LİKE Unicode");
+    }
+
     @Test
     public void partialMatchWhiteSpaces() {
         Trie trie = Trie.builder()
@@ -500,11 +571,61 @@ public class TrieTest {
         checkEmit(emits.iterator().next(), 0, 9, "#sugar-123");
     }
 
+    /*
+    For onlyWholeWords, we'll ignore leading and trailing white space
+    included on keywords
+    */
+    @Test
+    public void spacesAroundKeywordByWords() {
+        String text = "lorem ipso facto genera linden pharma six 1";
+        String keyword = " " + text + " ";
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .caseInsensitive()
+                .addKeyword(keyword)
+                .build();
+        Collection < Emit > emits = trie.parseText(
+                text + " under addressed object ");
+        assertEquals(1, emits.size());
+        checkEmit(emits.iterator().next(), 0, text.length() - 1, keyword);
+    }
+
+    @Test
+    public void punctuationInText() {
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("pie")
+                .build();
+
+        Collection<Emit> emits = trie.parseText("Want some pie? Gimme pie! pie, pie. The pie's revenge.");
+        Assert.assertEquals(5, emits.size());
+        Iterator<Emit> it = emits.iterator();
+        checkEmit(it.next(), 10, 12, "pie");
+        checkEmit(it.next(), 21, 23, "pie");
+        checkEmit(it.next(), 26, 28, "pie");
+        checkEmit(it.next(), 31, 33, "pie");
+        checkEmit(it.next(), 40, 42, "pie");
+    }
+
+    @Test
+    public void punctuationInSearchTerm() {
+        Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword("Dr. Feelgood")
+                .addKeyword("Oi!")
+                .build();
+
+        Collection<Emit> emits = trie
+                .parseText("The Oi! music genre is inspired by Dr. Feelgood and other bands. Oi or Dr Feelgood should not match.");
+
+        Assert.assertEquals(2, emits.size());
+
+
+    }
+
     private void assertToken(Token token, String fragment, boolean match, boolean wholeWord, boolean whiteSpace) {
         assertEquals(fragment, token.getFragment());
         assertEquals(match, token.isMatch());
-        assertEquals(wholeWord, token.isWholeWord());
-        assertEquals(whiteSpace, token.isWhiteSpace());
     }
 
     private void checkEmit(Emit next, int expectedStart, int expectedEnd, String expectedKeyword) {

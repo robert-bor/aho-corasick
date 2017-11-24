@@ -2,19 +2,11 @@ package org.ahocorasick.trie;
 
 public class MatchToken extends Token {
 
-    private final boolean wholeWord;
-
     private final Emit emit;
 
-    public MatchToken(String fragment, Emit emit, boolean wholeWord) {
+    public MatchToken(final String fragment, final Emit emit) {
         super(fragment);
         this.emit = emit;
-        this.wholeWord = wholeWord;
-    }
-
-    @Override
-    public boolean isWholeWord() {
-        return wholeWord;
     }
 
     @Override
