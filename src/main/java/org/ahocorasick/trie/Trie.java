@@ -28,6 +28,12 @@ public class Trie {
 
     private final State rootState;
 
+    /**
+     * The max failure-jump times. It need to be set before parseText.
+     * It will not take effect before the allowFailureJump config not set.
+     */
+    private int failureTimes;
+
     private Trie(final TrieConfig trieConfig) {
         this.trieConfig = trieConfig;
         this.rootState = new State();
@@ -106,6 +112,15 @@ public class Trie {
         return new MatchToken(text.substring(emit.getStart(), emit.getEnd() + 1), emit);
     }
 
+    public Trie failureTimes(int times) {
+        if (times > 0) {
+            this.failureTimes = times;
+            return this;
+        }
+
+        throw new IllegalArgumentException("the failureTimes mast be a positive integer: " + times);
+    }
+
     public Collection<Emit> parseText(final CharSequence text) {
         return parseText(text, new DefaultEmitHandler());
     }
@@ -137,10 +152,18 @@ public class Trie {
     }
 
     public void parseText(final CharSequence text, final EmitHandler emitHandler) {
+        if (this.trieConfig.isAllowFailureJump() && this.failureTimes > 0) {
+            doParseTextWithFailureJump(text, emitHandler);
+        } else {
+            doParseText(text, emitHandler);
+        }
+    }
+
+    private void doParseText(final CharSequence text, final EmitHandler emitHandler) {
         State currentState = getRootState();
 
         for (int position = 0; position < text.length(); position++) {
-            Character character = text.charAt(position);
+            char character = text.charAt(position);
 
             // TODO: Maybe lowercase the entire string at once?
             if (trieConfig.isCaseInsensitive()) {
@@ -150,6 +173,30 @@ public class Trie {
             currentState = getState(currentState, character);
             if (storeEmits(position, currentState, emitHandler) && trieConfig.isStopOnHit()) {
                 return;
+            }
+        }
+    }
+
+    private void doParseTextWithFailureJump(final CharSequence text, final EmitHandler emitHandler) {
+        State currentState = getRootState();
+        FailureJumpState state = FailureJumpState.createInstance(currentState, this.failureTimes);
+
+        for (int position = 0; position < text.length(); position++) {
+            char character = text.charAt(position);
+
+            // TODO: Maybe lowercase the entire string at once?
+            if (trieConfig.isCaseInsensitive()) {
+                character = Character.toLowerCase(character);
+            }
+
+            currentState = getStateWithFailureJump(state, character);
+            boolean emitted;
+            if ((emitted = storeEmitsWithFailureJump(position, state, emitHandler)) && trieConfig.isStopOnHit()) {
+                return;
+            }
+
+            if (emitted) {
+                state.reset(currentState);
             }
         }
     }
@@ -168,32 +215,72 @@ public class Trie {
             if (parseText != null && !parseText.isEmpty()) {
                 return parseText.iterator().next();
             }
+        } else if (trieConfig.isAllowFailureJump()){
+            return doFirstMatchWithFailureJump(text);
         } else {
-            // Fast path. Returns first match found.
-            State currentState = getRootState();
+            return doFirstMatch(text);
+        }
 
-            for (int position = 0; position < text.length(); position++) {
-                Character character = text.charAt(position);
+        return null;
+    }
 
-                // TODO: Lowercase the entire string at once?
-                if (trieConfig.isCaseInsensitive()) {
-                    character = Character.toLowerCase(character);
-                }
+    private Emit doFirstMatch(final CharSequence text) {
+        // Fast path. Returns first match found.
+        State currentState = getRootState();
 
-                currentState = getState(currentState, character);
-                Collection<String> emitStrs = currentState.emit();
+        for (int position = 0; position < text.length(); position++) {
+            char character = text.charAt(position);
 
-                if (emitStrs != null && !emitStrs.isEmpty()) {
-                    for (final String emitStr : emitStrs) {
-                        final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
-                        if (trieConfig.isOnlyWholeWords()) {
-                            if (!isPartialMatch(text, emit)) {
-                                return emit;
-                            }
-                        } else {
+            // TODO: Lowercase the entire string at once?
+            if (trieConfig.isCaseInsensitive()) {
+                character = Character.toLowerCase(character);
+            }
+
+            currentState = getState(currentState, character);
+            Collection<String> emitStrs = currentState.emit();
+
+            if (emitStrs != null && !emitStrs.isEmpty()) {
+                for (final String emitStr : emitStrs) {
+                    final Emit emit = new Emit(position - emitStr.length() + 1, position, emitStr);
+                    if (trieConfig.isOnlyWholeWords()) {
+                        if (!isPartialMatch(text, emit)) {
                             return emit;
                         }
+                    } else {
+                        return emit;
                     }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Emit doFirstMatchWithFailureJump(final CharSequence text) {
+        // Fast path. Returns first match found.
+        State currentState = getRootState();
+        FailureJumpState state = FailureJumpState.createInstance(currentState, this.failureTimes);
+
+        for (int position = 0; position < text.length(); position++) {
+            char character = text.charAt(position);
+
+            // TODO: Lowercase the entire string at once?
+            if (trieConfig.isCaseInsensitive()) {
+                character = Character.toLowerCase(character);
+            }
+
+            currentState = getStateWithFailureJump(state, character);
+            Collection<String> emitStrs = currentState.emit();
+
+            for (final String emitStr : emitStrs) {
+                int start = position - emitStr.length() - state.getTotal() + 1;
+                final Emit emit = new Emit(start, position, emitStr);
+                if (trieConfig.isOnlyWholeWords()) {
+                    if (!isPartialMatch(text, emit)) {
+                        return emit;
+                    }
+                } else {
+                    return emit;
                 }
             }
         }
@@ -250,6 +337,20 @@ public class Trie {
         return newCurrentState;
     }
 
+    private State getStateWithFailureJump(FailureJumpState state, final Character c) {
+        State currentState = state.getState();
+        State newCurrentState = currentState.nextState(c);
+
+        while (newCurrentState == null) {
+            currentState = currentState.failure();
+            newCurrentState = currentState.nextState(c);
+        }
+
+        state.nextState(newCurrentState);
+
+        return newCurrentState;
+    }
+
     private void constructFailureStates() {
         final Queue<State> queue = new LinkedBlockingDeque<>();
         final State startState = getRootState();
@@ -291,6 +392,22 @@ public class Trie {
                 if  (emitted && trieConfig.isStopOnHit()) {
                     break;
                 }
+            }
+        }
+
+        return emitted;
+    }
+
+    private boolean storeEmitsWithFailureJump(final int position, final FailureJumpState currentState, final EmitHandler emitHandler) {
+        boolean emitted = false;
+        final Collection<String> emits = currentState.getState().emit();
+
+        // TODO: The check for empty might be superfluous.
+        for (final String emit : emits) {
+            int start = position - emit.length() - currentState.getTotal() + 1;
+            emitted = emitHandler.emit(new Emit(start, position, emit)) || emitted;
+            if  (emitted && trieConfig.isStopOnHit()) {
+                break;
             }
         }
 
@@ -440,6 +557,16 @@ public class Trie {
          */
         public TrieBuilder removeOverlaps() {
             return ignoreOverlaps();
+        }
+
+        /**
+         * allow failure-jump pattern. It will jump a few of continues characters
+         * while current not mach
+         * @return
+         */
+        public TrieBuilder allowFailureJump() {
+            this.trieConfig.setAllowFailureJump(true);
+            return this;
         }
     }
 }

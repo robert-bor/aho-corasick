@@ -464,6 +464,28 @@ public class TrieTest {
         assertEquals(textSize / interval, emits.size());
     }
 
+    @Test
+    public void testParseTextWithFailureJump() {
+        String text = "Hello Trump";
+        String textForFailureJump = "Hello T!r**ump";
+
+        Trie trie = Trie.builder()
+                .allowFailureJump()
+                .addKeyword("Trump")
+                .build();
+
+        Collection<Emit> emits = trie.failureTimes(2).parseText(text);
+        Collection<Emit> emitsForFailureJump = trie.failureTimes(2).parseText(textForFailureJump);
+
+        for (Emit e : emits) {
+            System.out.printf("keyword: %s, start: %d, end: %d\n", e.getKeyword(), e.getStart(), e.getEnd());
+        }
+
+        for (Emit e : emitsForFailureJump) {
+            System.out.printf("keyword: %s, start: %d, end: %d\n", e.getKeyword(), e.getStart(), e.getEnd());
+        }
+    }
+
     /**
      * Generates a random sequence of ASCII numbers.
      *
