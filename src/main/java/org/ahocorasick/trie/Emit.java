@@ -3,21 +3,25 @@ package org.ahocorasick.trie;
 import org.ahocorasick.interval.Interval;
 import org.ahocorasick.interval.Intervalable;
 
-public class Emit extends Interval implements Intervalable {
+public class Emit<T> extends Interval implements Intervalable {
 
-    private final String keyword;
+    private final Payload<T> payload;
 
-    public Emit(final int start, final int end, final String keyword) {
+    public Emit(final int start, final int end, final Payload<T> payload) {
         super(start, end);
-        this.keyword = keyword;
+        this.payload = payload;
     }
 
     public String getKeyword() {
-        return this.keyword;
+        return this.payload.getKeyword();
+    }
+
+    public Payload<T> getPayload() {
+        return payload;
     }
 
     @Override
     public String toString() {
-        return super.toString() + "=" + this.keyword;
+        return super.toString() + "=" + this.payload.getKeyword();
     }
 }

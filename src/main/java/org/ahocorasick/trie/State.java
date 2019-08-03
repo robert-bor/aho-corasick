@@ -8,22 +8,24 @@ import java.util.*;
  * </p>
  * <p>
  * <ul>
- * <li>success; when a character points to another state, it must return that state</li>
- * <li>failure; when a character has no matching state, the algorithm must be able to fall back on a
- * state with less depth</li>
- * <li>emits; when this state is passed and keywords have been matched, the matches must be
- * 'emitted' so that they can be used later on.</li>
+ * <li>success; when a character points to another state, it must return that
+ * state</li>
+ * <li>failure; when a character has no matching state, the algorithm must be
+ * able to fall back on a state with less depth</li>
+ * <li>emits; when this state is passed and keywords have been matched, the
+ * matches must be 'emitted' so that they can be used later on.</li>
  * </ul>
  * <p>
  * <p>
- * The root state is special in the sense that it has no failure state; it cannot fail. If it 'fails'
- * it will still parse the next character and start from the root node. This ensures that the algorithm
- * always runs. All other states always have a fail state.
+ * The root state is special in the sense that it has no failure state; it
+ * cannot fail. If it 'fails' it will still parse the next character and start
+ * from the root node. This ensures that the algorithm always runs. All other
+ * states always have a fail state.
  * </p>
  *
  * @author Robert Bor
  */
-public class State {
+public class State<T> {
 
     /**
      * effective the size of the keyword
@@ -31,25 +33,27 @@ public class State {
     private final int depth;
 
     /**
-     * only used for the root state to refer to itself in case no matches have been found
+     * only used for the root state to refer to itself in case no matches have been
+     * found
      */
-    private final State rootState;
+    private final State<T> rootState;
 
     /**
-     * referred to in the white paper as the 'goto' structure. From a state it is possible to go
-     * to other states, depending on the character passed.
+     * referred to in the white paper as the 'goto' structure. From a state it is
+     * possible to go to other states, depending on the character passed.
      */
-    private final Map<Character, State> success = new HashMap<>();
+    private final Map<Character, State<T>> success = new HashMap<>();
 
     /**
      * if no matching states are found, the failure state will be returned
      */
-    private State failure;
+    private State<T> failure;
 
     /**
-     * whenever this state is reached, it will emit the matches keywords for future reference
+     * whenever this state is reached, it will emit the matches keywords for future
+     * reference
      */
-    private Set<String> emits;
+    private Set<Payload<T>> emits;
 
     public State() {
         this(0);
@@ -60,8 +64,8 @@ public class State {
         this.rootState = depth == 0 ? this : null;
     }
 
-    private State nextState(final Character character, final boolean ignoreRootState) {
-        State nextState = this.success.get(character);
+    private State<T> nextState(final Character character, final boolean ignoreRootState) {
+        State<T> nextState = this.success.get(character);
 
         if (!ignoreRootState && nextState == null && this.rootState != null) {
             nextState = this.rootState;
@@ -70,16 +74,16 @@ public class State {
         return nextState;
     }
 
-    public State nextState(final Character character) {
+    public State<T> nextState(final Character character) {
         return nextState(character, false);
     }
 
-    public State nextStateIgnoreRootState(Character character) {
+    public State<T> nextStateIgnoreRootState(Character character) {
         return nextState(character, true);
     }
 
-    public State addState(String keyword) {
-        State state = this;
+    public State<T> addState(String keyword) {
+        State<T> state = this;
 
         for (final Character character : keyword.toCharArray()) {
             state = state.addState(character);
@@ -88,10 +92,10 @@ public class State {
         return state;
     }
 
-    public State addState(Character character) {
-        State nextState = nextStateIgnoreRootState(character);
+    public State<T> addState(Character character) {
+        State<T> nextState = nextStateIgnoreRootState(character);
         if (nextState == null) {
-            nextState = new State(this.depth + 1);
+            nextState = new State<T>(this.depth + 1);
             this.success.put(character, nextState);
         }
         return nextState;
@@ -105,28 +109,49 @@ public class State {
         if (this.emits == null) {
             this.emits = new TreeSet<>();
         }
-        this.emits.add(keyword);
+        this.emits.add(new Payload<T>(keyword, null));
     }
 
-    public void addEmit(Collection<String> emits) {
-        for (String emit : emits) {
-            addEmit(emit);
+    public void addEmit(Collection<String> keywords) {
+        for (String keyword : keywords) {
+            addEmit(keyword);
         }
     }
 
-    public Collection<String> emit() {
-        return this.emits == null ? Collections.<String>emptyList() : this.emits;
+    public void addEmit(String keyword, T payloadData) {
+        if (this.emits == null) {
+            this.emits = new TreeSet<>();
+        }
+        this.emits.add(new Payload<>(keyword, payloadData));
     }
 
-    public State failure() {
+    public void addEmit(Payload<T> payload) {
+        if (this.emits == null) {
+            this.emits = new TreeSet<>();
+        }
+        this.emits.add(payload);
+    }
+
+
+    public void addPayloadEmit(Collection<Payload<T>> payloadS) {
+        for (Payload<T> payload : payloadS) {
+            addEmit(payload);
+        }
+    }
+
+    public Collection<Payload<T>> emit() {
+        return this.emits == null ? Collections.<Payload<T>>emptyList() : this.emits;
+    }
+
+    public State<T> failure() {
         return this.failure;
     }
 
-    public void setFailure(State failState) {
+    public void setFailure(State<T> failState) {
         this.failure = failState;
     }
 
-    public Collection<State> getStates() {
+    public Collection<State<T>> getStates() {
         return this.success.values();
     }
 
