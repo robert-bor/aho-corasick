@@ -51,10 +51,10 @@ public class PayloadTrieTest {
 
     @Test
     public void keywordAndTextAreTheSameFirstMatch() {
-        Trie trie = Trie.builder()
-                .addKeyword(ALPHABET[0])
+        PayloadTrie<String> trie = PayloadTrie.<String>builder()
+                .addKeyword(ALPHABET[0], ALPHABET[0])
                 .build();
-        Emit firstMatch = trie.firstMatch(ALPHABET[0]);
+        PayloadEmit<String> firstMatch = trie.firstMatch(ALPHABET[0]);
         checkEmit(firstMatch, 0, 2, ALPHABET[0]);
     }
 
