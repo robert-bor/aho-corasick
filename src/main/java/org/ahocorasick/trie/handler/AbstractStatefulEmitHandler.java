@@ -5,16 +5,16 @@ import java.util.List;
 
 import org.ahocorasick.trie.Emit;
 
-public abstract class AbstractStatefulEmitHandler<T> implements StatefulEmitHandler<T> {
+public abstract class AbstractStatefulEmitHandler implements StatefulEmitHandler {
 
-    private final List<Emit<T>> emits = new ArrayList<>();
+    private final List<Emit> emits = new ArrayList<>();
 
-    public void addEmit(final Emit<T> emit) {
+    public void addEmit(final Emit emit) {
         this.emits.add(emit);
     }
 
     @Override
-    public List<Emit<T>> getEmits() {
+    public List<Emit> getEmits() {
         return this.emits;
     }
 

@@ -1,8 +1,8 @@
 package org.ahocorasick.trie;
 
-public class FragmentToken extends Token {
+public class PayloadFragmentToken<T> extends PayloadToken<T> {
 
-    public FragmentToken(String fragment) {
+    public PayloadFragmentToken(String fragment) {
         super(fragment);
     }
 
@@ -12,8 +12,7 @@ public class FragmentToken extends Token {
     }
 
     @Override
-    public Emit getEmit() {
+    public PayloadEmit<T> getEmit() {
         return null;
     }
-
 }

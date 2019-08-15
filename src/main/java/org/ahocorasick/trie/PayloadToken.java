@@ -1,9 +1,9 @@
 package org.ahocorasick.trie;
 
-public abstract class Token {
+public abstract class PayloadToken<T> {
     private String fragment;
 
-    public Token(String fragment) {
+    public PayloadToken(String fragment) {
         this.fragment = fragment;
     }
 
@@ -13,5 +13,5 @@ public abstract class Token {
 
     public abstract boolean isMatch();
 
-    public abstract Emit getEmit();
+    public abstract PayloadEmit<T> getEmit();
 }
