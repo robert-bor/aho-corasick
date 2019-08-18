@@ -199,7 +199,7 @@ recognizer. In this case use a PayloadTrie instead of a Trie:
         .addKeyword("she", new Word("f")
         .addKeyword("he", new Word("m"))
         .build();
-    Collection<Emit> emits = trie.parseText("ushers");
+    Collection<PayloadEmit<Word>> emits = trie.parseText("ushers");
 ```
 
 Releases
