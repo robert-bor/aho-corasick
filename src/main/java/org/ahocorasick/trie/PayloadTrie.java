@@ -67,7 +67,7 @@ public class PayloadTrie<T> {
             keyword = keyword.toLowerCase();
         }
 
-        addState(keyword);
+        addState(keyword).addEmit(new Payload<T>(keyword, null));
     }
 
     private PayloadState<T> addState(final String keyword) {
@@ -356,22 +356,20 @@ public class PayloadTrie<T> {
          * @return This builder.
          * @throws NullPointerException if the keyword is null.
          */
-        public PayloadTrieBuilder<T> addKeyword(final String keyword, final T payload) {
-            this.trie.addKeyword(keyword, payload);
+        public PayloadTrieBuilder<T> addKeyword(final String keyword) {
+            this.trie.addKeyword(keyword);
             return this;
         }
 
-
         /**
-         * Adds a list of keywords to the Trie's list of text search keywords.
+         * Adds a keyword to the Trie's list of text search keywords.
          *
-         * @param keywords The keywords to add to the list.
+         * @param keyword The keyword to add to the list.
          * @return This builder.
+         * @throws NullPointerException if the keyword is null.
          */
-        public PayloadTrieBuilder<T> addKeywords(final String keyword, final T... payloads) {
-            for (T payload : payloads) {
-                this.trie.addKeyword(keyword, payload);
-            }
+        public PayloadTrieBuilder<T> addKeyword(final String keyword, final T payload) {
+            this.trie.addKeyword(keyword, payload);
             return this;
         }
 
