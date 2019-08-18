@@ -1,9 +1,7 @@
 package org.ahocorasick.trie;
 
-import org.ahocorasick.trie.handler.AbstractStatefulEmitHandler;
-import org.ahocorasick.trie.handler.EmitHandler;
-import org.ahocorasick.trie.handler.StatefulEmitHandler;
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,8 +9,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.ahocorasick.trie.handler.AbstractStatefulEmitHandler;
+import org.ahocorasick.trie.handler.EmitHandler;
+import org.ahocorasick.trie.handler.StatefulEmitHandler;
+import org.junit.Test;
 
 public class TrieTest {
     private final static String[] ALPHABET = new String[]{
