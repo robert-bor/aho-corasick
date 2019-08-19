@@ -13,7 +13,8 @@ import java.util.*;
  * <li>failure; when a character has no matching state, the algorithm must be
  * able to fall back on a state with less depth</li>
  * <li>emits; when this state is passed and keywords have been matched, the
- * matches must be 'emitted' so that they can be used later on.</li>
+ * matches and their payloads must be 'emitted' so that they can be used later
+ * on.</li>
  * </ul>
  * <p>
  * <p>
@@ -105,19 +106,34 @@ public class PayloadState<T> {
         return this.depth;
     }
 
-    public void addEmit(Payload<T> keyword) {
+    /**
+     * Adds a payload to be emitted for this state.
+     * 
+     * @param emit Payload to be emitted.
+     */
+    public void addEmit(Payload<T> payload) {
         if (this.emits == null) {
             this.emits = new TreeSet<>();
         }
-        this.emits.add(keyword);
+        this.emits.add(payload);
     }
 
+    /**
+     * Adds a collection of payloads to be emitted for this state.
+     * 
+     * @param emits Collection of payloads to be emitted.
+     */
     public void addEmit(Collection<Payload<T>> emits) {
         for (Payload<T> emit : emits) {
             addEmit(emit);
         }
     }
 
+    /**
+     * Returns a collection of emitted payloads for this state.
+     * 
+     * @return Collection of emitted payloads.
+     */
     public Collection<Payload<T>> emit() {
         return this.emits == null ? Collections.<Payload<T>>emptyList() : this.emits;
     }

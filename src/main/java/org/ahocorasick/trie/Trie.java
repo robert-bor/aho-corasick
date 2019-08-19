@@ -5,8 +5,8 @@ import java.util.Collection;
 
 import org.ahocorasick.trie.PayloadTrie.PayloadTrieBuilder;
 import org.ahocorasick.trie.handler.EmitHandler;
+import org.ahocorasick.trie.handler.StatefulPayloadEmitDelegateHandler;
 import org.ahocorasick.trie.handler.PayloadEmitDelegateHandler;
-import org.ahocorasick.trie.handler.PayloadEmitDelegateHandlerStateless;
 import org.ahocorasick.trie.handler.StatefulEmitHandler;
 
 /**
@@ -56,7 +56,7 @@ public class Trie {
     @SuppressWarnings("unchecked")
     public Collection<Emit> parseText(final CharSequence text, final StatefulEmitHandler emitHandler) {
         Collection<PayloadEmit<String>> parsedText = this.payloadTrie.parseText(text,
-                new PayloadEmitDelegateHandler(emitHandler));
+                new StatefulPayloadEmitDelegateHandler(emitHandler));
         return asEmits(parsedText);
     }
 
@@ -65,7 +65,7 @@ public class Trie {
     }
 
     public void parseText(final CharSequence text, final EmitHandler emitHandler) {
-        this.payloadTrie.parseText(text, new PayloadEmitDelegateHandlerStateless(emitHandler));
+        this.payloadTrie.parseText(text, new PayloadEmitDelegateHandler(emitHandler));
     }
 
     /**

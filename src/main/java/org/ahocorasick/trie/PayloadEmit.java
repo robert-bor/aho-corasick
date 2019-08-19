@@ -3,6 +3,13 @@ package org.ahocorasick.trie;
 import org.ahocorasick.interval.Interval;
 import org.ahocorasick.interval.Intervalable;
 
+/**
+ * PayloadEmit contains a matched term and its associated payload data.
+ * 
+ * @param <T> Type of the wrapped payload-data.
+ * @author Daniel Beck
+ *
+ */
 public class PayloadEmit<T> extends Interval implements Intervalable {
 
     private final String keyword;
@@ -19,6 +26,11 @@ public class PayloadEmit<T> extends Interval implements Intervalable {
         return this.keyword;
     }
 
+    /**
+     * Returns the payload associated to this emit.
+     * 
+     * @return the associated payload
+     */
     public T getPayload() {
         return this.payload;
     }

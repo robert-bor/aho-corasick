@@ -17,11 +17,15 @@ import org.ahocorasick.util.ListElementRemoval;
 import org.ahocorasick.util.ListElementRemoval.RemoveElementPredicate;
 
 /**
- * Based on the Aho-Corasick white paper, Bell technologies:
- * http://cr.yp.to/bib/1975/aho.pdf
+ * A trie implementation, based on the Aho-Corasick white paper, Bell
+ * technologies: http://cr.yp.to/bib/1975/aho.pdf
+ * <p>
  *
- * @author Robert Bor
- * @param <U>
+ * The payload trie adds the possibility to specify emitted payloads for each
+ * added keyword.
+ * 
+ * @author Daniel Beck
+ * @param <T> The type of the supplied of the payload
  */
 public class PayloadTrie<T> {
 
@@ -38,6 +42,7 @@ public class PayloadTrie<T> {
      * Used by the builder to add a text search keyword with a emit payload.
      *
      * @param keyword The search term to add to the list of search terms.
+     * @param emit    the payload to emit for this search term.
      * @throws NullPointerException if the keyword is null.
      */
     private void addKeyword(String keyword, T emit) {
@@ -74,6 +79,11 @@ public class PayloadTrie<T> {
         return getRootState().addState(keyword);
     }
 
+    /**
+     * Tokenizes the specified text and returns the emitted outputs.
+     * 
+     * @param text The text to tokenize.
+     */
     public Collection<PayloadToken<T>> tokenize(final String text) {
         final Collection<PayloadToken<T>> tokens = new ArrayList<>();
         final Collection<PayloadEmit<T>> collectedEmits = parseText(text);
@@ -104,10 +114,24 @@ public class PayloadTrie<T> {
         return new PayloadMatchToken<T>(text.substring(emit.getStart(), emit.getEnd() + 1), emit);
     }
 
+    /**
+     * Tokenizes a specified text and returns the emitted outputs.
+     * 
+     * @param text The character sequence to tokenize.
+     * @return A collection of emits.
+     */
     public Collection<PayloadEmit<T>> parseText(final CharSequence text) {
         return parseText(text, new DefaultPayloadEmitHandler<T>());
     }
 
+    /**
+     * Tokenizes the specified text by using a custom EmitHandler and returns the
+     * emitted outputs.
+     * 
+     * @param text        The character sequence to tokenize.
+     * @param emitHandler The emit handler that will be used to parse the text.
+     * @return A collection of emits.
+     */
     @SuppressWarnings("unchecked")
     public Collection<PayloadEmit<T>> parseText(final CharSequence text, final StatefulPayloadEmitHandler<T> emitHandler) {
         parseText(text, (PayloadEmitHandler<T>) emitHandler);
@@ -130,9 +154,26 @@ public class PayloadTrie<T> {
         return collectedEmits;
     }
 
+    /**
+     * Returns true if the text contains contains one of the search terms. Else,
+     * returns false.
+     * 
+     * @param Text Specified text.
+     * @return true if the text contains one of the search terms. Else, returns
+     *         false.
+     */
     public boolean containsMatch(final CharSequence text) {
         return firstMatch(text) != null;
     }
+
+    /**
+     * Tokenizes the specified text by using a custom EmitHandler and returns the
+     * emitted outputs.
+     * 
+     * @param text        The character sequence to tokenize.
+     * @param emitHandler The emit handler that will be used to parse the text.
+     * @return A collection of emits.
+     */
 
     public void parseText(final CharSequence text, final PayloadEmitHandler<T> emitHandler) {
         PayloadState<T> currentState = getRootState();
@@ -314,6 +355,11 @@ public class PayloadTrie<T> {
         return new PayloadTrieBuilder<T>();
     }
 
+    /**
+     * Builder class to create a PayloadTrie instance.
+     * 
+     * @param <T> The type of the emitted payload.
+     */
     public static class PayloadTrieBuilder<T> {
 
         private final TrieConfig trieConfig = new TrieConfig();
@@ -350,7 +396,8 @@ public class PayloadTrie<T> {
         }
 
         /**
-         * Adds a keyword to the Trie's list of text search keywords.
+         * Adds a keyword to the Trie's list of text search keywords. No Payload is
+         * supplied.
          *
          * @param keyword The keyword to add to the list.
          * @return This builder.
@@ -362,7 +409,7 @@ public class PayloadTrie<T> {
         }
 
         /**
-         * Adds a keyword to the Trie's list of text search keywords.
+         * Adds a keyword and a payload to the Trie's list of text search keywords.
          *
          * @param keyword The keyword to add to the list.
          * @return This builder.
@@ -374,7 +421,8 @@ public class PayloadTrie<T> {
         }
 
         /**
-         * Adds a list of keywords to the Trie's list of text search keywords.
+         * Adds a list of keywords and payloads to the Trie's list of text search
+         * keywords.
          *
          * @param keywords The keywords to add to the list.
          * @return This builder.
@@ -419,9 +467,9 @@ public class PayloadTrie<T> {
         }
 
         /**
-         * Configure the Trie based on the builder settings.
+         * Configure the PayloadTrie based on the builder settings.
          *
-         * @return The configured Trie.
+         * @return The configured PayloadTrie.
          */
         public PayloadTrie<T> build() {
             this.trie.constructFailureStates();
