@@ -196,7 +196,7 @@ recognizer. In this case use a PayloadTrie instead of a Trie:
     PayloadTrie<Word> trie = PayloadTrie.<Word>builder()
         .addKeyword("hers", new Word("f")
         .addKeyword("his", new Word("m"))
-        .addKeyword("she", new Word("f")
+        .addKeyword("she", new Word("f"))
         .addKeyword("he", new Word("m"))
         .build();
     Collection<PayloadEmit<Word>> emits = trie.parseText("ushers");
