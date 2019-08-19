@@ -16,6 +16,14 @@ public class PayloadEmit<T> extends Interval implements Intervalable {
 
     private final T payload;
 
+    /**
+     * Created a PayloadEmit
+     * 
+     * @param start   Start of the matched search term.
+     * @param end     End of the matched search term.
+     * @param keyword Keyword that matched.
+     * @param payload Emitted payload data.
+     */
     public PayloadEmit(final int start, final int end, String keyword, T payload) {
         super(start, end);
         this.keyword = keyword;
