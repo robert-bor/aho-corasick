@@ -4,10 +4,9 @@ import org.ahocorasick.interval.Interval;
 import org.ahocorasick.interval.Intervalable;
 
 public class Emit extends Interval implements Intervalable {
-
     private final String keyword;
 
-    public Emit(final int start, final int end, final String keyword) {
+    public Emit(final int start, final int end, String keyword) {
         super(start, end);
         this.keyword = keyword;
     }
@@ -20,4 +19,5 @@ public class Emit extends Interval implements Intervalable {
     public String toString() {
         return super.toString() + "=" + this.keyword;
     }
+
 }

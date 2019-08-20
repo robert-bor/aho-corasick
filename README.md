@@ -182,6 +182,26 @@ matches as soon as you encounter them. Let's look at an example where we want to
     System.out.println(html);
 ```
 
+You can also emit custom outputs. This might for example be useful to implement a trivial named entity 
+recognizer. In this case use a PayloadTrie instead of a Trie:
+
+```java
+    class Word {
+        private final String gender;
+        public Word(String gender) {
+            this.gender = gender;
+        }
+    }
+    
+    PayloadTrie<Word> trie = PayloadTrie.<Word>builder()
+        .addKeyword("hers", new Word("f")
+        .addKeyword("his", new Word("m"))
+        .addKeyword("she", new Word("f"))
+        .addKeyword("he", new Word("m"))
+        .build();
+    Collection<PayloadEmit<Word>> emits = trie.parseText("ushers");
+```
+
 Releases
 --------
 Information on the aho-corasick [releases](https://github.com/robert-bor/aho-corasick/releases).

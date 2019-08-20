@@ -1,9 +1,9 @@
 package org.ahocorasick.trie.handler;
 
-import org.ahocorasick.trie.Emit;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.ahocorasick.trie.Emit;
 
 public class DefaultEmitHandler implements StatefulEmitHandler {
 
