@@ -44,7 +44,7 @@ Every character encountered is presented to a state object within the
 the new current state.
 
 However, if there is no matching state, the algorithm will signal a
-*fail* and fall back to states with less depth (i.e.,, a match less long)
+*fail* and fall back to states with less depth (i.e., a match less long)
 and proceed from there, until it found a matching state, or it has reached
 the root state.
 
@@ -59,7 +59,7 @@ The Aho-Corasick algorithm can help:
 
 * find words in texts to link or emphasize them;
 * add semantics to plain text; or
-* checki against a dictionary to see if syntactic errors were made.
+* check against a dictionary to see if syntactic errors were made.
 
 See the [white paper](http://cr.yp.to/bib/1975/aho.pdf) by Aho and
 Corasick for algorithmic details.
@@ -207,8 +207,9 @@ html.append("</p></body></html>");
 System.out.println(html);
 ```
 
-You can also emit custom outputs. This might for example be useful to implement a trivial named entity 
-recognizer. In this case use a PayloadTrie instead of a Trie:
+You can also emit custom outputs. This might for example be useful to
+implement a trivial named entity recognizer. In this case use a
+`PayloadTrie` instead of a `Trie` as follows:
 
 ```java
 class Word {
@@ -237,15 +238,15 @@ See [releases](https://github.com/robert-bor/aho-corasick/releases) for details.
 License
 -------
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
