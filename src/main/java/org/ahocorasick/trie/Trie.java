@@ -75,11 +75,8 @@ public class Trie {
      * @return null if no matches found.
      */
     public Emit firstMatch(final CharSequence text) {
-        Emit result = null;
-        PayloadEmit<String> firstMatch = this.payloadTrie.firstMatch(text);
-        if (firstMatch != null)
-            result = new Emit(firstMatch.getStart(), firstMatch.getEnd(), firstMatch.getKeyword());
-        return result;
+        final PayloadEmit<String> payload = this.payloadTrie.firstMatch(text);
+        return payload == null ? null : new Emit(payload.getStart(), payload.getEnd(), payload.getKeyword());
     }
 
     /**
