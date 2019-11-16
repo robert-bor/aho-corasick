@@ -4,7 +4,7 @@
 
     <groupId>org.ahocorasick</groupId>
     <artifactId>ahocorasick</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
     <packaging>jar</packaging>
     <name>Aho-CoraSick algorithm for efficient string matching</name>
     <description>Java library for efficient string matching against a large set of keywords</description>
