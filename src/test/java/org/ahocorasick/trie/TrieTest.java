@@ -465,7 +465,7 @@ public class TrieTest {
         assertEquals(textSize / interval, emits.size());
     }
 
-    @Test
+    @Test(timeout=30_000)
     public void testParallelSearch() throws InterruptedException {
         final int interval = 100;
         final int textSize = 1000000;
