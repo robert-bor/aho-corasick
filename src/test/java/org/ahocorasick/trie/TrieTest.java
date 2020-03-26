@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.ahocorasick.trie.handler.AbstractStatefulEmitHandler;
 import org.ahocorasick.trie.handler.EmitHandler;
@@ -462,6 +463,47 @@ public class TrieTest {
         final Collection<Emit> emits = trie.parseText(text);
 
         assertEquals(textSize / interval, emits.size());
+    }
+
+    @Test(timeout=30_000)
+    public void testParallelSearch() throws InterruptedException {
+        final int interval = 100;
+        final int textSize = 1000000;
+        final String keyword = FOOD[1];
+        final StringBuilder matchingText = randomNumbers(textSize);
+        injectKeyword(matchingText, keyword, interval);
+        final StringBuilder nonMatchingText = randomNumbers(textSize);
+        injectKeyword(nonMatchingText, keyword.substring(0, keyword.length()-1), interval);
+
+        final Trie trie = Trie.builder()
+                .onlyWholeWords()
+                .addKeyword(keyword)
+                .build();
+
+        final AtomicInteger matchCount = new AtomicInteger(0);
+        Runnable matchingTask = new Runnable() {
+            @Override
+            public void run() {
+                matchCount.set(trie.parseText(matchingText).size());
+            }
+        };
+
+        final AtomicInteger nonMatchCount = new AtomicInteger(0);
+        Runnable nonMatchingTask = new Runnable() {
+            @Override
+            public void run() {
+                nonMatchCount.set(trie.parseText(nonMatchingText).size());
+            }
+        };
+        Thread matchingThread = new Thread(matchingTask);
+        Thread nonMatchingThread = new Thread(nonMatchingTask);
+        matchingThread.start();
+        nonMatchingThread.start();
+        matchingThread.join();
+        nonMatchingThread.join();
+
+        assertEquals(textSize / interval, matchCount.get());
+        assertEquals(0, nonMatchCount.get());
     }
 
     /**
