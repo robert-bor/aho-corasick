@@ -32,8 +32,9 @@ public class ListElementRemoval {
     /**
      * Removes all elements from the list matching the given predicate.
      * 
-     * @param list
-     * @param predicate
+     * @param list the list from which to remove
+     * @param predicate to test for removal
+     * @param <T> type of list
      */
     public static <T> void removeIf(final List<T> list, final RemoveElementPredicate<T> predicate) {
         final List<T> newList = new ArrayList<>(list.size());

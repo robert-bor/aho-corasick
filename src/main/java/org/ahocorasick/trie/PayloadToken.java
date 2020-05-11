@@ -21,8 +21,12 @@ public abstract class PayloadToken<T> {
 
     /**
      * Return true if a search term matched.
+     * @return true if this is a match
      */
     public abstract boolean isMatch();
 
+    /**
+     * @return the payload
+     */
     public abstract PayloadEmit<T> getEmit();
 }

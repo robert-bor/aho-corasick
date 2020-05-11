@@ -6,7 +6,6 @@ import java.util.*;
  * <p>
  * A state has various important tasks it must attend to:
  * </p>
- * <p>
  * <ul>
  * <li>success; when a character points to another state, it must return that state</li>
  * <li>failure; when a character has no matching state, the algorithm must be able to fall back on a
@@ -14,7 +13,6 @@ import java.util.*;
  * <li>emits; when this state is passed and keywords have been matched, the matches must be
  * 'emitted' so that they can be used later on.</li>
  * </ul>
- * <p>
  * <p>
  * The root state is special in the sense that it has no failure state; it cannot fail. If it 'fails'
  * it will still parse the next character and start from the root node. This ensures that the algorithm
