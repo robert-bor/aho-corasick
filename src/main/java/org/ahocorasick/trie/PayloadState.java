@@ -6,7 +6,6 @@ import java.util.*;
  * <p>
  * A state has various important tasks it must attend to:
  * </p>
- * <p>
  * <ul>
  * <li>success; when a character points to another state, it must return that
  * state</li>
@@ -16,7 +15,6 @@ import java.util.*;
  * matches and their payloads must be 'emitted' so that they can be used later
  * on.</li>
  * </ul>
- * <p>
  * <p>
  * The root state is special in the sense that it has no failure state; it
  * cannot fail. If it 'fails' it will still parse the next character and start
@@ -109,7 +107,7 @@ public class PayloadState<T> {
     /**
      * Adds a payload to be emitted for this state.
      * 
-     * @param emit Payload to be emitted.
+     * @param payload to be emitted.
      */
     public void addEmit(Payload<T> payload) {
         if (this.emits == null) {
