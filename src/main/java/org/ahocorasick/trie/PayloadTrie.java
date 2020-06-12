@@ -17,15 +17,16 @@ import org.ahocorasick.util.ListElementRemoval;
 import org.ahocorasick.util.ListElementRemoval.RemoveElementPredicate;
 
 /**
- * A trie implementation, based on the Aho-Corasick white paper, Bell
- * technologies: http://cr.yp.to/bib/1975/aho.pdf
- * <p>
+ * A trie implementation that carries a payload. See {@link Trie} for
+ * details on usage.
  *
+ * <p>
  * The payload trie adds the possibility to specify emitted payloads for each
  * added keyword.
+ * </p>
  * 
  * @author Daniel Beck
- * @param <T> The type of the supplied of the payload
+ * @param <T> The type of the supplied of the payload.
  */
 public class PayloadTrie<T> {
 

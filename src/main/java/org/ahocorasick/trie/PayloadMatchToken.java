@@ -1,10 +1,11 @@
 package org.ahocorasick.trie;
 
 /**
- * PayloadMatchToken holds a text ("the fragment") an emits some output.
+ * Container for a token ("the fragment") that can emit a type of payload.
  * <p>
- * It matches a search term - so its <code>isMatch</code>-method returns always
- * true..
+ * This token indicates a matching search term was found, so {@link #isMatch()}
+ * always returns {@code true}.
+ * </p>
  * 
  * @author Daniel Beck
  *

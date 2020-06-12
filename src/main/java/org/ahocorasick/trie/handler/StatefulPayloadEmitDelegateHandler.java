@@ -9,7 +9,7 @@ import org.ahocorasick.trie.PayloadEmit;
 
 /**
  * Convenience wrapper class that delegates every method to a
- * StatefullPayloadEmitHandler.
+ * {@link StatefulPayloadEmitHandler}.
  */
 public class StatefulPayloadEmitDelegateHandler implements StatefulPayloadEmitHandler<String> {
 

@@ -10,8 +10,8 @@ import org.ahocorasick.trie.handler.PayloadEmitDelegateHandler;
 import org.ahocorasick.trie.handler.StatefulEmitHandler;
 
 /**
- * Based on the Aho-Corasick white paper, Bell technologies:
- * http://cr.yp.to/bib/1975/aho.pdf
+ * Based on the <a href="http://cr.yp.to/bib/1975/aho.pdf">Aho-Corasick white
+ * paper</a>, from Bell technologies.
  *
  * @author Robert Bor
  */

@@ -1,10 +1,9 @@
 package org.ahocorasick.trie;
 
 /**
- * Payload holds the matched keyword and some payload-data.
+ * Contains the matched keyword and some payload data.
  * 
  * @author Daniel Beck
- *
  * @param <T> The type of the wrapped payload data.
  */
 public class Payload<T> implements Comparable<Payload<T>> {

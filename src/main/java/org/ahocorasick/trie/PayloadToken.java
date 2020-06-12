@@ -2,8 +2,8 @@ package org.ahocorasick.trie;
 
 /***
  * PayloadToken holds a text ("the fragment") an emits some output. If
- * <code>isMatch</code> returns true, the token matched a search term.
- * 
+ * {@link #isMatch()} returns {@code true}, the token matched a search term.
+ *
  * @author Daniel Beck
  *
  * @param <T> The Type of the emitted payloads.
@@ -20,8 +20,8 @@ public abstract class PayloadToken<T> {
     }
 
     /**
-     * Return true if a search term matched.
-     * @return true if this is a match
+     * Return {@code true} if a search term matched.
+     * @return {@code true} if this is a match
      */
     public abstract boolean isMatch();
 

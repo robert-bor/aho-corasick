@@ -4,11 +4,10 @@ import org.ahocorasick.interval.Interval;
 import org.ahocorasick.interval.Intervalable;
 
 /**
- * PayloadEmit contains a matched term and its associated payload data.
+ * Contains a matched term and its associated payload data.
  * 
  * @param <T> Type of the wrapped payload-data.
  * @author Daniel Beck
- *
  */
 public class PayloadEmit<T> extends Interval implements Intervalable {
 

@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -9,7 +11,7 @@
     <name>Aho-CoraSick algorithm for efficient string matching</name>
     <description>Java library for efficient string matching against a large set of keywords</description>
     <inceptionYear>2014</inceptionYear>
-    <url>http://ahocorasick.org</url>
+    <url>https://github.com/robert-bor/aho-corasick</url>
 
     <distributionManagement>
         <snapshotRepository>
@@ -46,12 +48,17 @@
             <organization>42</organization>
         </developer>
         <developer>
-            <name></name>
+            <name>Daniel Beck</name>
+            <organization>neoSearch UG (haftungsbeschränkt)</organization>
+        </developer>
+        <developer>
+            <name>Dave Jarvis</name>
+            <organization>White Magic Software, Ltd.</organization>
         </developer>
     </developers>
 
     <properties>
-        <java.version>1.7</java.version>
+        <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <junit.version>4.10</junit.version>
@@ -111,6 +118,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <source>8</source>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -147,7 +157,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.7.201606060606</version>
+                <version>0.8.5</version>
                 <executions>
                     <execution>
                         <goals>
@@ -166,5 +176,4 @@
 
         </plugins>
     </build>
-
 </project>

@@ -4,7 +4,8 @@ import org.ahocorasick.trie.Emit;
 import org.ahocorasick.trie.PayloadEmit;
 
 /**
- * Convenience wrapper class that delegates every method to a EmitHandler.
+ * Convenience wrapper class that delegates every method to an
+ * instance of {@link EmitHandler}.
  */
 public class PayloadEmitDelegateHandler implements PayloadEmitHandler<String> {
 
