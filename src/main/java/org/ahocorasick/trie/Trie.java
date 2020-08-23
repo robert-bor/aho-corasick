@@ -53,8 +53,8 @@ public class Trie {
         return asEmits(parsedText);
     }
 
-    @SuppressWarnings("unchecked")
-    public Collection<Emit> parseText(final CharSequence text, final StatefulEmitHandler emitHandler) {
+    @SuppressWarnings("UnusedReturnValue")
+    public Collection<Emit> parseText( final CharSequence text, final StatefulEmitHandler emitHandler) {
         Collection<PayloadEmit<String>> parsedText = this.payloadTrie.parseText(text,
                 new StatefulPayloadEmitDelegateHandler(emitHandler));
         return asEmits(parsedText);
@@ -89,10 +89,6 @@ public class Trie {
     }
 
     public static class TrieBuilder {
-
-        private final TrieConfig trieConfig = new TrieConfig();
-
-        private final PayloadTrie<String> trie = new PayloadTrie<>(trieConfig);
 
         private final PayloadTrieBuilder<String> delegate = PayloadTrie.builder();
 
@@ -157,7 +153,8 @@ public class Trie {
          * @param keywords The keywords to add to the list.
          * @return This builder.
          */
-        public TrieBuilder addKeywords(final Collection<String> keywords) {
+        @SuppressWarnings("unused")
+        public TrieBuilder addKeywords( final Collection<String> keywords ) {
             for (String keyword : keywords) {
                 this.delegate.addKeyword(keyword, null);
             }
