@@ -55,7 +55,7 @@ public class PayloadTrie<T> {
             keyword = keyword.toLowerCase();
         }
 
-        addState(keyword).addEmit(new Payload<T>(keyword, emit));
+        addState(keyword).addEmit(new Payload<>(keyword, emit));
     }
 
     /**
@@ -73,7 +73,7 @@ public class PayloadTrie<T> {
             keyword = keyword.toLowerCase();
         }
 
-        addState(keyword).addEmit(new Payload<T>(keyword, null));
+        addState(keyword).addEmit(new Payload<>(keyword, null));
     }
 
     private PayloadState<T> addState(final String keyword) {
@@ -93,7 +93,7 @@ public class PayloadTrie<T> {
 
         for (final PayloadEmit<T> emit : collectedEmits) {
             if (emit.getStart() - lastCollectedPosition > 1) {
-                tokens.add((PayloadToken<T>) createFragment(emit, text, lastCollectedPosition));
+                tokens.add( createFragment( emit, text, lastCollectedPosition) );
             }
 
             tokens.add(createMatch(emit, text));
@@ -101,19 +101,22 @@ public class PayloadTrie<T> {
         }
 
         if (text.length() - lastCollectedPosition > 1) {
-            tokens.add((PayloadToken<T>) createFragment(null, text, lastCollectedPosition));
+            tokens.add( createFragment( null, text, lastCollectedPosition) );
         }
 
         return tokens;
     }
 
     private PayloadToken<T> createFragment(final PayloadEmit<T> emit, final String text, final int lastCollectedPosition) {
-        return new PayloadFragmentToken<T>(
-                text.substring(lastCollectedPosition + 1, emit == null ? text.length() : emit.getStart()));
+        return new PayloadFragmentToken<>(
+            text.substring( lastCollectedPosition + 1,
+                            emit == null ? text.length() : emit.getStart() ) );
     }
 
     private PayloadToken<T> createMatch(PayloadEmit<T> emit, String text) {
-        return new PayloadMatchToken<T>(text.substring(emit.getStart(), emit.getEnd() + 1), emit);
+        return new PayloadMatchToken<>( text.substring( emit.getStart(),
+                                                        emit.getEnd() + 1 ),
+                                        emit );
     }
 
     /**
@@ -123,7 +126,7 @@ public class PayloadTrie<T> {
      * @return A collection of emits.
      */
     public Collection<PayloadEmit<T>> parseText(final CharSequence text) {
-        return parseText(text, new DefaultPayloadEmitHandler<T>());
+        return parseText(text, new DefaultPayloadEmitHandler<>());
     }
 
     /**
@@ -179,7 +182,7 @@ public class PayloadTrie<T> {
         PayloadState<T> currentState = getRootState();
 
         for (int position = 0; position < text.length(); position++) {
-            Character character = text.charAt(position);
+            char character = text.charAt( position);
 
             // TODO: Maybe lowercase the entire string at once?
             if (trieConfig.isCaseInsensitive()) {
@@ -212,7 +215,7 @@ public class PayloadTrie<T> {
             PayloadState<T> currentState = getRootState();
 
             for (int position = 0; position < text.length(); position++) {
-                Character character = text.charAt(position);
+                char character = text.charAt( position);
 
                 // TODO: Lowercase the entire string at once?
                 if (trieConfig.isCaseInsensitive()) {
@@ -248,14 +251,7 @@ public class PayloadTrie<T> {
 
     private void removePartialMatches(final CharSequence searchText, final List<PayloadEmit<T>> collectedEmits) {
 
-        final RemoveElementPredicate<PayloadEmit<T>> predicate = new RemoveElementPredicate<PayloadEmit<T>>() {
-
-            @Override
-            public boolean remove(PayloadEmit<T> emit) {
-                return isPartialMatch(searchText, emit);
-            }
-
-        };
+        final RemoveElementPredicate<PayloadEmit<T>> predicate = emit -> isPartialMatch( searchText, emit);
 
         ListElementRemoval.removeIf(collectedEmits, predicate);
     }
@@ -326,7 +322,7 @@ public class PayloadTrie<T> {
         // TODO: The check for empty might be superfluous.
         if (payloads != null && !payloads.isEmpty()) {
             for (final Payload<T> payload : payloads) {
-                emitted = emitHandler.emit(new PayloadEmit<T>(position - payload.getKeyword().length() + 1, position,
+                emitted = emitHandler.emit(new PayloadEmit<>(position - payload.getKeyword().length() + 1, position,
                         payload.getKeyword(), payload.getData())) || emitted;
 
                 if (emitted && trieConfig.isStopOnHit()) {
@@ -353,7 +349,7 @@ public class PayloadTrie<T> {
      * @return The builder used to configure its Trie.
      */
     public static <T> PayloadTrieBuilder<T> builder() {
-        return new PayloadTrieBuilder<T>();
+        return new PayloadTrieBuilder<>();
     }
 
     /**
