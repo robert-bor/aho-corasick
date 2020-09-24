@@ -197,9 +197,9 @@ public class PayloadTrieTest {
         Collection<PayloadEmit<String>> emits = trie.parseText("ushers");
         assertEquals(3, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<PayloadEmit<String>> iterator = emits.iterator();
-        checkEmit(iterator.next(), 2, 3, "he", "he");
-        checkEmit(iterator.next(), 1, 3, "she", "she");
-        checkEmit(iterator.next(), 2, 5, "hers", "hers");
+        checkEmit(iterator.next(), 2, 3, "HE", "he");
+        checkEmit(iterator.next(), 1, 3, "SHE", "she");
+        checkEmit(iterator.next(), 2, 5, "HERS", "hers");
     }
 
     @Test
