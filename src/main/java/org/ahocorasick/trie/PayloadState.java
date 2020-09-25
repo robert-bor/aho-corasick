@@ -81,20 +81,10 @@ public class PayloadState<T> {
         return nextState(character, true);
     }
 
-    public PayloadState<T> addState(String keyword) {
-        PayloadState<T> state = this;
-
-        for (final Character character : keyword.toCharArray()) {
-            state = state.addState(character);
-        }
-
-        return state;
-    }
-
     public PayloadState<T> addState(Character character) {
         PayloadState<T> nextState = nextStateIgnoreRootState(character);
         if (nextState == null) {
-            nextState = new PayloadState<T>(this.depth + 1);
+            nextState = new PayloadState<>(this.depth + 1);
             this.success.put(character, nextState);
         }
         return nextState;

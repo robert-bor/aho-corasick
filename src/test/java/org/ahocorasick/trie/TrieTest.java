@@ -3,10 +3,7 @@ package org.ahocorasick.trie;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -160,9 +157,9 @@ public class TrieTest {
         Collection<Emit> emits = trie.parseText("ushers");
         assertEquals(3, emits.size()); // she @ 3, he @ 3, hers @ 5
         Iterator<Emit> iterator = emits.iterator();
-        checkEmit(iterator.next(), 2, 3, "he");
-        checkEmit(iterator.next(), 1, 3, "she");
-        checkEmit(iterator.next(), 2, 5, "hers");
+        checkEmit(iterator.next(), 2, 3, "HE");
+        checkEmit(iterator.next(), 1, 3, "SHE");
+        checkEmit(iterator.next(), 2, 5, "HERS");
     }
 
     @Test
@@ -463,6 +460,23 @@ public class TrieTest {
         final Collection<Emit> emits = trie.parseText(text);
 
         assertEquals(textSize / interval, emits.size());
+    }
+
+    @Test
+    public void unicodeIssueBug39ReportedByHumanzz(){
+        // Problem: "İ".length => 1, "İ".toLowerCase().length => 2. This causes all sorts of unexpected behaviors
+        // and bugs where the Emit will have a size different from the original string.
+        // Soln: As in issue #8, convert at character level Character.toLowerCase('İ') => 'i'  + make sure
+        // that emit gets the properly cased keyword.
+        String upperLengthOne = "İnt";
+        Trie trie = Trie.builder()
+                .ignoreCase()
+                .onlyWholeWords()
+                .addKeyword(upperLengthOne)
+                .build();
+        Collection<Emit> emits = trie.parseText("İnt is good");
+        assertEquals(1, emits.size());
+        checkEmit(emits.iterator().next(), 0, 2, upperLengthOne);
     }
 
     @Test(timeout=30_000)

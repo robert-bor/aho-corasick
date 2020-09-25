@@ -51,10 +51,6 @@ public class PayloadTrie<T> {
             return;
         }
 
-        if (isCaseInsensitive()) {
-            keyword = keyword.toLowerCase();
-        }
-
         addState(keyword).addEmit(new Payload<>(keyword, emit));
     }
 
@@ -69,15 +65,16 @@ public class PayloadTrie<T> {
             return;
         }
 
-        if (isCaseInsensitive()) {
-            keyword = keyword.toLowerCase();
-        }
-
         addState(keyword).addEmit(new Payload<>(keyword, null));
     }
 
     private PayloadState<T> addState(final String keyword) {
-        return getRootState().addState(keyword);
+        PayloadState<T> state = getRootState();
+        for (final Character character : keyword.toCharArray()) {
+            Character adjustedChar = isCaseInsensitive() ? Character.toLowerCase(character) : character;
+            state = state.addState(adjustedChar);
+        }
+        return state;
     }
 
     /**
