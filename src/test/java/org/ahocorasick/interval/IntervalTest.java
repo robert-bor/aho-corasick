@@ -54,4 +54,14 @@ public class IntervalTest {
         assertEquals(4, it.next().getStart());
     }
 
+    @Test
+    public void checkToString() {
+        assertEquals("4:6", new Interval(4, 6).toString());
+    }
+
+    @Test
+    public void compareToNegativeTest() {
+        assertEquals(-1, new Interval(4, 6).compareTo(new Object()));
+    }
+
 }
