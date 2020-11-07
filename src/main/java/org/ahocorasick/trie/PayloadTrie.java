@@ -2,7 +2,7 @@ package org.ahocorasick.trie;
 
 import static java.lang.Character.isWhitespace;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
@@ -13,8 +13,6 @@ import org.ahocorasick.interval.Intervalable;
 import org.ahocorasick.trie.handler.DefaultPayloadEmitHandler;
 import org.ahocorasick.trie.handler.PayloadEmitHandler;
 import org.ahocorasick.trie.handler.StatefulPayloadEmitHandler;
-import org.ahocorasick.util.ListElementRemoval;
-import org.ahocorasick.util.ListElementRemoval.RemoveElementPredicate;
 
 /**
  * A trie implementation that carries a payload. See {@link Trie} for
@@ -24,7 +22,7 @@ import org.ahocorasick.util.ListElementRemoval.RemoveElementPredicate;
  * The payload trie adds the possibility to specify emitted payloads for each
  * added keyword.
  * </p>
- * 
+ *
  * @author Daniel Beck
  * @param <T> The type of the supplied of the payload.
  */
@@ -79,12 +77,12 @@ public class PayloadTrie<T> {
 
     /**
      * Tokenizes the specified text and returns the emitted outputs.
-     * 
+     *
      * @param text The text to tokenize.
      * @return the emitted outputs
      */
     public Collection<PayloadToken<T>> tokenize(final String text) {
-        final Collection<PayloadToken<T>> tokens = new ArrayList<>();
+        final Collection<PayloadToken<T>> tokens = new LinkedList<>();
         final Collection<PayloadEmit<T>> collectedEmits = parseText(text);
         int lastCollectedPosition = -1;
 
@@ -118,7 +116,7 @@ public class PayloadTrie<T> {
 
     /**
      * Tokenizes a specified text and returns the emitted outputs.
-     * 
+     *
      * @param text The character sequence to tokenize.
      * @return A collection of emits.
      */
@@ -129,7 +127,7 @@ public class PayloadTrie<T> {
     /**
      * Tokenizes the specified text by using a custom EmitHandler and returns the
      * emitted outputs.
-     * 
+     *
      * @param text        The character sequence to tokenize.
      * @param emitHandler The emit handler that will be used to parse the text.
      * @return A collection of emits.
@@ -139,14 +137,6 @@ public class PayloadTrie<T> {
         parseText(text, (PayloadEmitHandler<T>) emitHandler);
 
         final List<PayloadEmit<T>> collectedEmits = emitHandler.getEmits();
-
-        if (trieConfig.isOnlyWholeWords()) {
-            removePartialMatches(text, collectedEmits);
-        }
-
-        if (trieConfig.isOnlyWholeWordsWhiteSpaceSeparated()) {
-            removePartialMatchesWhiteSpaceSeparated(text, collectedEmits);
-        }
 
         if (!trieConfig.isAllowOverlaps()) {
             IntervalTree intervalTree = new IntervalTree((List<Intervalable>) (List<?>) collectedEmits);
@@ -159,7 +149,7 @@ public class PayloadTrie<T> {
     /**
      * Returns true if the text contains contains one of the search terms. Else,
      * returns false.
-     * 
+     *
      * @param text Specified text.
      * @return true if the text contains one of the search terms. Else, returns
      *         false.
@@ -171,7 +161,7 @@ public class PayloadTrie<T> {
     /**
      * Tokenizes the specified text by using a custom EmitHandler and returns the
      * emitted outputs.
-     * 
+     *
      * @param text        The character sequence to tokenize.
      * @param emitHandler The emit handler that will be used to parse the text.
      */
@@ -181,13 +171,13 @@ public class PayloadTrie<T> {
         for (int position = 0; position < text.length(); position++) {
             char character = text.charAt( position);
 
-            // TODO: Maybe lowercase the entire string at once?
             if (trieConfig.isCaseInsensitive()) {
                 character = Character.toLowerCase(character);
             }
 
             currentState = getState(currentState, character);
-            if (storeEmits(position, currentState, emitHandler) && trieConfig.isStopOnHit()) {
+            Collection<Payload<T>> payloads = currentState.emit();
+            if (processEmits(text, position, payloads, emitHandler) && trieConfig.isStopOnHit()) {
                 return;
             }
         }
@@ -214,7 +204,6 @@ public class PayloadTrie<T> {
             for (int position = 0; position < text.length(); position++) {
                 char character = text.charAt( position);
 
-                // TODO: Lowercase the entire string at once?
                 if (trieConfig.isCaseInsensitive()) {
                     character = Character.toLowerCase(character);
                 }
@@ -246,29 +235,10 @@ public class PayloadTrie<T> {
                 || (emit.getEnd() + 1 != searchText.length() && Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
     }
 
-    private void removePartialMatches(final CharSequence searchText, final List<PayloadEmit<T>> collectedEmits) {
-
-        final RemoveElementPredicate<PayloadEmit<T>> predicate = emit -> isPartialMatch( searchText, emit);
-
-        ListElementRemoval.removeIf(collectedEmits, predicate);
-    }
-
-    private void removePartialMatchesWhiteSpaceSeparated(final CharSequence searchText,
-            final List<PayloadEmit<T>> collectedEmits) {
+    private boolean isPartialMatchWhiteSpaceSeparated(final CharSequence searchText, final PayloadEmit<T> emit) {
         final long size = searchText.length();
-        final List<PayloadEmit<T>> removeEmits = new ArrayList<>();
-
-        for (final PayloadEmit<T> emit : collectedEmits) {
-            if ((emit.getStart() == 0 || isWhitespace(searchText.charAt(emit.getStart() - 1)))
-                    && (emit.getEnd() + 1 == size || isWhitespace(searchText.charAt(emit.getEnd() + 1)))) {
-                continue;
-            }
-            removeEmits.add(emit);
-        }
-
-        for (final PayloadEmit<T> removeEmit : removeEmits) {
-            collectedEmits.remove(removeEmit);
-        }
+        return (emit.getStart() != 0 && !isWhitespace(searchText.charAt(emit.getStart() - 1)))
+                || (emit.getEnd() + 1 != size && !isWhitespace(searchText.charAt(emit.getEnd() + 1)));
     }
 
     private PayloadState<T> getState(PayloadState<T> currentState, final Character character) {
@@ -312,19 +282,24 @@ public class PayloadTrie<T> {
         }
     }
 
-    private boolean storeEmits(final int position, final PayloadState<T> currentState, final PayloadEmitHandler<T> emitHandler) {
+    private boolean processEmits(final CharSequence text, final int position, final Collection<Payload<T>> payloads, final PayloadEmitHandler<T> emitHandler) {
         boolean emitted = false;
-        final Collection<Payload<T>> payloads = currentState.emit();
+        for (final Payload<T> payload : payloads) {
+            PayloadEmit<T> payloadEmit = new PayloadEmit<>(position - payload.getKeyword().length() + 1,
+                    position, payload.getKeyword(), payload.getData());
 
-        // TODO: The check for empty might be superfluous.
-        if (payloads != null && !payloads.isEmpty()) {
-            for (final Payload<T> payload : payloads) {
-                emitted = emitHandler.emit(new PayloadEmit<>(position - payload.getKeyword().length() + 1, position,
-                        payload.getKeyword(), payload.getData())) || emitted;
+            if (trieConfig.isOnlyWholeWords() && isPartialMatch(text, payloadEmit)) {
+                continue;
+            }
 
-                if (emitted && trieConfig.isStopOnHit()) {
-                    break;
-                }
+            if (trieConfig.isOnlyWholeWordsWhiteSpaceSeparated() && isPartialMatchWhiteSpaceSeparated(text, payloadEmit)) {
+                continue;
+            }
+
+            emitted = emitHandler.emit(payloadEmit) || emitted;
+
+            if (emitted && trieConfig.isStopOnHit()) {
+                break;
             }
         }
 
@@ -351,7 +326,7 @@ public class PayloadTrie<T> {
 
     /**
      * Builder class to create a PayloadTrie instance.
-     * 
+     *
      * @param <T> The type of the emitted payload.
      */
     public static class PayloadTrieBuilder<T> {
