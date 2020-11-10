@@ -5,15 +5,14 @@ import org.ahocorasick.trie.handler.PayloadEmitHandler;
 import org.ahocorasick.trie.handler.StatefulPayloadEmitHandler;
 import org.junit.Test;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class PayloadTrieTest {
 
@@ -216,7 +215,7 @@ public class PayloadTrieTest {
     public void ushersTestByCallback() {
         PayloadTrie<Integer> trie = PayloadTrie.<Integer>builder().addKeywords(PRONOUNS_WITH_PAYLOADS).build();
 
-        final List<PayloadEmit<Integer>> emits = new ArrayList<>();
+        final List<PayloadEmit<Integer>> emits = new LinkedList<>();
         PayloadEmitHandler<Integer> emitHandler = emit -> {
             emits.add(emit);
             return true;
@@ -446,6 +445,42 @@ public class PayloadTrieTest {
         final Collection<PayloadEmit<Food>> emits = trie.parseText(text);
 
         assertEquals(textSize / interval, emits.size());
+    }
+
+    @Test
+    public void test_containsMatchWithCaseInsensitive() {
+        PayloadTrie<String> trie = PayloadTrie.<String>builder().caseInsensitive().addKeyword("foo", "bar").build();
+
+        assertTrue(trie.containsMatch("FOOBAR"));
+        assertFalse(trie.containsMatch("FO!?AR"));
+    }
+
+    // @see https://github.com/robert-bor/aho-corasick/issues/85
+    @Test
+    public void test_wholeWords() {
+        PayloadTrie<String> trie = PayloadTrie.<String>builder().addKeyword("foo", "bar").onlyWholeWords().build();
+        // access via PayloadTrie.parseText(CharSequence)
+        Collection<PayloadEmit<String>> result1 = trie.parseText("foobar");
+        // access via PayloadTrie.parseText(CharSequence, PayloadEmitHandler<String>)
+        Collection<PayloadEmit<String>> result2 = new LinkedList<>();
+        trie.parseText("foobar", result2::add);
+
+        assertTrue(result1.isEmpty());
+        assertEquals(result1, result2);
+    }
+
+    // @see https://github.com/robert-bor/aho-corasick/issues/85
+    @Test
+    public void test_wholeWordsWhiteSpaceSeparated() {
+        PayloadTrie<String> trie = PayloadTrie.<String>builder().addKeyword("foo", "bar").onlyWholeWordsWhiteSpaceSeparated().build();
+        // access via PayloadTrie.parseText(CharSequence)
+        Collection<PayloadEmit<String>> result1 = trie.parseText("foo#bar");
+        // access via PayloadTrie.parseText(CharSequence, PayloadEmitHandler<String>)
+        Collection<PayloadEmit<String>> result2 = new LinkedList<>();
+        trie.parseText("foo#bar", result2::add);
+
+        assertTrue(result1.isEmpty());
+        assertEquals(result1, result2);
     }
 
     /**
