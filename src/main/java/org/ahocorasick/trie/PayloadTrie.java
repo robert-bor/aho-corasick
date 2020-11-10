@@ -176,7 +176,7 @@ public class PayloadTrie<T> {
             }
 
             currentState = getState(currentState, character);
-            Collection<Payload<T>> payloads = currentState.emit();
+            final Collection<Payload<T>> payloads = currentState.emit();
             if (processEmits(text, position, payloads, emitHandler) && trieConfig.isStopOnHit()) {
                 return;
             }
@@ -285,21 +285,14 @@ public class PayloadTrie<T> {
     private boolean processEmits(final CharSequence text, final int position, final Collection<Payload<T>> payloads, final PayloadEmitHandler<T> emitHandler) {
         boolean emitted = false;
         for (final Payload<T> payload : payloads) {
-            PayloadEmit<T> payloadEmit = new PayloadEmit<>(position - payload.getKeyword().length() + 1,
+            final PayloadEmit<T> payloadEmit = new PayloadEmit<>(position - payload.getKeyword().length() + 1,
                     position, payload.getKeyword(), payload.getData());
-
-            if (trieConfig.isOnlyWholeWords() && isPartialMatch(text, payloadEmit)) {
-                continue;
-            }
-
-            if (trieConfig.isOnlyWholeWordsWhiteSpaceSeparated() && isPartialMatchWhiteSpaceSeparated(text, payloadEmit)) {
-                continue;
-            }
-
-            emitted = emitHandler.emit(payloadEmit) || emitted;
-
-            if (emitted && trieConfig.isStopOnHit()) {
-                break;
+            if (!(trieConfig.isOnlyWholeWords() && isPartialMatch(text, payloadEmit)) &&
+                    !(trieConfig.isOnlyWholeWordsWhiteSpaceSeparated() && isPartialMatchWhiteSpaceSeparated(text, payloadEmit))) {
+                emitted = emitHandler.emit(payloadEmit) || emitted;
+                if (emitted && trieConfig.isStopOnHit()) {
+                    break;
+                }
             }
         }
 
@@ -450,6 +443,7 @@ public class PayloadTrie<T> {
          * @return This builder.
          * @deprecated Use ignoreCase()
          */
+        @Deprecated
         public PayloadTrieBuilder<T> caseInsensitive() {
             return ignoreCase();
         }
@@ -458,6 +452,7 @@ public class PayloadTrie<T> {
          * @return This builder.
          * @deprecated Use ignoreOverlaps()
          */
+        @Deprecated
         public PayloadTrieBuilder<T> removeOverlaps() {
             return ignoreOverlaps();
         }

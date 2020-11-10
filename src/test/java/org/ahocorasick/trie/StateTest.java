@@ -5,12 +5,12 @@ import org.junit.Test;
 import java.util.Collection;
 import java.util.Collections;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 public class StateTest {
 
     @Test
-    public void constructSequenceOfCharacters() {
+    public void test_constructSequenceOfCharacters() {
         final State rootState = new State();
         rootState
                 .addState('a')
@@ -27,46 +27,45 @@ public class StateTest {
     }
 
     @Test
-    public void getStates() {
-        State rootState = new State();
+    public void test_getStates() {
+        final State rootState = new State();
         rootState.addState("foo");
+        final State currentState = rootState.nextState('f');
+        final Collection<State> states = rootState.getStates();
 
-        State currentState = rootState.nextState('f');
-
-        Collection<State> states = rootState.getStates();
         assertEquals(1, states.size());
         assertEquals(currentState, states.iterator().next());
     }
 
-
     @Test
-    public void getTransitions() {
-        State rootState = new State();
+    public void test_getTransitions() {
+        final State rootState = new State();
         rootState.addState("foo");
-        State currentState = rootState.nextState('f');
+        final State currentState = rootState.nextState('f');
+        final Collection<Character> transitions = rootState.getTransitions();
 
-        Collection<Character> transitions = rootState.getTransitions();
         assertEquals(1, transitions.size());
         assertEquals(Character.valueOf('f'), transitions.iterator().next());
     }
 
     @Test
-    public void failure() {
-        State failureState = new State();
-        State rootState = new State();
+    public void test_failure() {
+        final State failureState = new State();
+        final State rootState = new State();
         rootState.setFailure(failureState);
 
         assertEquals(failureState, rootState.failure());
-
     }
 
     @Test
-    public void checkEmits() {
-        State rootState = new State();
+    public void test_checkEmits() {
+        final State rootState = new State();
         rootState.addState('a')
                 .addEmit(Collections.singleton("tag"));
-        Collection<String> actual = rootState.nextState('a').emit();
+        final Collection<String> actual = rootState.nextState('a').emit();
+
         assertEquals(1, actual.size());
         assertEquals("tag", actual.iterator().next());
     }
+
 }
