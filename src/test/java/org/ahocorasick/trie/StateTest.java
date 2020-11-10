@@ -8,7 +8,7 @@ public class StateTest {
 
     @Test
     public void constructSequenceOfCharacters() {
-        State rootState = new State();
+        final State rootState = new State();
         rootState
                 .addState('a')
                 .addState('b')
@@ -20,5 +20,4 @@ public class StateTest {
         currentState = currentState.nextState('c');
         assertEquals(3, currentState.getDepth());
     }
-
 }

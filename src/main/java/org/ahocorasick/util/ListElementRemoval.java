@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Helps removes elements from a list in a efficient way
+ * Helps removes elements from a list in a efficient way.
  * 
  * <p>Removing elements from an ArrayList in a naive way can lead to O(n^3)
  * running time. If the algorithm first creates a list of all the elements
@@ -25,8 +25,8 @@ import java.util.List;
  */
 public class ListElementRemoval {
 
-    public static interface RemoveElementPredicate<T> {
-        public boolean remove(T t);
+    public interface RemoveElementPredicate<T> {
+        boolean remove( T t );
     }
     
     /**

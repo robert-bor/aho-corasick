@@ -1,67 +1,67 @@
 package org.ahocorasick.trie;
 
-import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.ahocorasick.trie.handler.AbstractStatefulPayloadEmitHandler;
+import org.ahocorasick.trie.handler.PayloadEmitHandler;
+import org.ahocorasick.trie.handler.StatefulPayloadEmitHandler;
+import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.ahocorasick.trie.handler.AbstractStatefulPayloadEmitHandler;
-import org.ahocorasick.trie.handler.PayloadEmitHandler;
-import org.ahocorasick.trie.handler.StatefulPayloadEmitHandler;
-import org.junit.Test;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PayloadTrieTest {
 
     private final static String[] ALPHABET = new String[] { "abc", "bcd", "cde" };
     private final static String[] ALPHABET_PAYLOAD = new String[] { "alpha:abc", "alpha:bcd", "alpha:cde" };
 
-    private final static List<Payload<String>> ALPHABET_WITH_PAYLOADS = Arrays.asList(//
-            new Payload<String>(ALPHABET[0], ALPHABET_PAYLOAD[0]), //
-            new Payload<String>(ALPHABET[1], ALPHABET_PAYLOAD[1]), //
-            new Payload<String>(ALPHABET[2], ALPHABET_PAYLOAD[2]));
+    private final static List<Payload<String>> ALPHABET_WITH_PAYLOADS = asList(
+            new Payload<>( ALPHABET[ 0 ], ALPHABET_PAYLOAD[ 0 ] ),
+            new Payload<>( ALPHABET[ 1 ], ALPHABET_PAYLOAD[ 1 ] ),
+            new Payload<>( ALPHABET[ 2 ], ALPHABET_PAYLOAD[ 2 ] ));
 
     private final static String[] PRONOUNS = new String[] { "hers", "his", "she", "he" };
     private final static int[] PRONOUNS_PAYLOAD_ID = new int[] { 9, 12, 4, 20 };
 
-    private final static List<Payload<Integer>> PRONOUNS_WITH_PAYLOADS = Arrays.asList(//
-            new Payload<Integer>(PRONOUNS[0], PRONOUNS_PAYLOAD_ID[0]), //
-            new Payload<Integer>(PRONOUNS[1], PRONOUNS_PAYLOAD_ID[1]), //
-            new Payload<Integer>(PRONOUNS[2], PRONOUNS_PAYLOAD_ID[2]), //
-            new Payload<Integer>(PRONOUNS[3], PRONOUNS_PAYLOAD_ID[3]) //
+    private final static List<Payload<Integer>> PRONOUNS_WITH_PAYLOADS = asList(
+        new Payload<>( PRONOUNS[ 0 ], PRONOUNS_PAYLOAD_ID[ 0 ] ),
+        new Payload<>( PRONOUNS[ 1 ], PRONOUNS_PAYLOAD_ID[ 1 ] ),
+        new Payload<>( PRONOUNS[ 2 ], PRONOUNS_PAYLOAD_ID[ 2 ] ),
+        new Payload<>( PRONOUNS[ 3 ], PRONOUNS_PAYLOAD_ID[ 3 ] )
     );
 
     private final static String[] FOOD = new String[] { "veal", "cauliflower", "broccoli", "tomatoes" };
     private final static Food[] FOOD_PAYLOAD = new Food[] { new Food("veal"), new Food("cauliflower"), new Food("broccoli"),
             new Food("tomatoes") };
 
-    private final static List<Payload<Food>> FOOD_WITH_PAYLOADS = Arrays.asList(//
-            new Payload<Food>(FOOD[0], FOOD_PAYLOAD[0]), //
-            new Payload<Food>(FOOD[1], FOOD_PAYLOAD[1]), //
-            new Payload<Food>(FOOD[2], FOOD_PAYLOAD[2]), //
-            new Payload<Food>(FOOD[3], FOOD_PAYLOAD[3]) //
+    private final static List<Payload<Food>> FOOD_WITH_PAYLOADS = asList(
+        new Payload<>( FOOD[ 0 ], FOOD_PAYLOAD[ 0 ] ),
+        new Payload<>( FOOD[ 1 ], FOOD_PAYLOAD[ 1 ] ),
+        new Payload<>( FOOD[ 2 ], FOOD_PAYLOAD[ 2 ] ),
+        new Payload<>( FOOD[ 3 ], FOOD_PAYLOAD[ 3 ] )
     );
 
     private final static String[] GREEK_LETTERS = new String[] { "Alpha", "Beta", "Gamma" };
     private final static String[] GREEK_LETTERS_PAYLOAD = new String[] { "greek:Alpha", "greek:Beta", "greek:Gamma" };
 
-    private final static List<Payload<String>> GREEK_LETTERS_WITH_PAYLOADS = Arrays.asList(//
-            new Payload<String>(GREEK_LETTERS[0], GREEK_LETTERS_PAYLOAD[0]), //
-            new Payload<String>(GREEK_LETTERS[1], GREEK_LETTERS_PAYLOAD[1]), //
-            new Payload<String>(GREEK_LETTERS[2], GREEK_LETTERS_PAYLOAD[2]));
+    private final static List<Payload<String>> GREEK_LETTERS_WITH_PAYLOADS = asList(
+        new Payload<>( GREEK_LETTERS[ 0 ], GREEK_LETTERS_PAYLOAD[ 0 ] ),
+        new Payload<>( GREEK_LETTERS[ 1 ], GREEK_LETTERS_PAYLOAD[ 1 ] ),
+        new Payload<>( GREEK_LETTERS[ 2 ], GREEK_LETTERS_PAYLOAD[ 2 ] ));
 
     private final static String[] UNICODE = new String[] { "turning", "once", "again", "börkü" };
     private final static String[] UNICODE_PAYLOAD = new String[] { "uni:turning", "uni:once", "uni:again", "uni:börkü" };
 
-    private final static List<Payload<String>> UNICODE_WITH_PAYLOADS = Arrays.asList(//
-            new Payload<String>(UNICODE[0], UNICODE_PAYLOAD[0]), //
-            new Payload<String>(UNICODE[1], UNICODE_PAYLOAD[1]), //
-            new Payload<String>(UNICODE[2], UNICODE_PAYLOAD[2]), //
-            new Payload<String>(UNICODE[3], UNICODE_PAYLOAD[3]));
+    private final static List<Payload<String>> UNICODE_WITH_PAYLOADS = asList(
+        new Payload<>( UNICODE[ 0 ], UNICODE_PAYLOAD[ 0 ] ),
+        new Payload<>( UNICODE[ 1 ], UNICODE_PAYLOAD[ 1 ] ),
+        new Payload<>( UNICODE[ 2 ], UNICODE_PAYLOAD[ 2 ] ),
+        new Payload<>( UNICODE[ 3 ], UNICODE_PAYLOAD[ 3 ] ));
 
     public static class Food {
         private final String name;
@@ -79,20 +79,23 @@ public class PayloadTrieTest {
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
+        public boolean equals( Object obj ) {
+            if( this == obj ) {
                 return true;
-            if (obj == null)
+            }
+            if( obj == null ) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if( getClass() != obj.getClass() ) {
                 return false;
+            }
             Food other = (Food) obj;
-            if (name == null) {
-                if (other.name != null)
-                    return false;
-            } else if (!name.equals(other.name))
-                return false;
-            return true;
+            if( name == null ) {
+                return other.name == null;
+            }
+            else {
+                return name.equals( other.name );
+            }
         }
     }
 
@@ -214,13 +217,9 @@ public class PayloadTrieTest {
         PayloadTrie<Integer> trie = PayloadTrie.<Integer>builder().addKeywords(PRONOUNS_WITH_PAYLOADS).build();
 
         final List<PayloadEmit<Integer>> emits = new ArrayList<>();
-        PayloadEmitHandler<Integer> emitHandler = new PayloadEmitHandler<Integer>() {
-
-            @Override
-            public boolean emit(PayloadEmit<Integer> emit) {
-                emits.add(emit);
-                return true;
-            }
+        PayloadEmitHandler<Integer> emitHandler = emit -> {
+            emits.add(emit);
+            return true;
         };
         trie.parseText("ushers", emitHandler);
         assertEquals(3, emits.size()); // she @ 3, he @ 3, hers @ 5

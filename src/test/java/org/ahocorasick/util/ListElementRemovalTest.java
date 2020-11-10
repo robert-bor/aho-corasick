@@ -1,65 +1,52 @@
 package org.ahocorasick.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.ahocorasick.util.ListElementRemoval.RemoveElementPredicate;
 import org.junit.Test;
 
-import junit.framework.Assert;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Responsible for testing that elements can be removed efficiently.
+ */
 public class ListElementRemovalTest {
 
-    @Test
-    public void removeNone() {
-        List<String> list = new ArrayList<>(asList("a", "b", "c"));
-        RemoveElementPredicate<String> matchNothing = new RemoveElementPredicate<String>() {
+  @Test
+  public void test_RemoveNone() {
+    final List<String> list = createList();
+    RemoveElementPredicate<String> matchNothing = t -> false;
 
-            @Override
-            public boolean remove(String t) {
-                return false;
-            }
-            
-        };
-        
-        ListElementRemoval.removeIf(list, matchNothing);
-        
-        Assert.assertEquals(3, list.size());
-    }
-    
-    @Test
-    public void removeAll() {
-        List<String> list = new ArrayList<>(asList("a", "b", "c"));
-        RemoveElementPredicate<String> matchNothing = new RemoveElementPredicate<String>() {
+    ListElementRemoval.removeIf( list, matchNothing );
 
-            @Override
-            public boolean remove(String t) {
-                return true;
-            }
-            
-        };
-        
-        ListElementRemoval.removeIf(list, matchNothing);
-        
-        Assert.assertEquals(0, list.size());
-    }
-    
-    @Test
-    public void removeSome() {
-        List<String> list = new ArrayList<>(asList("a", "b", "c"));
-        RemoveElementPredicate<String> matchNothing = new RemoveElementPredicate<String>() {
+    assertEquals( 3, list.size() );
+  }
 
-            @Override
-            public boolean remove(String t) {
-                return "a".equals(t) || "c".equals(t);
-            }
-            
-        };
-        
-        ListElementRemoval.removeIf(list, matchNothing);
-        
-        Assert.assertEquals(1, list.size());
-        Assert.assertEquals("b", list.get(0));
-    }
+  @Test
+  public void test_RemoveAll() {
+    final List<String> list = createList();
+    RemoveElementPredicate<String> matchNothing = t -> true;
+
+    ListElementRemoval.removeIf( list, matchNothing );
+
+    assertEquals( 0, list.size() );
+  }
+
+  @Test
+  public void test_RemoveSome() {
+    final List<String> list = createList();
+    RemoveElementPredicate<String> matchNothing =
+        t -> "a".equals( t ) || "c".equals( t );
+
+    ListElementRemoval.removeIf( list, matchNothing );
+
+    assertEquals( 1, list.size() );
+    assertEquals( "b", list.get( 0 ) );
+  }
+
+  private List<String> createList() {
+    return new ArrayList<>( asList( "a", "b", "c" ) );
+  }
 }
