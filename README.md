@@ -116,7 +116,7 @@ Trie trie = Trie.builder()
 Collection<Emit> emits = trie.parseText("sugarcane sugar canesugar");
 ```
 
-Only one match is found; whereas, without calling `onlyWholeWords()` four
+Only one match is found; whereas, without calling `onlyWholeWords()` three
 matches are found. The sugarcane/canesugar words are discarded because
 they are partial matches.
 
