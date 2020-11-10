@@ -6,7 +6,7 @@
 
     <groupId>org.ahocorasick</groupId>
     <artifactId>ahocorasick</artifactId>
-    <version>0.6.1</version>
+    <version>0.6.2</version>
     <packaging>jar</packaging>
     <name>Aho-CoraSick algorithm for efficient string matching</name>
     <description>Java library for efficient string matching against a large set of keywords</description>
@@ -18,10 +18,6 @@
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
     </distributionManagement>
 
     <organization>
