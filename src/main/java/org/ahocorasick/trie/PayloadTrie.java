@@ -68,8 +68,8 @@ public class PayloadTrie<T> {
 
     private PayloadState<T> addState(final String keyword) {
         PayloadState<T> state = getRootState();
-        for (final Character character : keyword.toCharArray()) {
-            Character adjustedChar = isCaseInsensitive() ? Character.toLowerCase(character) : character;
+        for (final char character : keyword.toCharArray()) {
+            char adjustedChar = isCaseInsensitive() ? Character.toLowerCase(character) : character;
             state = state.addState(adjustedChar);
         }
         return state;
@@ -241,7 +241,7 @@ public class PayloadTrie<T> {
                 || (emit.getEnd() + 1 != size && !isWhitespace(searchText.charAt(emit.getEnd() + 1)));
     }
 
-    private PayloadState<T> getState(PayloadState<T> currentState, final Character character) {
+    private PayloadState<T> getState(PayloadState<T> currentState, final char character) {
         PayloadState<T> newCurrentState = currentState.nextState(character);
 
         while (newCurrentState == null) {
@@ -266,7 +266,7 @@ public class PayloadTrie<T> {
         while (!queue.isEmpty()) {
             final PayloadState<T> currentState = queue.remove();
 
-            for (final Character transition : currentState.getTransitions()) {
+            for (final char transition : currentState.getTransitions()) {
                 PayloadState<T> targetState = currentState.nextState(transition);
                 queue.add(targetState);
 

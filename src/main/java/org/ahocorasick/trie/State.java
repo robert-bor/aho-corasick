@@ -1,6 +1,13 @@
 package org.ahocorasick.trie;
 
-import java.util.*;
+import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
+import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.chars.CharSet;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * <p>
@@ -37,7 +44,7 @@ public class State {
      * referred to in the white paper as the 'goto' structure. From a state it is possible to go
      * to other states, depending on the character passed.
      */
-    private final Map<Character, State> success = new HashMap<>();
+    private final Char2ObjectMap<State> success = new Char2ObjectOpenHashMap<>();
 
     /**
      * if no matching states are found, the failure state will be returned
@@ -58,7 +65,7 @@ public class State {
         this.rootState = depth == 0 ? this : null;
     }
 
-    private State nextState(final Character character, final boolean ignoreRootState) {
+    private State nextState(final char character, final boolean ignoreRootState) {
         State nextState = this.success.get(character);
 
         if (!ignoreRootState && nextState == null && this.rootState != null) {
@@ -68,25 +75,25 @@ public class State {
         return nextState;
     }
 
-    public State nextState(final Character character) {
+    public State nextState(final char character) {
         return nextState(character, false);
     }
 
-    public State nextStateIgnoreRootState(Character character) {
+    public State nextStateIgnoreRootState(char character) {
         return nextState(character, true);
     }
 
     public State addState(String keyword) {
         State state = this;
 
-        for (final Character character : keyword.toCharArray()) {
+        for (final char character : keyword.toCharArray()) {
             state = state.addState(character);
         }
 
         return state;
     }
 
-    public State addState(Character character) {
+    public State addState(char character) {
         State nextState = nextStateIgnoreRootState(character);
         if (nextState == null) {
             nextState = new State(this.depth + 1);
@@ -113,7 +120,7 @@ public class State {
     }
 
     public Collection<String> emit() {
-        return this.emits == null ? Collections.<String>emptyList() : this.emits;
+        return this.emits == null ? Collections.emptyList() : this.emits;
     }
 
     public State failure() {
@@ -128,7 +135,7 @@ public class State {
         return this.success.values();
     }
 
-    public Collection<Character> getTransitions() {
+    public CharSet getTransitions() {
         return this.success.keySet();
     }
 }
