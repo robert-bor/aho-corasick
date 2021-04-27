@@ -220,7 +220,7 @@ class Word {
 }
 
 PayloadTrie<Word> trie = PayloadTrie.<Word>builder()
-    .addKeyword("hers", new Word("f")
+    .addKeyword("hers", new Word("f"))
     .addKeyword("his", new Word("m"))
     .addKeyword("she", new Word("f"))
     .addKeyword("he", new Word("m"))
