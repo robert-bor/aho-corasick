@@ -71,10 +71,13 @@ public class Trie {
     /**
      * The first matching text sequence.
      *
-     * @param text The text to search for keywords.
-     * @return null if no matches found.
+     * @param text The text to search for keywords.Can't be {@code null}.
+     * @return null if no matches found or if the input text is {@code null}.
      */
     public Emit firstMatch(final CharSequence text) {
+        if (text == null){
+            return null;
+        }
         final PayloadEmit<String> payload = this.payloadTrie.firstMatch(text);
         return payload == null ? null : new Emit(payload.getStart(), payload.getEnd(), payload.getKeyword());
     }

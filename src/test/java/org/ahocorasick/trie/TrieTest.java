@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.lang.String.format;
 import static org.ahocorasick.trie.Trie.builder;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -96,6 +97,15 @@ public class TrieTest {
                           .build();
     final Emit firstMatch = trie.firstMatch( "bcd" );
     checkEmit( firstMatch, 0, 2, "bcd" );
+  }
+
+  @Test
+  public void test_NullInputTextFirstMatch() {
+    final Trie trie = Trie.builder()
+            .addKeywords( ALPHABET )
+            .build();
+    final Emit firstMatch = trie.firstMatch( null );
+    assertNull( firstMatch );
   }
 
   @Test

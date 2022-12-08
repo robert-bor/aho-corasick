@@ -162,8 +162,9 @@ public class PayloadTrie<T> {
      * Tokenizes the specified text by using a custom EmitHandler and returns the
      * emitted outputs.
      *
-     * @param text        The character sequence to tokenize.
+     * @param text        The character sequence to tokenize. Can't be {@code null}.
      * @param emitHandler The emit handler that will be used to parse the text.
+     * @throws NullPointerException if the text is {@code null}.
      */
     public void parseText(final CharSequence text, final PayloadEmitHandler<T> emitHandler) {
         PayloadState<T> currentState = getRootState();
@@ -187,7 +188,8 @@ public class PayloadTrie<T> {
      * The first matching text sequence.
      *
      * @param text The text to search for keywords.
-     * @return null if no matches found.
+     * @return null if no matches found. Can't be {@code null}.
+     * @throws NullPointerException if the text is {@code null}.
      */
     public PayloadEmit<T> firstMatch(final CharSequence text) {
         if (!trieConfig.isAllowOverlaps()) {
