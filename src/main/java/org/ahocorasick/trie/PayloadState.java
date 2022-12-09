@@ -1,6 +1,13 @@
 package org.ahocorasick.trie;
 
-import java.util.*;
+import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
+import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.chars.CharSet;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * <p>
@@ -41,7 +48,7 @@ public class PayloadState<T> {
      * referred to in the white paper as the 'goto' structure. From a state it is
      * possible to go to other states, depending on the character passed.
      */
-    private final Map<Character, PayloadState<T>> success = new HashMap<>();
+    private final Char2ObjectMap<PayloadState<T>> success = new Char2ObjectOpenHashMap<>();
 
     /**
      * if no matching states are found, the failure state will be returned
@@ -63,7 +70,7 @@ public class PayloadState<T> {
         this.rootState = depth == 0 ? this : null;
     }
 
-    private PayloadState<T> nextState(final Character character, final boolean ignoreRootState) {
+    private PayloadState<T> nextState(final char character, final boolean ignoreRootState) {
         PayloadState<T> nextState = this.success.get(character);
 
         if (!ignoreRootState && nextState == null && this.rootState != null) {
@@ -73,7 +80,7 @@ public class PayloadState<T> {
         return nextState;
     }
 
-    public PayloadState<T> nextState(final Character character) {
+    public PayloadState<T> nextState(final char character) {
         return nextState(character, false);
     }
 
@@ -81,7 +88,7 @@ public class PayloadState<T> {
         return nextState(character, true);
     }
 
-    public PayloadState<T> addState(Character character) {
+    public PayloadState<T> addState(char character) {
         PayloadState<T> nextState = nextStateIgnoreRootState(character);
         if (nextState == null) {
             nextState = new PayloadState<>(this.depth + 1);
@@ -123,7 +130,7 @@ public class PayloadState<T> {
      * @return Collection of emitted payloads.
      */
     public Collection<Payload<T>> emit() {
-        return this.emits == null ? Collections.<Payload<T>>emptyList() : this.emits;
+        return this.emits == null ? Collections.emptyList() : this.emits;
     }
 
     public PayloadState<T> failure() {
@@ -138,7 +145,7 @@ public class PayloadState<T> {
         return this.success.values();
     }
 
-    public Collection<Character> getTransitions() {
+    public CharSet getTransitions() {
         return this.success.keySet();
     }
 }
