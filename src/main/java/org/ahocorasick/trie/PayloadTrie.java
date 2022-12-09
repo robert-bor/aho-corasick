@@ -38,7 +38,7 @@ public class PayloadTrie<T> {
     }
 
     /**
-     * Used by the builder to add a text search keyword with a emit payload.
+     * Used by the builder to add a text search keyword with an emit payload.
      *
      * @param keyword The search term to add to the list of search terms.
      * @param emit    the payload to emit for this search term.
@@ -129,7 +129,7 @@ public class PayloadTrie<T> {
      * emitted outputs.
      *
      * @param text        The character sequence to tokenize.
-     * @param emitHandler The emit handler that will be used to parse the text.
+     * @param emitHandler The handler that will be used to parse the text.
      * @return A collection of emits.
      */
     @SuppressWarnings("unchecked")
@@ -147,7 +147,7 @@ public class PayloadTrie<T> {
     }
 
     /**
-     * Returns true if the text contains contains one of the search terms. Else,
+     * Returns true if the text contains one of the search terms; otherwise,
      * returns false.
      *
      * @param text Specified text.
@@ -163,7 +163,7 @@ public class PayloadTrie<T> {
      * emitted outputs.
      *
      * @param text        The character sequence to tokenize.
-     * @param emitHandler The emit handler that will be used to parse the text.
+     * @param emitHandler The handler that will be used to parse the text.
      */
     public void parseText(final CharSequence text, final PayloadEmitHandler<T> emitHandler) {
         PayloadState<T> currentState = getRootState();
@@ -186,10 +186,12 @@ public class PayloadTrie<T> {
     /**
      * The first matching text sequence.
      *
-     * @param text The text to search for keywords.
-     * @return null if no matches found.
+     * @param text The text to search for keywords, must not be {@code null}.
+     * @return {@code null} if no matches found.
      */
     public PayloadEmit<T> firstMatch(final CharSequence text) {
+        assert text != null;
+
         if (!trieConfig.isAllowOverlaps()) {
             // Slow path. Needs to find all the matches to detect overlaps.
             final Collection<PayloadEmit<T>> parseText = parseText(text);
@@ -358,8 +360,8 @@ public class PayloadTrie<T> {
         }
 
         /**
-         * Adds a keyword to the Trie's list of text search keywords. No Payload is
-         * supplied.
+         * Adds a keyword to the {@link Trie}'s list of text search keywords.
+         * No {@link Payload} is supplied.
          *
          * @param keyword The keyword to add to the list.
          * @return This builder.
@@ -371,7 +373,8 @@ public class PayloadTrie<T> {
         }
 
         /**
-         * Adds a keyword and a payload to the Trie's list of text search keywords.
+         * Adds a keyword and a payload to the {@link Trie}'s list of text
+         * search keywords.
          *
          * @param keyword The keyword to add to the list.
          * @param payload the payload to add
@@ -384,8 +387,8 @@ public class PayloadTrie<T> {
         }
 
         /**
-         * Adds a list of keywords and payloads to the Trie's list of text search
-         * keywords.
+         * Adds a list of keywords and payloads to the {@link Trie}'s list of
+         * text search keywords.
          *
          * @param keywords The keywords to add to the list.
          * @return This builder.

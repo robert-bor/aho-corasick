@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
+import static org.ahocorasick.trie.TestHelper.injectKeyword;
+import static org.ahocorasick.trie.TestHelper.randomNumbers;
 import static org.ahocorasick.trie.Trie.builder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Test the {@link Trie} class functionality.
@@ -41,11 +41,21 @@ public class TrieTest {
       "turning", "once", "again", "börkü"
   };
 
+  private static Trie trie( final String keyword ) {
+    return Trie.builder()
+               .addKeyword( keyword )
+               .build();
+  }
+
+  private static Trie trie( final String[] keywords ) {
+    return Trie.builder()
+               .addKeywords( keywords )
+               .build();
+  }
+
   @Test
   public void test_KeywordAndTextAreTheSame() {
-    final Trie trie = Trie.builder()
-                          .addKeyword( ALPHABET[ 0 ] )
-                          .build();
+    final Trie trie = trie( ALPHABET[ 0 ] );
     final Collection<Emit> emits = trie.parseText( ALPHABET[ 0 ] );
     final Iterator<Emit> iterator = emits.iterator();
     checkEmit( iterator.next(), 0, 2, ALPHABET[ 0 ] );
@@ -53,18 +63,14 @@ public class TrieTest {
 
   @Test
   public void test_KeywordAndTextAreTheSameFirstMatch() {
-    final Trie trie = Trie.builder()
-                          .addKeyword( ALPHABET[ 0 ] )
-                          .build();
+    final Trie trie = trie( ALPHABET[ 0 ] );
     final Emit firstMatch = trie.firstMatch( ALPHABET[ 0 ] );
     checkEmit( firstMatch, 0, 2, ALPHABET[ 0 ] );
   }
 
   @Test
   public void test_TextIsLongerThanKeyword() {
-    final Trie trie = Trie.builder()
-                          .addKeyword( ALPHABET[ 0 ] )
-                          .build();
+    final Trie trie = trie( ALPHABET[ 0 ] );
     final Collection<Emit> emits = trie.parseText( " " + ALPHABET[ 0 ] );
     final Iterator<Emit> iterator = emits.iterator();
     checkEmit( iterator.next(), 1, 3, ALPHABET[ 0 ] );
@@ -72,18 +78,14 @@ public class TrieTest {
 
   @Test
   public void test_TextIsLongerThanKeywordFirstMatch() {
-    final Trie trie = Trie.builder()
-                          .addKeyword( ALPHABET[ 0 ] )
-                          .build();
+    final Trie trie = trie( ALPHABET[ 0 ] );
     final Emit firstMatch = trie.firstMatch( " " + ALPHABET[ 0 ] );
     checkEmit( firstMatch, 1, 3, ALPHABET[ 0 ] );
   }
 
   @Test
   public void test_VariousKeywordsOneMatch() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( ALPHABET )
-                          .build();
+    final Trie trie = trie( ALPHABET );
     final Collection<Emit> emits = trie.parseText( "bcd" );
     final Iterator<Emit> iterator = emits.iterator();
     checkEmit( iterator.next(), 0, 2, "bcd" );
@@ -91,11 +93,16 @@ public class TrieTest {
 
   @Test
   public void test_VariousKeywordsFirstMatch() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( ALPHABET )
-                          .build();
+    final Trie trie = trie( ALPHABET );
     final Emit firstMatch = trie.firstMatch( "bcd" );
     checkEmit( firstMatch, 0, 2, "bcd" );
+  }
+
+  @Test(expected=AssertionError.class)
+  public void test_NullInputTextFirstMatch() {
+    final Trie trie = trie( ALPHABET );
+    final Emit firstMatch = trie.firstMatch( null );
+    assertNull( firstMatch );
   }
 
   @Test
@@ -142,9 +149,7 @@ public class TrieTest {
 
   @Test
   public void test_UshersTest() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( PRONOUNS )
-                          .build();
+    final Trie trie = trie( PRONOUNS );
     final Collection<Emit> emits = trie.parseText( "ushers" );
     assertEquals( 3, emits.size() ); // she @ 3, he @ 3, hers @ 5
     final Iterator<Emit> iterator = emits.iterator();
@@ -172,19 +177,14 @@ public class TrieTest {
 
   @Test
   public void test_UshersTestFirstMatch() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( PRONOUNS )
-                          .build();
+    final Trie trie = trie( PRONOUNS );
     final Emit firstMatch = trie.firstMatch( "ushers" );
     checkEmit( firstMatch, 2, 3, "he" );
   }
 
   @Test
   public void test_UshersTestByCallback() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( PRONOUNS )
-                          .build();
-
+    final Trie trie = trie( PRONOUNS );
     final List<Emit> emits = new ArrayList<>();
     final EmitHandler emitHandler = emit -> {
       emits.add( emit );
@@ -200,9 +200,7 @@ public class TrieTest {
 
   @Test
   public void test_MisleadingTest() {
-    final Trie trie = Trie.builder()
-                          .addKeyword( "hers" )
-                          .build();
+    final Trie trie = trie( "hers" );
     final Collection<Emit> emits = trie.parseText( "h he her hers" );
     final Iterator<Emit> iterator = emits.iterator();
     checkEmit( iterator.next(), 9, 12, "hers" );
@@ -210,18 +208,14 @@ public class TrieTest {
 
   @Test
   public void test_MisleadingTestFirstMatch() {
-    final Trie trie = Trie.builder()
-                          .addKeyword( "hers" )
-                          .build();
+    final Trie trie = trie( "hers" );
     final Emit firstMatch = trie.firstMatch( "h he her hers" );
     checkEmit( firstMatch, 9, 12, "hers" );
   }
 
   @Test
   public void test_Recipes() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( FOOD )
-                          .build();
+    final Trie trie = trie( FOOD );
     final Collection<Emit> emits = trie.parseText(
         "2 cauliflowers, 3 tomatoes, 4 slices of veal, 100g broccoli" );
     final Iterator<Emit> iterator = emits.iterator();
@@ -233,9 +227,7 @@ public class TrieTest {
 
   @Test
   public void test_RecipesFirstMatch() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( FOOD )
-                          .build();
+    final Trie trie = trie( FOOD );
     final Emit firstMatch = trie.firstMatch(
         "2 cauliflowers, 3 tomatoes, 4 slices of veal, 100g broccoli" );
 
@@ -261,7 +253,8 @@ public class TrieTest {
 
   @Test
   public void test_NonOverlapping() {
-    final Trie trie = Trie.builder().ignoreOverlaps()
+    final Trie trie = Trie.builder()
+                          .ignoreOverlaps()
                           .addKeyword( "ab" )
                           .addKeyword( "cba" )
                           .addKeyword( "ababc" )
@@ -276,7 +269,8 @@ public class TrieTest {
 
   @Test
   public void test_NonOverlappingFirstMatch() {
-    final Trie trie = Trie.builder().ignoreOverlaps()
+    final Trie trie = Trie.builder()
+                          .ignoreOverlaps()
                           .addKeyword( "ab" )
                           .addKeyword( "cba" )
                           .addKeyword( "ababc" )
@@ -288,7 +282,8 @@ public class TrieTest {
 
   @Test
   public void test_ContainsMatch() {
-    final Trie trie = Trie.builder().ignoreOverlaps()
+    final Trie trie = Trie.builder()
+                          .ignoreOverlaps()
                           .addKeyword( "ab" )
                           .addKeyword( "cba" )
                           .addKeyword( "ababc" )
@@ -298,7 +293,8 @@ public class TrieTest {
 
   @Test
   public void test_StartOfChurchillSpeech() {
-    final Trie trie = Trie.builder().ignoreOverlaps()
+    final Trie trie = Trie.builder()
+                          .ignoreOverlaps()
                           .addKeyword( "T" )
                           .addKeyword( "u" )
                           .addKeyword( "ur" )
@@ -342,9 +338,7 @@ public class TrieTest {
 
   @Test
   public void test_TokenizeFullSentence() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( GREEK_LETTERS )
-                          .build();
+    final Trie trie = trie( GREEK_LETTERS );
     final Collection<Token> tokens = trie.tokenize(
         "Hear: Alpha team first, Beta from the rear, Gamma in reserve" );
     assertEquals( 7, tokens.size() );
@@ -363,7 +357,9 @@ public class TrieTest {
    */
   @Test
   public void test_StringIndexOutOfBoundsException() {
-    final Trie trie = Trie.builder().ignoreCase().onlyWholeWords()
+    final Trie trie = Trie.builder()
+                          .ignoreCase()
+                          .onlyWholeWords()
                           .addKeywords( UNICODE )
                           .build();
     final Collection<Emit> emits = trie.parseText( "TurninG OnCe AgAiN BÖRKÜ" );
@@ -377,7 +373,8 @@ public class TrieTest {
 
   @Test
   public void test_IgnoreCase() {
-    final Trie trie = Trie.builder().ignoreCase()
+    final Trie trie = Trie.builder()
+                          .ignoreCase()
                           .addKeywords( UNICODE )
                           .build();
     final Collection<Emit> emits = trie.parseText( "TurninG OnCe AgAiN BÖRKÜ" );
@@ -391,7 +388,8 @@ public class TrieTest {
 
   @Test
   public void test_IgnoreCaseFirstMatch() {
-    final Trie trie = Trie.builder().ignoreCase()
+    final Trie trie = Trie.builder()
+                          .ignoreCase()
                           .addKeywords( UNICODE )
                           .build();
     final Emit firstMatch = trie.firstMatch( "TurninG OnCe AgAiN BÖRKÜ" );
@@ -401,9 +399,7 @@ public class TrieTest {
 
   @Test
   public void test_TokenizeTokensInSequence() {
-    final Trie trie = Trie.builder()
-                          .addKeywords( GREEK_LETTERS )
-                          .build();
+    final Trie trie = trie( GREEK_LETTERS );
     final Collection<Token> tokens = trie.tokenize( "Alpha Beta Gamma" );
     assertEquals( 5, tokens.size() );
   }
@@ -583,44 +579,6 @@ public class TrieTest {
 
     assertEquals( textSize / interval, matchCount.get() );
     assertEquals( 0, nonMatchCount.get() );
-  }
-
-  /**
-   * Generates a random sequence of ASCII numbers.
-   *
-   * @param count The number of numbers to generate.
-   * @return A character sequence filled with random digits.
-   */
-  private StringBuilder randomNumbers( int count ) {
-    final StringBuilder sb = new StringBuilder( count );
-
-    while( --count > 0 ) {
-      sb.append( randomInt( 0, 10 ) );
-    }
-
-    return sb;
-  }
-
-  /**
-   * Injects keywords into a string builder.
-   *
-   * @param source   Should contain a bunch of random data that cannot match
-   *                 any keyword.
-   * @param keyword  A keyword to inject repeatedly in the text.
-   * @param interval How often to inject the keyword.
-   */
-  private void injectKeyword(
-      final StringBuilder source,
-      final String keyword,
-      final int interval ) {
-    final int length = source.length();
-    for( int i = 0; i < length; i += interval ) {
-      source.replace( i, i + keyword.length(), keyword );
-    }
-  }
-
-  private int randomInt( final int min, final int max ) {
-    return ThreadLocalRandom.current().nextInt( min, max );
   }
 
   private void checkEmit( Emit next, int expectedStart, int expectedEnd,

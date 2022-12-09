@@ -5,13 +5,14 @@ import org.ahocorasick.trie.handler.PayloadEmitHandler;
 import org.ahocorasick.trie.handler.StatefulPayloadEmitHandler;
 import org.junit.Test;
 
-import java.util.LinkedList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.Arrays.asList;
+import static org.ahocorasick.trie.TestHelper.injectKeyword;
+import static org.ahocorasick.trie.TestHelper.randomNumbers;
 import static org.junit.Assert.*;
 
 public class PayloadTrieTest {
@@ -279,7 +280,7 @@ public class PayloadTrieTest {
 
     @Test
     public void nonOverlapping() {
-        PayloadTrie<String> trie = PayloadTrie.<String>builder().removeOverlaps().addKeyword("ab", "alpha:ab")
+        PayloadTrie<String> trie = PayloadTrie.<String>builder().ignoreOverlaps().addKeyword("ab", "alpha:ab")
                 .addKeyword("cba", "alpha:cba").addKeyword("ababc", "alpha:ababc").build();
         Collection<PayloadEmit<String>> emits = trie.parseText("ababcbab");
         assertEquals(2, emits.size());
@@ -291,7 +292,7 @@ public class PayloadTrieTest {
 
     @Test
     public void nonOverlappingFirstMatch() {
-        PayloadTrie<String> trie = PayloadTrie.<String>builder().removeOverlaps().addKeyword("ab", "alpha:ab")
+        PayloadTrie<String> trie = PayloadTrie.<String>builder().ignoreOverlaps().addKeyword("ab", "alpha:ab")
                 .addKeyword("cba", "alpha:cba").addKeyword("ababc", "alpha:ababc").build();
         PayloadEmit<String> firstMatch = trie.firstMatch("ababcbab");
 
@@ -300,14 +301,14 @@ public class PayloadTrieTest {
 
     @Test
     public void containsMatch() {
-        PayloadTrie<String> trie = PayloadTrie.<String>builder().removeOverlaps().addKeyword("ab", "alpha:ab")
+        PayloadTrie<String> trie = PayloadTrie.<String>builder().ignoreOverlaps().addKeyword("ab", "alpha:ab")
                 .addKeyword("cba", "alpha:cba").addKeyword("ababc", "alpha:ababc").build();
         assertTrue(trie.containsMatch("ababcbab"));
     }
 
     @Test
     public void startOfChurchillSpeech() {
-        PayloadTrie<String> trie = PayloadTrie.<String>builder().removeOverlaps().addKeyword("T").addKeyword("u").addKeyword("ur")
+        PayloadTrie<String> trie = PayloadTrie.<String>builder().ignoreOverlaps().addKeyword("T").addKeyword("u").addKeyword("ur")
                 .addKeyword("r").addKeyword("urn").addKeyword("ni").addKeyword("i").addKeyword("in").addKeyword("n")
                 .addKeyword("urning").build();
         Collection<PayloadEmit<String>> emits = trie.parseText("Turning");
@@ -449,7 +450,7 @@ public class PayloadTrieTest {
 
     @Test
     public void test_containsMatchWithCaseInsensitive() {
-        PayloadTrie<String> trie = PayloadTrie.<String>builder().caseInsensitive().addKeyword("foo", "bar").build();
+        PayloadTrie<String> trie = PayloadTrie.<String>builder().ignoreCase().addKeyword("foo", "bar").build();
 
         assertTrue(trie.containsMatch("FOOBAR"));
         assertFalse(trie.containsMatch("FO!?AR"));
@@ -483,59 +484,36 @@ public class PayloadTrieTest {
         assertEquals(result1, result2);
     }
 
-    /**
-     * Generates a random sequence of ASCII numbers.
-     *
-     * @param count The number of numbers to generate.
-     * @return A character sequence filled with random digits.
-     */
-    private StringBuilder randomNumbers(int count) {
-        final StringBuilder sb = new StringBuilder(count);
-
-        while (--count > 0) {
-            sb.append(randomInt(0, 10));
-        }
-
-        return sb;
-    }
-
-    /**
-     * Injects keywords into a string builder.
-     *
-     * @param source   Should contain a bunch of random data that cannot match any
-     *                 keyword.
-     * @param keyword  A keyword to inject repeatedly in the text.
-     * @param interval How often to inject the keyword.
-     */
-    private void injectKeyword(final StringBuilder source, final String keyword, final int interval) {
-        final int length = source.length();
-        for (int i = 0; i < length; i += interval) {
-            source.replace(i, i + keyword.length(), keyword);
-        }
-    }
-
-    private int randomInt(final int min, final int max) {
-        return ThreadLocalRandom.current().nextInt(min, max);
-    }
-
-    private void checkEmit(PayloadEmit<Food> next, int expectedStart, int expectedEnd, String expectedKeyword,
-            Food expectedPayload) {
+    private void checkEmit(
+            final PayloadEmit<Food> next,
+            final int expectedStart,
+            final int expectedEnd,
+            final String expectedKeyword,
+            final Food expectedPayload) {
         assertEquals("Start of emit should have been " + expectedStart, expectedStart, next.getStart());
         assertEquals("End of emit should have been " + expectedEnd, expectedEnd, next.getEnd());
         assertEquals("Keyword of emit shoud be " + expectedKeyword, expectedKeyword, next.getKeyword());
         assertEquals("Payload of emit shoud be " + expectedPayload, expectedPayload, next.getPayload());
     }
 
-    private void checkEmit(PayloadEmit<Integer> next, int expectedStart, int expectedEnd, String expectedKeyword,
-            Integer expectedPayload) {
+    private void checkEmit(
+            final PayloadEmit<Integer> next,
+            final int expectedStart,
+            final int expectedEnd,
+            final String expectedKeyword,
+            final Integer expectedPayload) {
         assertEquals("Start of emit should have been " + expectedStart, expectedStart, next.getStart());
         assertEquals("End of emit should have been " + expectedEnd, expectedEnd, next.getEnd());
         assertEquals("Keyword of emit shoud be " + expectedKeyword, expectedKeyword, next.getKeyword());
         assertEquals("Payload of emit shoud be " + expectedPayload, expectedPayload, next.getPayload());
     }
 
-    private void checkEmit(PayloadEmit<String> next, int expectedStart, int expectedEnd, String expectedKeyword,
-            String expectedPayload) {
+    private void checkEmit(
+            final PayloadEmit<String> next,
+            final int expectedStart,
+            final int expectedEnd,
+            final String expectedKeyword,
+            final String expectedPayload) {
         assertEquals("Start of emit should have been " + expectedStart, expectedStart, next.getStart());
         assertEquals("End of emit should have been " + expectedEnd, expectedEnd, next.getEnd());
         assertEquals("Keyword of emit shoud be " + expectedKeyword, expectedKeyword, next.getKeyword());
