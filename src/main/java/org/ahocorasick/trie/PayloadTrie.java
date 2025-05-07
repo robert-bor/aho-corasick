@@ -233,8 +233,8 @@ public class PayloadTrie<T> {
     }
 
     private boolean isPartialMatch(final CharSequence searchText, final PayloadEmit<T> emit) {
-        return (emit.getStart() != 0 && Character.isAlphabetic(searchText.charAt(emit.getStart() - 1)))
-                || (emit.getEnd() + 1 != searchText.length() && Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)));
+        return (emit.getStart() != 0 && (Character.isAlphabetic(searchText.charAt(emit.getStart() - 1)) || Character.isDigit(searchText.charAt(emit.getStart() - 1))))
+                || (emit.getEnd() + 1 != searchText.length() && (Character.isAlphabetic(searchText.charAt(emit.getEnd() + 1)) || Character.isDigit(searchText.charAt(emit.getEnd() + 1))));
     }
 
     private boolean isPartialMatchWhiteSpaceSeparated(final CharSequence searchText, final PayloadEmit<T> emit) {
