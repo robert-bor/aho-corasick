@@ -2,7 +2,11 @@ package org.ahocorasick.interval;
 
 import java.util.Comparator;
 
-public class IntervalableComparatorBySize implements Comparator<Intervalable> {
+public final class IntervalableComparatorBySize implements Comparator<Intervalable> {
+
+    private IntervalableComparatorBySize() {}
+
+    public static final IntervalableComparatorBySize INSTANCE = new IntervalableComparatorBySize();
 
     @Override
     public int compare(final Intervalable intervalable, final Intervalable intervalable2) {

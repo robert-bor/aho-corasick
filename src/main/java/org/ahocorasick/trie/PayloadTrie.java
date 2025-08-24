@@ -2,10 +2,7 @@ package org.ahocorasick.trie;
 
 import static java.lang.Character.isWhitespace;
 
-import java.util.LinkedList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 
 import org.ahocorasick.interval.IntervalTree;
@@ -68,8 +65,8 @@ public class PayloadTrie<T> {
 
     private PayloadState<T> addState(final String keyword) {
         PayloadState<T> state = getRootState();
-        for (final Character character : keyword.toCharArray()) {
-            Character adjustedChar = isCaseInsensitive() ? Character.toLowerCase(character) : character;
+        for (final char character : keyword.toCharArray()) {
+            char adjustedChar = isCaseInsensitive() ? Character.toLowerCase(character) : character;
             state = state.addState(adjustedChar);
         }
         return state;
@@ -82,8 +79,8 @@ public class PayloadTrie<T> {
      * @return the emitted outputs
      */
     public Collection<PayloadToken<T>> tokenize(final String text) {
-        final Collection<PayloadToken<T>> tokens = new LinkedList<>();
         final Collection<PayloadEmit<T>> collectedEmits = parseText(text);
+        final Collection<PayloadToken<T>> tokens = new ArrayList<>(collectedEmits.size());
         int lastCollectedPosition = -1;
 
         for (final PayloadEmit<T> emit : collectedEmits) {

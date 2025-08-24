@@ -29,7 +29,7 @@ public class Trie {
     }
 
     private static Collection<Token> asTokens(Collection<PayloadToken<String>> tokens) {
-        Collection<Token> result = new ArrayList<>();
+        Collection<Token> result = new ArrayList<>(tokens.size());
         for (PayloadToken<String> payloadToken : tokens) {
             result.add(new DefaultToken(payloadToken));
         }
@@ -37,7 +37,7 @@ public class Trie {
     }
 
     private static Collection<Emit> asEmits(Collection<PayloadEmit<String>> emits) {
-        Collection<Emit> result = new ArrayList<>();
+        Collection<Emit> result = new ArrayList<>(emits.size());
         for (PayloadEmit<String> emit : emits) {
             result.add(asEmit(emit));
         }

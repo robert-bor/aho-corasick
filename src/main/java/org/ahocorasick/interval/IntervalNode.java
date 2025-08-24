@@ -11,7 +11,7 @@ public class IntervalNode {
     private IntervalNode left;
     private IntervalNode right;
     private int point;
-    private List<Intervalable> intervals = new ArrayList<>();
+    private final List<Intervalable> intervals = new ArrayList<>();
 
     public IntervalNode(final List<Intervalable> intervals) {
         this.point = determineMedian(intervals);
@@ -29,10 +29,10 @@ public class IntervalNode {
             }
         }
 
-        if (toLeft.size() > 0) {
+        if (!toLeft.isEmpty()) {
             this.left = new IntervalNode(toLeft);
         }
-        if (toRight.size() > 0) {
+        if (!toRight.isEmpty()) {
             this.right = new IntervalNode(toRight);
         }
     }

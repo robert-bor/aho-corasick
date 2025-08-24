@@ -13,15 +13,14 @@ import org.ahocorasick.trie.PayloadEmit;
  */
 public class StatefulPayloadEmitDelegateHandler implements StatefulPayloadEmitHandler<String> {
 
-    private StatefulEmitHandler handler;
+    private final StatefulEmitHandler handler;
 
     public StatefulPayloadEmitDelegateHandler(StatefulEmitHandler handler) {
         this.handler = handler;
-
     }
 
     private static List<PayloadEmit<String>> asEmits(Collection<Emit> emits) {
-        List<PayloadEmit<String>> result = new ArrayList<>();
+        List<PayloadEmit<String>> result = new ArrayList<>(emits.size());
         for (Emit emit : emits) {
             result.add(new PayloadEmit<String>(emit.getStart(), emit.getEnd(), emit.getKeyword(), null));
         }
