@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static java.util.Collections.sort;
-
 public class IntervalTree {
 
     private final IntervalNode rootNode;
@@ -15,9 +13,12 @@ public class IntervalTree {
     }
 
     public List<Intervalable> removeOverlaps(final List<Intervalable> intervals) {
+        if (intervals.isEmpty()) {
+            return intervals;
+        }
 
         // Sort the intervals on size, then left-most position
-        sort(intervals, new IntervalableComparatorBySize());
+        intervals.sort(IntervalableComparatorBySize.INSTANCE);
 
         final Set<Intervalable> removeIntervals = new TreeSet<>();
 
@@ -32,12 +33,10 @@ public class IntervalTree {
         }
 
         // Remove all intervals that were overlapping
-        for (final Intervalable removeInterval : removeIntervals) {
-            intervals.remove(removeInterval);
-        }
+        intervals.removeAll(removeIntervals);
 
         // Sort the intervals, now on left-most position only
-        sort(intervals, new IntervalableComparatorByPosition());
+        intervals.sort(IntervalableComparatorByPosition.INSTANCE);
 
         return intervals;
     }
