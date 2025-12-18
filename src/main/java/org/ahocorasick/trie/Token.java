@@ -1,7 +1,6 @@
 package org.ahocorasick.trie;
 
 public abstract class Token {
-
     private String fragment;
 
     public Token(String fragment) {
@@ -15,5 +14,4 @@ public abstract class Token {
     public abstract boolean isMatch();
 
     public abstract Emit getEmit();
-
 }

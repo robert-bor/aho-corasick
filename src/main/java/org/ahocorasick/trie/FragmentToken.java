@@ -15,4 +15,5 @@ public class FragmentToken extends Token {
     public Emit getEmit() {
         return null;
     }
+
 }

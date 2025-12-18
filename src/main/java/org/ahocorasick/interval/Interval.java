@@ -1,5 +1,12 @@
 package org.ahocorasick.interval;
 
+import org.ahocorasick.trie.Emit;
+import org.ahocorasick.trie.PayloadEmit;
+
+/**
+ * Responsible for tracking the start and end bounds, which are reused by
+ * both {@link Emit} and {@link PayloadEmit}.
+ */
 public class Interval implements Intervalable {
 
     private final int start;
@@ -50,7 +57,7 @@ public class Interval implements Intervalable {
      * Answers whether the given interval overlaps this interval
      * instance.
      *
-     * @param other
+     * @param other the other interval to check for overlap
      * @return true The intervals overlap.
      */
     public boolean overlapsWith(final Interval other) {

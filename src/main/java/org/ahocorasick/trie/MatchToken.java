@@ -7,6 +7,7 @@ public class MatchToken extends Token {
     public MatchToken(final String fragment, final Emit emit) {
         super(fragment);
         this.emit = emit;
+
     }
 
     @Override

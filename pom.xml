@@ -1,25 +1,23 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.ahocorasick</groupId>
     <artifactId>ahocorasick</artifactId>
-    <version>0.4.0</version>
+    <version>0.6.3</version>
     <packaging>jar</packaging>
     <name>Aho-CoraSick algorithm for efficient string matching</name>
     <description>Java library for efficient string matching against a large set of keywords</description>
     <inceptionYear>2014</inceptionYear>
-    <url>http://ahocorasick.org</url>
+    <url>https://github.com/robert-bor/aho-corasick</url>
 
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
     </distributionManagement>
 
     <organization>
@@ -46,15 +44,20 @@
             <organization>42</organization>
         </developer>
         <developer>
-            <name></name>
+            <name>Daniel Beck</name>
+            <organization>neoSearch UG (haftungsbeschränkt)</organization>
+        </developer>
+        <developer>
+            <name>Dave Jarvis</name>
+            <organization>White Magic Software, Ltd.</organization>
         </developer>
     </developers>
 
     <properties>
-        <java.version>1.7</java.version>
+        <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <junit.version>4.10</junit.version>
+        <junit.version>4.13.2</junit.version>
         <!-- Reporting -->
         <maven.cobertura.version>2.5.2</maven.cobertura.version>
         <maven.javadoc.version>2.8</maven.javadoc.version>
@@ -62,12 +65,20 @@
         <maven.site.plugin.version>3.3</maven.site.plugin.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
 
         <!-- Used for unit testing -->
         <dependency>
             <groupId>junit</groupId>
-            <artifactId>junit-dep</artifactId>
+            <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
@@ -81,7 +92,7 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
+                <version>1.6.8</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
@@ -93,7 +104,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -104,13 +115,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <source>8</source>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -118,7 +132,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -147,7 +161,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.7.7.201606060606</version>
+                <version>0.8.6</version>
                 <executions>
                     <execution>
                         <goals>
@@ -166,5 +180,4 @@
 
         </plugins>
     </build>
-
 </project>

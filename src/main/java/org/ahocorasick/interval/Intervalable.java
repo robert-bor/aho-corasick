@@ -2,10 +2,10 @@ package org.ahocorasick.interval;
 
 public interface Intervalable extends Comparable {
 
-    public int getStart();
+  int getStart();
 
-    public int getEnd();
+  int getEnd();
 
-    public int size();
+  int size();
 
 }
