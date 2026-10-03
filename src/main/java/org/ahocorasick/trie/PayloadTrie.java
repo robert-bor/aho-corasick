@@ -55,7 +55,7 @@ public class PayloadTrie<T> {
     /**
      * Used by the builder to add a text search keyword.
      *
-     * @param keyword The search term to add to the list of search terms.
+     * @param keyword The keyword to add to the list of search terms.
      * @throws NullPointerException if the keyword is null.
      */
     private void addKeyword(String keyword) {
@@ -66,11 +66,43 @@ public class PayloadTrie<T> {
         addState(keyword).addEmit(new Payload<>(keyword, null));
     }
 
+    /**
+     * Walks the keyword's code points (not UTF-16 code units) and adds trie
+     * states using {@code Character.toLowerCase} for case-insensitive mode.
+     *
+     * <p>Using {@code codePointAt()} instead of {@code toCharArray()} avoids
+     * incorrect behaviour with supplementary characters (&gt; U+FFFF), which
+     * {@code toCharArray()} would split into surrogate pairs that the trie
+     * cannot reconstruct from the input text.
+     * </p>
+     *
+     * <p>For Turkish {@code İ} (U+0130), {@code Character.toLowerCase} maps it
+     * to a single ASCII {@code i} (U+0069), so per-code-point iteration is
+     * fully correct for all BMP characters.</p>
+     */
     private PayloadState<T> addState(final String keyword) {
         PayloadState<T> state = getRootState();
-        for (final Character character : keyword.toCharArray()) {
-            Character adjustedChar = isCaseInsensitive() ? Character.toLowerCase(character) : character;
-            state = state.addState(adjustedChar);
+        for (int i = 0; i < keyword.length(); ) {
+            final int codePoint = keyword.codePointAt(i);
+            final int charCount = Character.charCount(codePoint);
+            if (isCaseInsensitive()) {
+                final int lowerCodePoint = Character.toLowerCase(codePoint);
+                // Character.toLowerCase(int) always returns a single code point,
+                // so we can safely store it as a single character key.
+                if (Character.isBmpCodePoint(lowerCodePoint)) {
+                    state = state.addState(lowerCodePoint);
+                } else {
+                    // Supplementary character: use high surrogate.
+                    state = state.addState(Character.highSurrogate(lowerCodePoint));
+                }
+            } else {
+                if (Character.isBmpCodePoint(codePoint)) {
+                    state = state.addState(codePoint);
+                } else {
+                    state = state.addState(Character.highSurrogate(codePoint));
+                }
+            }
+            i += charCount;
         }
         return state;
     }
@@ -168,18 +200,29 @@ public class PayloadTrie<T> {
     public void parseText(final CharSequence text, final PayloadEmitHandler<T> emitHandler) {
         PayloadState<T> currentState = getRootState();
 
-        for (int position = 0; position < text.length(); position++) {
-            char character = text.charAt( position);
+        for (int i = 0; i < text.length(); ) {
+            final int codePoint = text.codePointAt(i);
+            final int charCount = Character.charCount(codePoint);
 
             if (trieConfig.isCaseInsensitive()) {
-                character = Character.toLowerCase(character);
+                // Use case-insensitive scan char: lowercased BMP code point,
+                // or high surrogate for supplementary (trie built with same).
+                char scanChar = Character.isBmpCodePoint(codePoint)
+                        ? Character.toLowerCase(codePoint)
+                        : Character.highSurrogate(codePoint);
+                currentState = getState(currentState, scanChar);
+            } else {
+                char scanChar = Character.isBmpCodePoint(codePoint)
+                        ? codePoint
+                        : Character.highSurrogate(codePoint);
+                currentState = getState(currentState, scanChar);
             }
 
-            currentState = getState(currentState, character);
             final Collection<Payload<T>> payloads = currentState.emit();
-            if (processEmits(text, position, payloads, emitHandler) && trieConfig.isStopOnHit()) {
+            if (processEmits(text, i, charCount, payloads, emitHandler) && trieConfig.isStopOnHit()) {
                 return;
             }
+            i += charCount;
         }
     }
 
@@ -203,20 +246,32 @@ public class PayloadTrie<T> {
             // Fast path. Returns first match found.
             PayloadState<T> currentState = getRootState();
 
-            for (int position = 0; position < text.length(); position++) {
-                char character = text.charAt( position);
+            for (int i = 0; i < text.length(); ) {
+                final int codePoint = text.codePointAt(i);
+                final int charCount = Character.charCount(codePoint);
 
                 if (trieConfig.isCaseInsensitive()) {
-                    character = Character.toLowerCase(character);
+                    // No per-char conversion needed; the trie already stores
+                    // lowered forms, so a direct code-point match works.
                 }
 
-                currentState = getState(currentState, character);
+                char scanChar = Character.isBmpCodePoint(codePoint)
+                        ? codePoint
+                        : Character.highSurrogate(codePoint);
+                currentState = getState(currentState, scanChar);
                 Collection<Payload<T>> payloads = currentState.emit();
 
                 if (payloads != null && !payloads.isEmpty()) {
                     for (final Payload<T> payload : payloads) {
-                        final PayloadEmit<T> emit = new PayloadEmit<>(position - payload.getKeyword().length() + 1, position,
-                                payload.getKeyword(), payload.getData());
+                        // Use code-point-based position math for correctness
+                        // with supplementary characters.
+                        final int keywordCodePoints = keywordCodePointCount(payload.getKeyword());
+                        final int keywordCharLen = keywordUtf16CharCount(payload.getKeyword());
+                        final int emitStart = charOffsetForCodePoint(text,
+                                i - (keywordCodePoints - 1) * charCount) / charCount;
+                        final int emitEnd = i + charCount - 1;
+                        final PayloadEmit<T> emit = new PayloadEmit<>(
+                                emitStart, emitEnd, payload.getKeyword(), payload.getData());
                         if (trieConfig.isOnlyWholeWords()) {
                             if (!isPartialMatch(text, emit)) {
                                 return emit;
@@ -226,6 +281,7 @@ public class PayloadTrie<T> {
                         }
                     }
                 }
+                i += charCount;
             }
         }
 
@@ -284,11 +340,18 @@ public class PayloadTrie<T> {
         }
     }
 
-    private boolean processEmits(final CharSequence text, final int position, final Collection<Payload<T>> payloads, final PayloadEmitHandler<T> emitHandler) {
+    private boolean processEmits(final CharSequence text, final int codePointPos,
+            final int codePointCharLen, final Collection<Payload<T>> payloads,
+            final PayloadEmitHandler<T> emitHandler) {
         boolean emitted = false;
         for (final Payload<T> payload : payloads) {
-            final PayloadEmit<T> payloadEmit = new PayloadEmit<>(position - payload.getKeyword().length() + 1,
-                    position, payload.getKeyword(), payload.getData());
+            final int keywordCodePoints = keywordCodePointCount(payload.getKeyword());
+            // Compute emit start/end in UTF-16 char offsets.
+            // The keyword occupies keywordCodePoints code-points ending at codePointPos.
+            final int emitStart = charOffsetForCodePoint(text, codePointPos - keywordCodePoints + 1);
+            final int emitEnd = emitStart + keywordUtf16CharCount(payload.getKeyword()) - 1;
+            final PayloadEmit<T> payloadEmit = new PayloadEmit<>(emitStart, emitEnd,
+                    payload.getKeyword(), payload.getData());
             if (!(trieConfig.isOnlyWholeWords() && isPartialMatch(text, payloadEmit)) &&
                     !(trieConfig.isOnlyWholeWordsWhiteSpaceSeparated() && isPartialMatchWhiteSpaceSeparated(text, payloadEmit))) {
                 emitted = emitHandler.emit(payloadEmit) || emitted;
@@ -299,6 +362,34 @@ public class PayloadTrie<T> {
         }
 
         return emitted;
+    }
+
+    /**
+     * Count the number of Unicode code points (not UTF-16 chars) in a string.
+     */
+    private int keywordCodePointCount(final String s) {
+        return s.codePointCount(0, s.length());
+    }
+
+    /**
+     * Return the UTF-16 char count of a string (standard String.length()).
+     */
+    private int keywordUtf16CharCount(final String s) {
+        return s.length();
+    }
+
+    /**
+     * Convert a code-point-index (Nth code point from the start of the text)
+     * to a UTF-16 char offset.
+     */
+    private int charOffsetForCodePoint(final CharSequence text, final int codePointIndex) {
+        int charOffset = 0;
+        for (int i = 0; i < codePointIndex && i < text.length(); ) {
+            final int cp = text.codePointAt(i);
+            charOffset += Character.charCount(cp);
+            i += Character.charCount(cp);
+        }
+        return charOffset;
     }
 
     private boolean isCaseInsensitive() {
@@ -322,7 +413,7 @@ public class PayloadTrie<T> {
     /**
      * Builder class to create a PayloadTrie instance.
      *
-     * @param <T> The type of the emitted payload.
+     * @param <T> The type of the supplied of the payload.
      */
     public static class PayloadTrieBuilder<T> {
 
